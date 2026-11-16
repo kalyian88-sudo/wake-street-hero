@@ -163,8 +163,23 @@ class GradePass extends Pass {
   }
 }
 
-/** UnrealBloomPass whose mip chain starts at a fraction of the frame size. */
+/**
+ * UnrealBloomPass whose mip chain starts at a fraction of the frame size. The bright-pass is patched
+ * with a soft knee and a ceiling: a HalfFloat sun disc can reach Inf, which the blur would smear
+ * into black squares.
+ */
 class ScaledBloomPass extends UnrealBloomPass {
+  constructor(strength: number, radius: number, threshold: number) {
+    super(new Vector2(256, 256), strength, radius, threshold);
+    const mat = this.materialHighPassFilter;
+    mat.fragmentShader = mat.fragmentShader.replace(
+      'vec4 texel = texture2D( tDiffuse, vUv );',
+      'vec4 texel = min( texture2D( tDiffuse, vUv ), vec4( 32.0 ) );',
+    );
+    mat.uniforms.smoothWidth.value = 0.35;
+    mat.needsUpdate = true;
+  }
+
   override setSize(width: number, height: number): void {
     super.setSize(Math.max(2, Math.round(width * BLOOM_SCALE)), Math.max(2, Math.round(height * BLOOM_SCALE)));
   }
@@ -185,7 +200,7 @@ function buildChain(renderer: WebGLRenderer, target: WebGLRenderTarget | undefin
   composer.addPass(render);
   let bloomPass: ScaledBloomPass | null = null;
   if (bloom) {
-    bloomPass = new ScaledBloomPass(new Vector2(256, 256), 0.3, BLOOM_RADIUS, BLOOM_THRESHOLD);
+    bloomPass = new ScaledBloomPass(0.3, BLOOM_RADIUS, BLOOM_THRESHOLD);
     composer.addPass(bloomPass);
   }
   const grade = new GradePass();
