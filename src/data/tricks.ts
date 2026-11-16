@@ -1,8 +1,647 @@
-// STUB — replaced by the rules/data agent. Keep the export names/signatures.
-import type { TrickDef } from '../types';
+/**
+ * ТАБЛИЦА ТРЮКОВ — здесь меняются названия, очки и подсказки. Движок править не нужно.
+ * TRICK TABLE — names, points and hints live here. No engine changes needed.
+ *
+ * Поля строки / row fields:
+ *   id          — внутренний код. НЕ МЕНЯТЬ: на него ссылаются цели спотов и сохранения.
+ *   name        — название RU / EN (всплывает на экране и стоит в списке трюков).
+ *   category    — раздел списка: spin, invert, grab, flip, rail, surface, special, bonus.
+ *   boards      — на какой доске делается: 'wakeboard', 'wakeskate' или обе.
+ *   points      — базовые очки (до множителя комбо, штрафа за повтор и качества приземления).
+ *   difficulty  — сложность 1..5 (звёздочки в списке трюков).
+ *   input       — как сделать (управление из docs/PLAN.md §4.2). Кнопки: ПРЫЖОК, ТРЮК, ГРЭБ, ФЛИП.
+ *   tip         — короткий совет.
+ *   requires    — только для ИМЕННЫХ КОМБИНАЦИЙ: из чего собирается трюк. Например «Мобиус» =
+ *                 { invert: 'backroll', spin: 360 }. Очки комбинации ЗАМЕНЯЮТ очки её частей,
+ *                 а название — названия частей («Мобиус Инди», а не «360 Бэкролл Инди»).
+ *                 Поля: spin (градусы), invert (+ invertCount для даблов), grab или anyGrab
+ *                 (любой грэб), flip, takeoff ('pop' | 'kicker' | 'rail' | 'wall' | 'drop' | 'ledge').
+ *
+ * Чтобы добавить комбинацию — скопируй любую строку из блока «Именные комбинации», дай новый id,
+ * названия, очки и requires. Проценты и надбавки (длинный грэб, свитч, высота, метры на рейле)
+ * лежат ниже в TRICK_TUNING, слова для составных названий — в TRICK_WORDS.
+ */
+import type { L10n, RailStance, TrickDef } from '../types';
 
-export const TRICKS: TrickDef[] = [];
+export const TRICKS: TrickDef[] = [
+  // ───────────────────────────────────────────────── Вращения / Spins ──
+  {
+    id: 'spin180',
+    name: { ru: '180', en: '180' },
+    category: 'spin',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 100,
+    difficulty: 1,
+    input: { ru: 'В воздухе: ТРЮК + ← или →', en: 'In the air: TRICK + ← or →' },
+    tip: { ru: 'Приедешь в свитче — это нормально. Вернуться можно сёрфейс-180.', en: 'You land switch — that is fine. A surface 180 brings you back.' },
+  },
+  {
+    id: 'spin360',
+    name: { ru: '360', en: '360' },
+    category: 'spin',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 250,
+    difficulty: 2,
+    input: { ru: 'В воздухе: ТРЮК + ←/→ два раза (каждое нажатие +180°)', en: 'In the air: TRICK + ←/→ twice (each press adds 180°)' },
+    tip: { ru: 'Жми второй раз сразу, пока летишь вверх — иначе не докрутишь.', en: 'Hit the second press on the way up or you will come up short.' },
+  },
+  {
+    id: 'spin540',
+    name: { ru: '540', en: '540' },
+    category: 'spin',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 450,
+    difficulty: 3,
+    input: { ru: 'В воздухе: ТРЮК + ←/→ три раза', en: 'In the air: TRICK + ←/→ three times' },
+    tip: { ru: 'Нужен нормальный вылет: заряди канат до конца или бери кикер.', en: 'Needs real airtime: load the rope fully or take a kicker.' },
+  },
+  {
+    id: 'spin720',
+    name: { ru: '720', en: '720' },
+    category: 'spin',
+    boards: ['wakeboard'],
+    points: 800,
+    difficulty: 4,
+    input: { ru: 'В воздухе: ТРЮК + ←/→ четыре раза', en: 'In the air: TRICK + ←/→ four times' },
+    tip: { ru: 'Только с кикера. Держи ПРЫЖОК до самого края — улетишь выше.', en: 'Kicker only. Hold JUMP all the way to the lip for extra height.' },
+  },
+  {
+    id: 'spin900',
+    name: { ru: '900', en: '900' },
+    category: 'spin',
+    boards: ['wakeboard'],
+    points: 1300,
+    difficulty: 5,
+    input: { ru: 'В воздухе: ТРЮК + ←/→ пять раз', en: 'In the air: TRICK + ←/→ five times' },
+    tip: { ru: 'Быстрая лебёдка, большой кикер и режим HERO — так докрутить проще.', en: 'Fast winch, big kicker and HERO mode make it a lot easier.' },
+  },
+  {
+    id: 'spin1080',
+    name: { ru: '1080', en: '1080' },
+    category: 'spin',
+    boards: ['wakeboard'],
+    points: 2000,
+    difficulty: 5,
+    input: { ru: 'В воздухе: ТРЮК + ←/→ шесть раз', en: 'In the air: TRICK + ←/→ six times' },
+    tip: { ru: 'Три полных оборота. Доска на вращение и самый высокий вылет на споте.', en: 'Three full rotations. Bring a spin board and the biggest air on the spot.' },
+  },
+
+  // ──────────────────────────────────────── Инверты / Inverts (вейкборд) ──
+  {
+    id: 'backroll',
+    name: { ru: 'Бэкролл', en: 'Backroll' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 500,
+    difficulty: 2,
+    input: { ru: 'В воздухе: ТРЮК + ↑', en: 'In the air: TRICK + ↑' },
+    tip: { ru: 'Первый инверт. Приземлишься раньше, чем докрутишь, — падение.', en: 'Your first invert. Touch down before it is finished and you are swimming.' },
+  },
+  {
+    id: 'frontroll',
+    name: { ru: 'Фронтролл', en: 'Frontroll' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 550,
+    difficulty: 3,
+    input: { ru: 'В воздухе: ТРЮК + ↓', en: 'In the air: TRICK + ↓' },
+    tip: { ru: 'Крутится чуть дольше бэкролла — бери вылет с запасом.', en: 'Rotates a touch slower than a backroll — give it more air.' },
+  },
+  {
+    id: 'tantrum',
+    name: { ru: 'Тантрум', en: 'Tantrum' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 500,
+    difficulty: 2,
+    input: { ru: 'С кикера: ТРЮК + ↑ (бэкролл с кикера называется тантрум)', en: 'Off a kicker: TRICK + ↑ (a backroll off a kicker is called a Tantrum)' },
+    tip: { ru: 'Кикер сам закидывает тебя назад. Держи ПРЫЖОК на заезде.', en: 'The kicker throws you back by itself. Hold JUMP on the way in.' },
+  },
+  {
+    id: 'raley',
+    name: { ru: 'Рэйли', en: 'Raley' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 400,
+    difficulty: 2,
+    input: { ru: 'В воздухе: держи ТРЮК от 0,25 с, стик в центре', en: 'In the air: hold TRICK for 0.25 s or longer, stick neutral' },
+    tip: { ru: 'Тело вытягивается за хендлом, доска над головой. Отпусти ТРЮК заранее, чтобы собраться.', en: 'Body stretched out behind the handle, board above your head. Let go of TRICK early to tuck back in.' },
+  },
+  {
+    id: 'backrollDouble',
+    name: { ru: 'Дабл бэкролл', en: 'Double Backroll' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 1300,
+    difficulty: 5,
+    input: { ru: 'В воздухе: ТРЮК + ↑ два раза', en: 'In the air: TRICK + ↑ twice' },
+    requires: { invert: 'backroll', invertCount: 2 },
+  },
+  {
+    id: 'frontrollDouble',
+    name: { ru: 'Дабл фронтролл', en: 'Double Frontroll' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 1430,
+    difficulty: 5,
+    input: { ru: 'В воздухе: ТРЮК + ↓ два раза', en: 'In the air: TRICK + ↓ twice' },
+    requires: { invert: 'frontroll', invertCount: 2 },
+  },
+  {
+    id: 'tantrumDouble',
+    name: { ru: 'Дабл тантрум', en: 'Double Tantrum' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 1300,
+    difficulty: 5,
+    input: { ru: 'С кикера: ТРЮК + ↑ два раза', en: 'Off a kicker: TRICK + ↑ twice' },
+    requires: { invert: 'tantrum', invertCount: 2 },
+  },
+
+  // ───────────────────────────────────────────── Грэбы / Grabs (вейкборд) ──
+  {
+    id: 'indy',
+    name: { ru: 'Инди', en: 'Indy' },
+    category: 'grab',
+    boards: ['wakeboard'],
+    points: 150,
+    difficulty: 1,
+    input: { ru: 'В воздухе: держи ГРЭБ, стик в центре', en: 'In the air: hold GRAB, stick neutral' },
+    tip: { ru: 'Чем дольше держишь, тем больше очков. Отпусти до приземления!', en: 'The longer you hold, the more it pays. Let go before you land!' },
+  },
+  {
+    id: 'melon',
+    name: { ru: 'Мелон', en: 'Melon' },
+    category: 'grab',
+    boards: ['wakeboard'],
+    points: 170,
+    difficulty: 1,
+    input: { ru: 'В воздухе: держи ГРЭБ + ←', en: 'In the air: hold GRAB + ←' },
+  },
+  {
+    id: 'mute',
+    name: { ru: 'Мьют', en: 'Mute' },
+    category: 'grab',
+    boards: ['wakeboard'],
+    points: 180,
+    difficulty: 2,
+    input: { ru: 'В воздухе: держи ГРЭБ + →', en: 'In the air: hold GRAB + →' },
+  },
+  {
+    id: 'nose',
+    name: { ru: 'Ноуз', en: 'Nose' },
+    category: 'grab',
+    boards: ['wakeboard'],
+    points: 200,
+    difficulty: 2,
+    input: { ru: 'В воздухе: держи ГРЭБ + ↑', en: 'In the air: hold GRAB + ↑' },
+  },
+  {
+    id: 'tail',
+    name: { ru: 'Тейл', en: 'Tail' },
+    category: 'grab',
+    boards: ['wakeboard'],
+    points: 200,
+    difficulty: 2,
+    input: { ru: 'В воздухе: держи ГРЭБ + ↓', en: 'In the air: hold GRAB + ↓' },
+  },
+  {
+    id: 'stalefish',
+    name: { ru: 'Стейлфиш', en: 'Stalefish' },
+    category: 'grab',
+    boards: ['wakeboard'],
+    points: 250,
+    difficulty: 3,
+    input: { ru: 'В воздухе: держи ГРЭБ + ↓ и в сторону', en: 'In the air: hold GRAB + ↓ and to the side' },
+    tip: { ru: 'Самый дорогой грэб — задняя рука за спиной.', en: 'The priciest grab — back hand reaching behind you.' },
+  },
+
+  // ─────────────────────────────────────── Флипы / Flips (вейкскейт) ──
+  {
+    id: 'ollie',
+    name: { ru: 'Олли', en: 'Ollie' },
+    category: 'flip',
+    boards: ['wakeskate'],
+    points: 40,
+    difficulty: 1,
+    input: { ru: 'На воде: держи ПРЫЖОК — заряд, отпусти — поп', en: 'On the water: hold JUMP to load, release to pop' },
+    tip: { ru: 'База всего. Сам по себе комбо не продлевает.', en: 'The base of everything. Does not extend a combo by itself.' },
+  },
+  {
+    id: 'boneless',
+    name: { ru: 'Бонлесс', en: 'Boneless' },
+    category: 'flip',
+    boards: ['wakeskate'],
+    points: 150,
+    difficulty: 1,
+    input: { ru: 'На воде: держи ФЛИП и отпусти ПРЫЖОК', en: 'On the water: hold FLIP while releasing JUMP' },
+    tip: { ru: 'Толчок ногой от воды — вылет чуть выше обычного попа.', en: 'A planted foot off the water — a bit more air than a normal pop.' },
+  },
+  {
+    id: 'shuvit',
+    name: { ru: 'Шоув-ит', en: 'Shuvit' },
+    category: 'flip',
+    boards: ['wakeskate'],
+    points: 200,
+    difficulty: 2,
+    input: { ru: 'В воздухе: ФЛИП, стик в центре. Потом поймай доску: ФЛИП или ПРЫЖОК ещё раз', en: 'In the air: FLIP, stick neutral. Then catch the board: FLIP or JUMP again' },
+    tip: { ru: 'Лови, когда доска довернулась под ноги. Не поймал — доска улетела.', en: 'Catch when the board comes round under your feet. Miss it and the board is gone.' },
+  },
+  {
+    id: 'fsShuvit',
+    name: { ru: 'FS шоув-ит', en: 'FS Shuvit' },
+    category: 'flip',
+    boards: ['wakeskate'],
+    points: 220,
+    difficulty: 2,
+    input: { ru: 'В воздухе из свитча: ФЛИП, стик в центре. Потом поймай доску', en: 'In the air from switch: FLIP, stick neutral. Then catch the board' },
+  },
+  {
+    id: 'kickflip',
+    name: { ru: 'Кикфлип', en: 'Kickflip' },
+    category: 'flip',
+    boards: ['wakeskate'],
+    points: 300,
+    difficulty: 3,
+    input: { ru: 'В воздухе: ФЛИП + ←. Потом поймай доску: ФЛИП или ПРЫЖОК ещё раз', en: 'In the air: FLIP + ←. Then catch the board: FLIP or JUMP again' },
+  },
+  {
+    id: 'heelflip',
+    name: { ru: 'Хилфлип', en: 'Heelflip' },
+    category: 'flip',
+    boards: ['wakeskate'],
+    points: 320,
+    difficulty: 3,
+    input: { ru: 'В воздухе: ФЛИП + →. Потом поймай доску: ФЛИП или ПРЫЖОК ещё раз', en: 'In the air: FLIP + →. Then catch the board: FLIP or JUMP again' },
+  },
+  {
+    id: 'impossible',
+    name: { ru: 'Импоссибл', en: 'Impossible' },
+    category: 'flip',
+    boards: ['wakeskate'],
+    points: 550,
+    difficulty: 4,
+    input: { ru: 'В воздухе: ФЛИП + ↑. Потом поймай доску: ФЛИП или ПРЫЖОК ещё раз', en: 'In the air: FLIP + ↑. Then catch the board: FLIP or JUMP again' },
+    tip: { ru: 'Доска оборачивается вокруг задней ноги — окно ловли короткое.', en: 'The board wraps around your back foot — the catch window is short.' },
+  },
+  {
+    id: 'treflip',
+    name: { ru: '360 флип', en: '360 Flip' },
+    category: 'flip',
+    boards: ['wakeskate'],
+    points: 650,
+    difficulty: 4,
+    input: { ru: 'В воздухе: ФЛИП + ↓. Потом поймай доску: ФЛИП или ПРЫЖОК ещё раз', en: 'In the air: FLIP + ↓. Then catch the board: FLIP or JUMP again' },
+    tip: { ru: 'Кикфлип и шоув-ит разом. Самый дорогой флип.', en: 'A kickflip and a shuvit in one. The top-paying flip.' },
+  },
+  {
+    id: 'bigspin',
+    name: { ru: 'Бигспин', en: 'Bigspin' },
+    category: 'flip',
+    boards: ['wakeskate'],
+    points: 450,
+    difficulty: 3,
+    input: { ru: 'В воздухе: ФЛИП (шоув-ит) и ТРЮК + ←/→ — 180 телом в ту же сторону', en: 'In the air: FLIP (shuvit) plus TRICK + ←/→ — a body 180 the same way' },
+    requires: { flip: 'shuvit', spin: 180 },
+  },
+
+  // ───────────────────────────────────────────────────── Рейлы / Rails ──
+  {
+    id: 'rail.fifty',
+    name: { ru: '50-50', en: '50-50' },
+    category: 'rail',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 100,
+    difficulty: 1,
+    input: { ru: 'Запрыгни на рейл и держи баланс стиком ←/→', en: 'Pop onto the rail and balance with the stick ←/→' },
+    tip: { ru: 'Маркер ушёл в край полоски — упал. Очки капают за каждый метр.', en: 'Marker hits the end of the bar — you are off. Every metre pays.' },
+  },
+  {
+    id: 'rail.boardslide',
+    name: { ru: 'Бордслайд', en: 'Boardslide' },
+    category: 'rail',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 200,
+    difficulty: 2,
+    input: { ru: 'На рейле: ТРЮК + ←', en: 'On the rail: TRICK + ←' },
+    tip: { ru: 'Доска поперёк рейла. Метр стоит дороже, чем в 50-50.', en: 'Board across the rail. Each metre is worth more than in a 50-50.' },
+  },
+  {
+    id: 'rail.lipslide',
+    name: { ru: 'Липслайд', en: 'Lipslide' },
+    category: 'rail',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 220,
+    difficulty: 3,
+    input: { ru: 'На рейле: ТРЮК + →', en: 'On the rail: TRICK + →' },
+  },
+  {
+    id: 'rail.nosepress',
+    name: { ru: 'Ноуз-пресс', en: 'Nose Press' },
+    category: 'rail',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 120,
+    difficulty: 3,
+    input: { ru: 'На рейле: держи ГРЭБ + ↑', en: 'On the rail: hold GRAB + ↑' },
+    tip: { ru: 'Пресс добавляет до +50% к очкам рейла, но баланс держать сложнее.', en: 'A press adds up to +50% to the rail score, but balance gets harder.' },
+  },
+  {
+    id: 'rail.tailpress',
+    name: { ru: 'Тейл-пресс', en: 'Tail Press' },
+    category: 'rail',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 120,
+    difficulty: 3,
+    input: { ru: 'На рейле: держи ГРЭБ + ↓', en: 'On the rail: hold GRAB + ↓' },
+  },
+
+  // ─────────────────────────────── Вода и особые / Surface & special ──
+  {
+    id: 'surface180',
+    name: { ru: 'Сёрфейс 180', en: 'Surface 180' },
+    category: 'surface',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 50,
+    difficulty: 1,
+    input: { ru: 'На воде: ТРЮК + ←/→', en: 'On the water: TRICK + ←/→' },
+    tip: { ru: 'Связка между фигурами: держит комбо живым и возвращает из свитча.', en: 'The link between features: keeps a combo alive and gets you out of switch.' },
+  },
+  {
+    id: 'shifty',
+    name: { ru: 'Шифти', en: 'Shifty' },
+    category: 'special',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 80,
+    difficulty: 1,
+    input: { ru: 'В воздухе: коротко нажми ТРЮК, стик в центре', en: 'In the air: tap TRICK, stick neutral' },
+  },
+  {
+    id: 'wallride',
+    name: { ru: 'Валлрайд', en: 'Wallride' },
+    category: 'special',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 300,
+    difficulty: 3,
+    input: { ru: 'Заедь на стену канала под углом. ПРЫЖОК — соскок', en: 'Ride up the canal wall at an angle. JUMP pops you off' },
+    tip: { ru: 'Чем дольше едешь по стене, тем больше очков. С соскока можно сделать трюк.', en: 'The longer you stay on the wall the more it pays. You can trick off the pop.' },
+  },
+  {
+    id: 'air',
+    name: { ru: 'Эйр', en: 'Air' },
+    category: 'special',
+    boards: ['wakeboard'],
+    points: 30,
+    difficulty: 1,
+    input: { ru: 'Держи ПРЫЖОК — заряд, отпусти — поп. Держишь на кикере — летишь выше', en: 'Hold JUMP to load, release to pop. Hold it into a kicker lip to go higher' },
+    tip: { ru: 'Просто вылет без трюка. Комбо не продлевает.', en: 'Just air, no trick. Does not extend a combo.' },
+  },
+
+  // ───────────────── Именные комбинации / Named combinations (вейкборд) ──
+  {
+    id: 'rollToRevert',
+    name: { ru: 'Ролл ту реверт', en: 'Roll to Revert' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 700,
+    difficulty: 3,
+    input: { ru: 'В воздухе: ТРЮК + ↑, затем ТРЮК + ←/→ (бэкролл + 180)', en: 'In the air: TRICK + ↑, then TRICK + ←/→ (backroll + 180)' },
+    requires: { invert: 'backroll', spin: 180 },
+  },
+  {
+    id: 'mobe',
+    name: { ru: 'Мобиус', en: 'Mobe' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 950,
+    difficulty: 4,
+    input: { ru: 'В воздухе: ТРЮК + ↑, затем ТРЮК + ←/→ два раза (бэкролл + 360)', en: 'In the air: TRICK + ↑, then TRICK + ←/→ twice (backroll + 360)' },
+    tip: { ru: 'Бэкролл с полным оборотом. С грэбом — ещё дороже.', en: 'A backroll with a full twist. Add a grab to make it count.' },
+    requires: { invert: 'backroll', spin: 360 },
+  },
+  {
+    id: 'mobe5',
+    name: { ru: 'Мобиус 5', en: 'Mobe 5' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 1300,
+    difficulty: 5,
+    input: { ru: 'В воздухе: ТРЮК + ↑, затем ТРЮК + ←/→ три раза (бэкролл + 540)', en: 'In the air: TRICK + ↑, then TRICK + ←/→ three times (backroll + 540)' },
+    requires: { invert: 'backroll', spin: 540 },
+  },
+  {
+    id: 'scarecrow',
+    name: { ru: 'Скейркроу', en: 'Scarecrow' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 750,
+    difficulty: 3,
+    input: { ru: 'В воздухе: ТРЮК + ↓, затем ТРЮК + ←/→ (фронтролл + 180)', en: 'In the air: TRICK + ↓, then TRICK + ←/→ (frontroll + 180)' },
+    requires: { invert: 'frontroll', spin: 180 },
+  },
+  {
+    id: 'crowMobe',
+    name: { ru: 'Кроу мобиус', en: 'Crow Mobe' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 1000,
+    difficulty: 4,
+    input: { ru: 'В воздухе: ТРЮК + ↓, затем ТРЮК + ←/→ два раза (фронтролл + 360)', en: 'In the air: TRICK + ↓, then TRICK + ←/→ twice (frontroll + 360)' },
+    requires: { invert: 'frontroll', spin: 360 },
+  },
+  {
+    id: 'tantrumToFakie',
+    name: { ru: 'Тантрум ту фейки', en: 'Tantrum to Fakie' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 700,
+    difficulty: 3,
+    input: { ru: 'С кикера: ТРЮК + ↑, затем ТРЮК + ←/→ (тантрум + 180)', en: 'Off a kicker: TRICK + ↑, then TRICK + ←/→ (tantrum + 180)' },
+    requires: { invert: 'tantrum', spin: 180 },
+  },
+  {
+    id: 'whirlybird',
+    name: { ru: 'Вирлибёрд', en: 'Whirlybird' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 950,
+    difficulty: 4,
+    input: { ru: 'С кикера: ТРЮК + ↑, затем ТРЮК + ←/→ два раза (тантрум + 360)', en: 'Off a kicker: TRICK + ↑, then TRICK + ←/→ twice (tantrum + 360)' },
+    requires: { invert: 'tantrum', spin: 360 },
+  },
+  {
+    id: 'whirly5',
+    name: { ru: 'Вирлибёрд 5', en: 'Whirlybird 5' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 1300,
+    difficulty: 5,
+    input: { ru: 'С кикера: ТРЮК + ↑, затем ТРЮК + ←/→ три раза (тантрум + 540)', en: 'Off a kicker: TRICK + ↑, then TRICK + ←/→ three times (tantrum + 540)' },
+    requires: { invert: 'tantrum', spin: 540 },
+  },
+  {
+    id: 'hoochie',
+    name: { ru: 'Хучи-глайд', en: 'Hoochie Glide' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 650,
+    difficulty: 3,
+    input: { ru: 'В воздухе: держи ТРЮК (рэйли) и зажми ГРЭБ — любой', en: 'In the air: hold TRICK (raley) and hold GRAB — any grab' },
+    tip: { ru: 'Рэйли с грэбом. Отпусти обе кнопки до воды.', en: 'A raley with a grab. Let go of both buttons before the water.' },
+    requires: { invert: 'raley', anyGrab: true },
+  },
+  {
+    id: 'blindJudge',
+    name: { ru: 'Блайнд джадж', en: 'Blind Judge' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 650,
+    difficulty: 3,
+    input: { ru: 'В воздухе: держи ТРЮК (рэйли), затем ТРЮК + ←/→ (рэйли + 180)', en: 'In the air: hold TRICK (raley), then TRICK + ←/→ (raley + 180)' },
+    requires: { invert: 'raley', spin: 180 },
+  },
+  {
+    id: 'raley313',
+    name: { ru: '313', en: '313' },
+    category: 'invert',
+    boards: ['wakeboard'],
+    points: 900,
+    difficulty: 4,
+    input: { ru: 'В воздухе: держи ТРЮК (рэйли), затем ТРЮК + ←/→ два раза (рэйли + 360)', en: 'In the air: hold TRICK (raley), then TRICK + ←/→ twice (raley + 360)' },
+    requires: { invert: 'raley', spin: 360 },
+  },
+
+  // ───────────────────────────────────────────────── Бонусы / Bonuses ──
+  // У бонусов с points: 0 надбавка считается в процентах — см. TRICK_TUNING ниже.
+  {
+    id: 'switch',
+    name: { ru: 'Свитч', en: 'Switch' },
+    category: 'bonus',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 0,
+    difficulty: 2,
+    input: { ru: 'Заходи на трюк в свитче (после 180 или сёрфейс-180)', en: 'Go into the trick riding switch (after a 180 or a surface 180)' },
+    tip: { ru: '+20% к трюку за вылет из свитча.', en: '+20% on the trick for taking off switch.' },
+  },
+  {
+    id: 'handlePass',
+    name: { ru: 'Хендл-пасс', en: 'Handle Pass' },
+    category: 'bonus',
+    boards: ['wakeboard'],
+    points: 150,
+    difficulty: 3,
+    input: { ru: 'Вейкборд: спин от 360 — хендл уходит за спину сам', en: 'Wakeboard: spins of 360 and up — the handle goes behind your back by itself' },
+  },
+  {
+    id: 'bigAir',
+    name: { ru: 'Амплитуда', en: 'Big Air' },
+    category: 'bonus',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 0,
+    difficulty: 2,
+    input: { ru: 'Сделай трюк на большой высоте: заряд до конца, кикер, быстрая лебёдка', en: 'Do the trick high up: full load, a kicker, a fast winch' },
+    tip: { ru: 'До +45% к трюку за высоту и время в воздухе.', en: 'Up to +45% on the trick for height and hang time.' },
+  },
+  {
+    id: 'gap',
+    name: { ru: 'Гэп', en: 'Gap' },
+    category: 'bonus',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 0,
+    difficulty: 2,
+    input: { ru: 'Перелети отмеченный гэп: с воды на воду над бетоном', en: 'Clear a marked gap: water to water over the concrete' },
+    tip: { ru: 'Очки за гэп свои на каждом споте — смотри карточку спота.', en: 'Every spot sets its own gap points — check the spot card.' },
+  },
+  {
+    id: 'popOut',
+    name: { ru: 'С соскока', en: 'Pop-Out' },
+    category: 'bonus',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 120,
+    difficulty: 3,
+    input: { ru: 'На рейле: ПРЫЖОК — соскок, и сразу трюк в воздухе', en: 'On a rail: JUMP to pop off, then trick straight away' },
+  },
+  {
+    id: 'wallOut',
+    name: { ru: 'Со стены', en: 'Off the Wall' },
+    category: 'bonus',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 180,
+    difficulty: 4,
+    input: { ru: 'На валлрайде: ПРЫЖОК — соскок, и сразу трюк в воздухе', en: 'On a wallride: JUMP to pop off, then trick straight away' },
+  },
+];
+
+/** Слова, из которых собираются составные названия («Свитч BS 360 Инди», «180 в Бордслайд 6,5 м»). */
+export const TRICK_WORDS = {
+  switch: { ru: 'Свитч', en: 'Switch' },
+  fs: { ru: 'FS', en: 'FS' },
+  bs: { ru: 'BS', en: 'BS' },
+  double: { ru: 'Дабл', en: 'Double' },
+  triple: { ru: 'Трипл', en: 'Triple' },
+  /** Spin INTO a rail / wall: «180 в 50-50». */
+  into: { ru: 'в', en: 'to' },
+  /** Between rail stances: «50-50 → Бордслайд». */
+  then: { ru: '→', en: '→' },
+  /** Between several grabs in one air: «Инди + Мьют». */
+  and: { ru: '+', en: '+' },
+  overGap: { ru: 'через гэп', en: 'over the Gap' },
+  metres: { ru: 'м', en: 'm' },
+  /** Lines of the points breakdown that are not rows of the table. */
+  stack: { ru: 'Связка', en: 'Stack' },
+  switchLanding: { ru: 'Выезд в свитче', en: 'Landed Switch' },
+  distance: { ru: 'Дистанция', en: 'Distance' },
+  press: { ru: 'Пресс', en: 'Press' },
+  wallTime: { ru: 'Время на стене', en: 'Wall Time' },
+} satisfies Record<string, L10n>;
+
+/** Надбавки и проценты. Меняй числа — логика подхватит. */
+export const TRICK_TUNING = {
+  /** Длинный грэб: до +60% к очкам грэба, если держать grabHoldFull секунд. */
+  grabHoldBonus: 0.6,
+  grabHoldFull: 1.0,
+  /** Множитель очков инверта за количество оборотов: 1, дабл, трипл (если для дабла нет своей строки в таблице). */
+  invertCount: [1, 2.6, 4.5],
+  /** То же для флипов вейкскейта (дабл-кикфлип и т.п.). */
+  flipCount: [1, 2.2, 3.6],
+  /** Надбавка за связку разных элементов в одном вылете: 2 элемента +10%, 3 — +25%, 4 и больше — +40%. */
+  stack: [0, 0, 0.1, 0.25, 0.4],
+  /** Вылет из свитча / приземление в свитч. */
+  switchTakeoff: 0.2,
+  switchLanding: 0.1,
+  /** Амплитуда: от heightFrom до heightFull метров набегает до +30%, за время в воздухе — ещё до +15%. */
+  heightFrom: 1.5,
+  heightFull: 4.5,
+  heightBonus: 0.3,
+  airTimeFrom: 0.9,
+  airTimeFull: 2.2,
+  airTimeBonus: 0.15,
+  /** Каждые 180° сверх самого большого спина в таблице. */
+  spinExtraPer180: 800,
+  /** Простой вылет без трюка: очки за метр высоты и потолок. */
+  airPerMetre: 30,
+  airMax: 150,
+  /** Рейлы: очки за метр в каждой стойке. */
+  railPerMetre: { fifty: 40, boardslide: 60, lipslide: 60, nosepress: 50, tailpress: 50 } satisfies Record<RailStance, number>,
+  /** Тип фигуры: перила сложнее, толстая труба проще. */
+  railKind: { rail: 1, ledge: 0.9, pipe: 0.8, handrail: 1.25 },
+  /** Пресс: до +50% к очкам рейла, если держать pressFull секунд. */
+  pressBonus: 0.5,
+  pressFull: 1.0,
+  /** Валлрайд: очки за секунду на стене (не дольше wallMaxTime). */
+  wallPerSecond: 250,
+  wallMaxTime: 3,
+  /** Пороги очков для «уровня» трюка 2, 3, 4, 5 (размер всплывающей надписи, реакция зрителей, повтор). */
+  tiers: [250, 600, 1100, 1900],
+};
+
+/**
+ * Флипы, которые складываются в один: кикфлип + шоув-ит за один вылет считается как 360 флип.
+ * `into` — id строки таблицы.
+ */
+export const FLIP_MERGES: { parts: [string, string]; into: string }[] = [{ parts: ['kickflip', 'shuvit'], into: 'treflip' }];
+
+const BY_ID = new Map<string, TrickDef>(TRICKS.map((t) => [t.id, t]));
 
 export function getTrick(id: string): TrickDef | undefined {
-  return TRICKS.find((t) => t.id === id);
+  return BY_ID.get(id) ?? TRICKS.find((t) => t.id === id);
 }

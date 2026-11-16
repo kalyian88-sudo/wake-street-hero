@@ -250,6 +250,8 @@ export interface TrickRecord {
   height: number;
   /** Obstacle involved (kicker / rail / ledge / wall id). */
   obstacleId?: string;
+  /** Wakeskate: the pop was a Boneless (FLIP held while releasing JUMP). */
+  boneless?: boolean;
 }
 
 export interface TrickPart {
@@ -269,6 +271,11 @@ export interface ResolvedTrick {
   parts: TrickPart[];
   /** 1..5 — drives popup size, crowd reaction, replay worthiness. */
   tier: number;
+  /**
+   * Number of scoring elements in this trick (spin, invert, flip, each grab, rail stance…) = how much the combo
+   * multiplier grows. 0 = filler (plain air / ollie): points only, no multiplier, no combo-window restart. Default 1.
+   */
+  elements?: number;
 }
 
 export interface ScoreState {
@@ -288,6 +295,8 @@ export interface ScoreState {
   tricksLanded: number;
   falls: number;
   hero: { meter: number; ready: boolean; active: boolean; timeLeft: number };
+  /** Trick table id → times landed in this run (every id in ResolvedTrick.ids is counted). */
+  trickCounts?: Record<string, number>;
 }
 
 export interface IScoreKeeper {

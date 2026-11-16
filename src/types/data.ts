@@ -414,6 +414,8 @@ export interface TrickDef {
     invert?: InvertId;
     invertCount?: number;
     grab?: GrabId;
+    /** Matches ANY grab (e.g. Hoochie Glide = raley + a grab). Ignored when `grab` is set. */
+    anyGrab?: boolean;
     flip?: FlipId;
     takeoff?: string;
     rail?: RailStance;
@@ -497,4 +499,6 @@ export interface RunResult {
   newRecord: boolean;
   /** Stars on this spot after the run (0..5). */
   stars: number;
+  /** Trick table id → times landed in this run (copied from ScoreState.trickCounts; feeds save.stats.tricksLanded). */
+  trickCounts?: Record<string, number>;
 }
