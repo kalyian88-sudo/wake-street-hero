@@ -52,6 +52,7 @@ export class SettingsScreen extends Screen {
       ],
       s.quality,
       (v) => this.change((d) => (d.settings.quality = v)),
+      'wn-seg--tight',
     );
 
     const volume = (key: 'musicVolume' | 'sfxVolume', aria: string): HTMLElement => {

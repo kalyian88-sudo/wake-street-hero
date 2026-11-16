@@ -62,8 +62,8 @@ export function riderAvatar(a: RiderAppearance, equipped: EquippedGear): HTMLEle
   const limb = wetsuit ? suit : skin;
   const hairParts = headwear === 'helmet' ? { back: a.hair === 'long' || a.hair === 'ponytail' ? hair(a.hair, hex(a.hairColor), shade(a.hairColor, -0.25), female).back : '', front: '' } : hair(a.hair, hex(a.hairColor), shade(a.hairColor, -0.25), female);
 
-  const torso = `M${100 - sh} 104Q100 94 ${100 + sh} 104L${100 + waist} 166Q${100 + waist} 180 ${100 + hip} 188H${100 - hip}Q${100 - waist} 180 ${100 - waist} 166Z`;
-  const vestPath = `M${100 - sh + 5} 101Q100 92 ${100 + sh - 5} 101L${100 + waist + 2} 163H${100 - waist - 2}Z`;
+  const torso = `M${100 - sh} 104Q100 94 ${100 + sh} 104L${100 + waist} 152Q${100 + waist} 164 ${100 + hip} 172H${100 - hip}Q${100 - waist} 164 ${100 - waist} 152Z`;
+  const vestPath = `M${100 - sh + 5} 101Q100 92 ${100 + sh - 5} 101L${100 + waist + 2} 150H${100 - waist - 2}Z`;
   const deck = boardGear ? hex(boardGear.look.primary) : '#e30613';
 
   const svg =
@@ -71,17 +71,17 @@ export function riderAvatar(a: RiderAppearance, equipped: EquippedGear): HTMLEle
     `<ellipse cx="100" cy="276" rx="88" ry="10" fill="rgba(0,0,0,.4)"/>` +
     `<rect x="14" y="258" width="172" height="15" rx="7.5" fill="${deck}"/><rect x="14" y="258" width="172" height="5" rx="2.5" fill="rgba(255,255,255,.22)"/>` +
     // legs
-    `<rect x="${100 - hip + 2}" y="182" width="24" height="78" rx="11" fill="${limb}"/><rect x="${100 + hip - 26}" y="182" width="24" height="78" rx="11" fill="${limb}"/>` +
-    (wetsuit ? '' : `<path d="M${100 - hip} 178h${hip * 2}l4 44h-${hip + 2}l-4-20-4 20h-${hip + 2}z" fill="${suit}"/>`) +
+    `<rect x="${100 - hip + 1}" y="164" width="25" height="96" rx="11" fill="${limb}"/><rect x="${100 + hip - 26}" y="164" width="25" height="96" rx="11" fill="${limb}"/>` +
+    (wetsuit ? '' : `<path d="M${100 - hip} 162h${hip * 2}l3 48h-${hip + 1}l-2-24-2 24h-${hip + 1}z" fill="${suit}"/>`) +
     `<rect x="${100 - hip - 4}" y="244" width="34" height="18" rx="7" fill="#17181c"/><rect x="${100 + hip - 30}" y="244" width="34" height="18" rx="7" fill="#17181c"/>` +
     // arms
-    `<rect x="${100 - sh - 15}" y="103" width="19" height="84" rx="9.5" fill="${limb}" transform="rotate(7 ${100 - sh - 5} 105)"/>` +
-    `<rect x="${100 + sh - 4}" y="103" width="19" height="84" rx="9.5" fill="${limb}" transform="rotate(-7 ${100 + sh + 5} 105)"/>` +
+    `<rect x="${100 - sh - 15}" y="103" width="19" height="78" rx="9.5" fill="${limb}" transform="rotate(7 ${100 - sh - 5} 105)"/>` +
+    `<rect x="${100 + sh - 4}" y="103" width="19" height="78" rx="9.5" fill="${limb}" transform="rotate(-7 ${100 + sh + 5} 105)"/>` +
     (wetsuit ? '' : `<rect x="${100 - sh - 15}" y="103" width="19" height="34" rx="9.5" fill="${top}" transform="rotate(7 ${100 - sh - 5} 105)"/><rect x="${100 + sh - 4}" y="103" width="19" height="34" rx="9.5" fill="${top}" transform="rotate(-7 ${100 + sh + 5} 105)"/>`) +
     // torso
     `<path d="${torso}" fill="${top}"/>` +
     (vestOn
-      ? `<path d="${vestPath}" fill="${hex(vestColor)}"/><path d="M100 97v63" stroke="rgba(0,0,0,.35)" stroke-width="2.5"/><rect x="106" y="118" width="14" height="6" rx="2" fill="rgba(255,255,255,.85)"/>`
+      ? `<path d="${vestPath}" fill="${hex(vestColor)}"/><path d="M100 97v53" stroke="rgba(0,0,0,.35)" stroke-width="2.5"/><rect x="106" y="114" width="14" height="6" rx="2" fill="rgba(255,255,255,.85)"/>`
       : '') +
     // head
     hairParts.back +

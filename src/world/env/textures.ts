@@ -18,6 +18,25 @@ function toByte(v: number): number {
   return v <= 0 ? 0 : v >= 1 ? 255 : Math.round(v * 255);
 }
 
+/**
+ * Histogram-equalise a field in place to a flat 0..1 distribution, so that "noise > 1 − coverage"
+ * really covers `coverage` of the surface (foam thresholds behave predictably).
+ */
+export function equalize(f: Float32Array): void {
+  const [lo, hi] = fieldRange(f);
+  const bins = 2048;
+  const scale = (bins - 1) / (hi - lo || 1);
+  const hist = new Uint32Array(bins);
+  for (let i = 0; i < f.length; i++) hist[Math.floor((f[i] - lo) * scale)]++;
+  const cdf = new Float32Array(bins);
+  let acc = 0;
+  for (let b = 0; b < bins; b++) {
+    acc += hist[b];
+    cdf[b] = acc / f.length;
+  }
+  for (let i = 0; i < f.length; i++) f[i] = cdf[Math.floor((f[i] - lo) * scale)];
+}
+
 /** Pure generator (headless, unit-tested). */
 export function generateWaveData(size: number): Uint8Array {
   const n = size;
@@ -55,13 +74,13 @@ export function generateWaveData(size: number): Uint8Array {
   const blot = spectralNoise(n, 0xb107, (_kx, _ky, k) => (k < 28 ? k ** -1.6 : 0));
   const foam = new Float32Array(n * n);
   for (let i = 0; i < foam.length; i++) foam[i] = 0.62 * w1[i] ** 1.5 + 0.34 * w2[i] ** 1.3 + 0.07 * blot[i];
-  const [flo, fhi] = fieldRange(foam);
+  equalize(foam);
 
   const out = new Uint8Array(n * n * 4);
   for (let i = 0; i < n * n; i++) {
     out[i * 4] = toByte(0.5 + 0.5 * sx[i] * slopeScale);
     out[i * 4 + 1] = toByte(0.5 + 0.5 * sy[i] * slopeScale);
-    out[i * 4 + 2] = toByte((foam[i] - flo) / (fhi - flo));
+    out[i * 4 + 2] = toByte(foam[i]);
     out[i * 4 + 3] = toByte(0.5 + h[i] * 0.18);
   }
   return out;

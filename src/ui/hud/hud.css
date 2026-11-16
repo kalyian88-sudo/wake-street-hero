@@ -719,6 +719,9 @@
   transform-origin: 50% 100%;
   scale: var(--big);
 }
+.wsh-speed {
+  transition: opacity 0.2s;
+}
 .wsh-speed > * {
   flex: none;
 }
@@ -844,14 +847,18 @@
     align-items: flex-start;
     gap: 14px;
   }
+  /* the rider fills more of a short screen: the bar goes below the board, the coach to the bottom edge */
   .wsh-balance {
-    top: 45%;
+    top: 73%;
   }
   .wsh-coach {
-    left: 26%;
-    right: 38%;
-    bottom: calc(50px + var(--sab));
+    left: 25%;
+    right: 37%;
+    bottom: calc(8px + var(--sab));
     align-items: center;
+  }
+  .wsh-hud.has-coach .wsh-speed {
+    opacity: 0;
   }
   .wsh-coach-text {
     border-radius: 10px;

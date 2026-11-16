@@ -133,7 +133,7 @@ export const TRACKS: readonly TrackDef[] = [
     lofi: 5200,
     wobble: 1,
     duck: 0.45,
-    gain: 1,
+    gain: 0.94,
     kit: {
       kick: { f0: 150, f1: 50, pitchTau: 0.03, ampTau: 0.16, click: 0.15, drive: 1.6, len: 0.5 },
       snare: { tone: 190, toneAmt: 0.5, noiseF: 2200, noiseQ: 0.8, tau: 0.085, lp: 5200, drive: 1.3, len: 0.32 },
@@ -196,7 +196,7 @@ export const TRACKS: readonly TrackDef[] = [
     lofi: 6500,
     wobble: 0.6,
     duck: 0.5,
-    gain: 1,
+    gain: 0.76,
     kit: {
       kick: { f0: 170, f1: 55, pitchTau: 0.022, ampTau: 0.13, click: 0.35, drive: 2.4, len: 0.42 },
       snare: { tone: 210, toneAmt: 0.8, noiseF: 2600, noiseQ: 0.7, tau: 0.1, lp: 7500, drive: 1.8, len: 0.34 },
@@ -262,7 +262,7 @@ export const TRACKS: readonly TrackDef[] = [
     lofi: 8000,
     wobble: 0.3,
     duck: 0.55,
-    gain: 1,
+    gain: 0.82,
     kit: {
       kick: { f0: 130, f1: 44, pitchTau: 0.045, ampTau: 0.28, click: 0.2, drive: 2.8, len: 0.8 },
       snare: { tone: 230, toneAmt: 0.45, noiseF: 3400, noiseQ: 0.7, tau: 0.07, lp: 9000, drive: 1.5, len: 0.28 },
@@ -334,7 +334,7 @@ export const TRACKS: readonly TrackDef[] = [
     lofi: 6800,
     wobble: 0.6,
     duck: 0.3,
-    gain: 1,
+    gain: 0.99,
     kit: {
       kick: { f0: 120, f1: 52, pitchTau: 0.03, ampTau: 0.12, click: 0.1, drive: 1.3, len: 0.4 },
       snare: { tone: 200, toneAmt: 0.25, noiseF: 3000, noiseQ: 0.5, tau: 0.06, lp: 6000, drive: 1.1, len: 0.25 },
@@ -400,7 +400,7 @@ export const TRACKS: readonly TrackDef[] = [
     lofi: 9500,
     wobble: 0.25,
     duck: 0.65,
-    gain: 1,
+    gain: 0.65,
     kit: {
       kick: { f0: 160, f1: 47, pitchTau: 0.028, ampTau: 0.2, click: 0.3, drive: 2.2, len: 0.6 },
       snare: { tone: 220, toneAmt: 0.4, noiseF: 4000, noiseQ: 0.6, tau: 0.08, lp: 10000, drive: 1.4, len: 0.3 },

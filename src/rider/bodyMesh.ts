@@ -137,7 +137,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
   }
 
   // ── neck (+ hood / collar) ──
-  const neckR = (P.female ? 0.043 : 0.052) * (suit ? 1.04 : 1);
+  const neckR = (P.female ? 0.046 : 0.055) * (suit ? 1.04 : 1);
   b.bone(B.neck).color(skin);
   sw(SWATCH.skin);
   b.at(0, P.neckY - 0.03 * s, -0.004).capsule(0.115 * s, neckR * 1.08, neckR * 0.96, { radial: 10, capSeg: 1 });
@@ -167,8 +167,8 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
       // short tee sleeve
       b.color(topC);
       sw(SWATCH.cloth);
-      const r0 = 0.062 * g;
-      const len = P.uarm * 0.46;
+      const r0 = 0.0585 * g;
+      const len = P.uarm * 0.4;
       b.loft(
         [
           { y: -r0 * 0.72, rx: r0 * 0.7, rz: r0 * 0.7 },
@@ -209,7 +209,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     sw(wet ? SWATCH.rubber : SWATCH.skin);
     _a.set(x, P.hipY, 0);
     _b.set(x, P.kneeY, 0);
-    b.segment(_a, _b, FRONT).capsule(P.thigh, 0.09 * g + fat, 0.057 * g + fat, { radial: 10, sz: 1.06, mid: [[0.42, 0.079 * g + fat]] });
+    b.segment(_a, _b, FRONT).capsule(P.thigh, 0.096 * g + fat, 0.063 * g + fat, { radial: 10, sz: 1.06, mid: [[0.42, 0.088 * g + fat]] });
     if (!wet) {
       // board-shorts leg: loose tube, open hem
       b.color(0xffffff);
@@ -233,14 +233,14 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     _b.set(x, P.ankleY, 0);
     b.segment(_a, _b, FRONT);
     const calf: Ring[] = [
-      ...capsuleRings(0, 0.056 * g + fat, 0.056 * g + fat, 1, 1, 2).slice(0, 2),
-      { y: P.shin * 0.14, rx: 0.056 * g + fat, rz: 0.058 * g + fat, oz: -0.004 },
-      { y: P.shin * 0.34, rx: 0.054 * g + fat, rz: 0.058 * g + fat, oz: -0.012 },
-      { y: P.shin * 0.62, rx: 0.044 * g + fat, rz: 0.046 * g + fat, oz: -0.007 },
-      { y: P.shin, rx: 0.037 * g + fat, rz: 0.039 * g + fat },
+      ...capsuleRings(0, 0.062 * g + fat, 0.062 * g + fat, 1, 1, 2).slice(0, 2),
+      { y: P.shin * 0.14, rx: 0.062 * g + fat, rz: 0.064 * g + fat, oz: -0.004 },
+      { y: P.shin * 0.34, rx: 0.064 * g + fat, rz: 0.069 * g + fat, oz: -0.015 },
+      { y: P.shin * 0.62, rx: 0.052 * g + fat, rz: 0.054 * g + fat, oz: -0.008 },
+      { y: P.shin, rx: 0.041 * g + fat, rz: 0.043 * g + fat },
       { y: P.shin + 0.026 * g, rx: 0.027 * g, rz: 0.028 * g },
     ];
-    b.loft(calf, { radial: 10, capStart: -(0.056 * g + fat), capEnd: P.shin + 0.038 * g });
+    b.loft(calf, { radial: 10, capStart: -(0.062 * g + fat), capEnd: P.shin + 0.038 * g });
 
     // bare foot (toes peek out of the open-toe boots)
     b.bone(L ? B.footL : B.footR);

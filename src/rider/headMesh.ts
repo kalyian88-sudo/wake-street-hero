@@ -42,11 +42,11 @@ export function buildHead(o: Outfit, P: Proportions): HeadBuild {
   /** Point on the head surface along unit direction d (from the skull centre), pushed out by `extra`. */
   const headPoint = (d: Vector3, extra: number, out: Vector3): Vector3 => {
     const t = d.y < 0 ? -d.y : 0;
-    const rx = RX * (1 - 0.3 * Math.pow(t, 1.5));
-    const rz = RZ * (1 - 0.1 * t);
+    const rx = RX * (1 - 0.24 * Math.pow(t, 2));
+    const rz = RZ * (1 - 0.08 * t);
     const rho = 1 / Math.sqrt((d.x * d.x) / (rx * rx) + (d.y * d.y) / (RY * RY) + (d.z * d.z) / (rz * rz));
     out.copy(d).multiplyScalar(rho + extra);
-    out.z += 0.016 * t * t * (d.z > 0 ? 1 : 0.3) - (d.y > 0 ? 0.005 * d.y : 0);
+    out.z += 0.012 * t * t * (d.z > 0 ? 1 : 0.3) - (d.y > 0 ? 0.005 * d.y : 0);
     return out;
   };
 
@@ -88,16 +88,16 @@ export function buildHead(o: Outfit, P: Proportions): HeadBuild {
   // ── nose + ears ──
   b.color(o.skin);
   sw(SWATCH.skin);
-  _a.set(0, cy + 0.006, RZ - 0.012);
-  _b.set(0, cy - 0.034, RZ + 0.013);
+  _a.set(0, cy + 0.012, RZ - 0.016);
+  _b.set(0, cy - 0.03, RZ - 0.001);
   b.segment(_a, _b, FRONT).loft(
     [
-      { y: 0, rx: 0.008, rz: 0.008 },
-      { y: 0.02, rx: 0.011, rz: 0.011 },
-      { y: 0.04, rx: 0.016, rz: 0.014 },
-      { y: 0.048, rx: 0.014, rz: 0.011 },
+      { y: 0, rx: 0.007, rz: 0.008 },
+      { y: 0.02, rx: 0.009, rz: 0.01 },
+      { y: 0.036, rx: 0.0135, rz: 0.012 },
+      { y: 0.043, rx: 0.012, rz: 0.009 },
     ],
-    { radial: 8, capStart: -0.006, capEnd: 0.054 },
+    { radial: 8, capStart: -0.006, capEnd: 0.048 },
   );
   if (o.headwear !== 'helmet') {
     for (const s of [1, -1]) {
@@ -124,6 +124,7 @@ function shell(
   rings: number,
   thickness: (d: Vector3, ring: number) => number,
   opts: LoftOpts = {},
+  earDrop = 0,
 ): void {
   const c = Math.cos(tilt);
   const s = Math.sin(tilt);
@@ -137,6 +138,14 @@ function shell(
       const z = _d.y * s + _d.z * c;
       _d.y = y;
       _d.z = z;
+      if (earDrop > 0 && ring < 3) {
+        // pull the rim down over the ears (sides, slightly behind the middle)
+        const ax = Math.min(1, Math.abs(_d.x) * 1.1);
+        const win = 1 - Math.min(1, Math.max(0, (Math.abs(_d.z + 0.1) - 0.3) / 0.4));
+        const side = ax * ax * (3 - 2 * ax) * win * win * (3 - 2 * win);
+        _d.y -= earDrop * side * (1 - ring / 3.4);
+        _d.normalize();
+      }
       headPoint(_d, thickness(_d, ring), p);
     },
   });
@@ -268,27 +277,23 @@ function buildHelmet(b: MeshBuilder, o: Outfit, P: Proportions, cy: number, head
     rings,
     (d, ring) => {
       const side = Math.abs(d.x);
-      const base = 0.017 + 0.004 * side;
-      return ring === 0 ? base - 0.012 : base;
+      const base = 0.021 + 0.003 * side;
+      return ring === 0 ? base - 0.014 : base;
     },
     {
       radial: 16,
       wrap,
       vOf: (_r, i, n) => Math.max(0, (i - 1) / (n - 2)),
     },
+    0.55,
   );
-  // ear guards: padded flaps continuing the shell over the ears
-  const guard = contrast(look.primary, look.secondary);
-  const uv = swatchUV(SWATCH.semi);
-  b.color(guard).uv(uv[0], uv[1]);
-  for (const s of [1, -1]) {
-    b.at(s * (P.headRx + 0.008), cy - 0.036, -0.006).roundBox(0.011, 0.046, 0.04, { radial: 8, n: 2.6, round: 0.03 });
-  }
   // chin strap
   const uvS = swatchUV(SWATCH.cloth);
   b.color(0x121315).uv(uvS[0], uvS[1]);
+  const uvS0 = swatchUV(SWATCH.cloth);
+  void uvS0;
   const chin: [number, number, number][] = [
-    [P.headRx + 0.006, cy - 0.07, 0.0],
+    [P.headRx + 0.004, cy - 0.066, -0.004],
     [P.headRx * 0.72, cy - 0.108, 0.03],
     [0, cy - 0.124, 0.045],
   ];

@@ -35,7 +35,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.92;
+renderer.toneMappingExposure = 0.8;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.autoClear = false;
@@ -44,7 +44,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9fc4dc);
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.environmentIntensity = 0.55;
+scene.environmentIntensity = 0.45;
 const sun = new THREE.DirectionalLight(0xfff0dc, 3.0);
 sun.position.set(-4.5, 7, 3.5);
 sun.castShadow = true;
@@ -417,6 +417,8 @@ const CAMS: Record<string, { pos: [number, number, number]; look: [number, numbe
   top: { pos: [0.01, 5.2, 0.2], look: [0, 0.4, 0] },
   low: { pos: [-2.6, 0.25, 2.6], look: [0, 0.9, 0] },
   face: { pos: [-1.05, 1.52, 0.5], look: [0, 1.42, 0.05], fov: 24 },
+  portrait: { pos: [-1.5, 1.6, 0.45], look: [0, 1.5, 0], fov: 22 },
+  bust: { pos: [-2.1, 1.45, 0.7], look: [0, 1.25, 0], fov: 26 },
   wide: { pos: [-5.2, 2.2, 4.6], look: [0, 0.8, 0] },
 };
 
@@ -440,7 +442,8 @@ function frame(state: RiderSimState, o: PoseOpts, name: string): void {
   camera.position.set(focus.x + px, focus.y + cam.pos[1], focus.z + pz);
   camera.fov = cam.fov ?? 36;
   const bodyY = (chest.y - state.pos.y) * 0.5 + cam.look[1] * 0.5;
-  camera.lookAt(focus.x + cam.look[0], focus.y + Math.max(0.35, bodyY) - (state.pos.y > 0.3 ? 0.25 : 0), focus.z + cam.look[2]);
+  const fixed = o.cam === 'portrait' || o.cam === 'bust' || o.cam === 'face';
+  camera.lookAt(focus.x + cam.look[0], focus.y + (fixed ? cam.look[1] : Math.max(0.35, bodyY) - (state.pos.y > 0.3 ? 0.25 : 0)), focus.z + cam.look[2]);
   sun.target.position.copy(focus);
   sun.position.set(focus.x - 4.5, focus.y + 7, focus.z + 3.5);
   // props

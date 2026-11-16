@@ -501,12 +501,13 @@
 }
 
 .wn-results__rewards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
   opacity: 0;
-  transform: translate3d(0, 14px, 0);
-  transition: opacity 0.4s, transform 0.5s var(--ease);
+  transform: translate3d(0, 12px, 0) scale(0.94);
+  transition: opacity 0.35s, transform 0.5s var(--ease);
 }
 
 .wn-results__rewards.is-in {
@@ -518,13 +519,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0;
-  padding: 11px 12px;
-  border-radius: var(--r-md);
-  background: rgba(255, 255, 255, 0.055);
-  box-shadow: inset 0 0 0 1px var(--line);
+  min-height: 44px;
+  padding: 0 14px 0 10px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 0 1px var(--line-2);
   font-size: 12.5px;
-  color: var(--text-3);
+  color: var(--text-2);
+  white-space: nowrap;
 }
 
 .wn-reward > .wn-coin {
@@ -545,48 +547,52 @@
 }
 
 .wn-reward b {
-  font-size: 23px;
+  font-size: 22px;
   color: #fff;
+  padding-right: 2px;
 }
 
-.wn-reward--level {
-  grid-column: 1 / -1;
+.wn-results__level {
   position: relative;
+  display: flex;
   flex-direction: column;
-  align-items: stretch;
   gap: 9px;
+  padding: 12px 14px 13px;
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 12.5px;
 }
 
-.wn-reward__lv {
+.wn-results__lv {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
 }
 
-.wn-reward__lv .wn-hd {
+.wn-results__lv .wn-hd {
   font-size: 17px;
-  color: #fff;
 }
 
-.wn-reward--level .wn-bar i {
+.wn-results__level .wn-bar i {
   background: linear-gradient(90deg, var(--red-lo), var(--red-hi));
   transform: scaleX(var(--from, 0));
   transition: transform 1.1s var(--ease) 0.35s;
 }
 
-.wn-results__rewards.is-in .wn-bar i {
+.wn-results__level.is-in .wn-bar i {
   transform: scaleX(var(--to, 0));
 }
 
-.wn-reward__up {
+.wn-results__up {
   position: absolute;
   top: -10px;
-  right: 10px;
+  right: 12px;
   opacity: 0;
 }
 
-.wn-results__rewards.is-in .wn-reward__up {
+.wn-results__level.is-in .wn-results__up {
   animation: wn-star-pop 0.5s var(--ease) 0.7s both;
 }
 
@@ -624,7 +630,7 @@
   transition: none !important;
 }
 
-.wn-results.is-instant .wn-reward__up {
+.wn-results.is-instant .wn-results__up {
   opacity: 1;
 }
 
@@ -722,8 +728,10 @@
 }
 
 .wn-pause__pair .wn-btn {
-  padding: 0 10px;
-  font-size: 17px;
+  padding: 0 8px;
+  font-size: 15.5px;
+  letter-spacing: 0.02em;
+  gap: 7px;
 }
 
 @media (min-aspect-ratio: 1/1) and (max-height: 520px) {

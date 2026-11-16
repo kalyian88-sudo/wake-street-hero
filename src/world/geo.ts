@@ -615,6 +615,41 @@ export class GB {
     return this;
   }
 
+  /** Point the normals of vertices since `fromVertex` away from a centre (soft canopy shading). */
+  normalsFrom(fromVertex: number, cx: number, cy: number, cz: number, upBias = 0): this {
+    for (let i = fromVertex; i < this.count; i++) {
+      const x = this.pos[i * 3] - cx;
+      const y = this.pos[i * 3 + 1] - cy + upBias;
+      const z = this.pos[i * 3 + 2] - cz;
+      const l = Math.hypot(x, y, z) || 1;
+      this.nor[i * 3] = x / l;
+      this.nor[i * 3 + 1] = y / l;
+      this.nor[i * 3 + 2] = z / l;
+    }
+    return this;
+  }
+  /** Rewrite the UVs of vertices since `fromVertex`. */
+  remapUV(fromVertex: number, fn: (u: number, v: number, out: [number, number]) => void): this {
+    const o: [number, number] = [0, 0];
+    for (let i = fromVertex; i < this.count; i++) {
+      fn(this.uv[i * 2], this.uv[i * 2 + 1], o);
+      this.uv[i * 2] = o[0];
+      this.uv[i * 2 + 1] = o[1];
+    }
+    return this;
+  }
+  /** Move vertices since `fromVertex` (positions are already in builder space). */
+  displace(fromVertex: number, fn: (x: number, y: number, z: number, out: [number, number, number]) => void): this {
+    const o: [number, number, number] = [0, 0, 0];
+    for (let i = fromVertex; i < this.count; i++) {
+      fn(this.pos[i * 3], this.pos[i * 3 + 1], this.pos[i * 3 + 2], o);
+      this.pos[i * 3] = o[0];
+      this.pos[i * 3 + 1] = o[1];
+      this.pos[i * 3 + 2] = o[2];
+    }
+    return this;
+  }
+
   get empty(): boolean {
     return this.idx.length === 0;
   }

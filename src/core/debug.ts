@@ -42,6 +42,7 @@ export class DebugOverlay {
   private fpsOnly = false;
   private acc = 1;
   private collapsed = false;
+  private timeScale = 1;
 
   constructor(
     parent: HTMLElement,
@@ -65,9 +66,9 @@ export class DebugOverlay {
     this.addToggle('core.debug.freecam', 'freecam', () => host.toggleFreeCam());
     this.addAction('core.debug.cycleQuality', 'quality', () => void host.cycleQuality());
     this.addAction('core.debug.time', 'time', (b) => {
-      const s = host.cycleTimeScale();
-      b.textContent = `${t('core.debug.time')} ×${s}`;
-      b.style.background = s === 1 ? BTN_OFF : BTN_ON;
+      this.timeScale = host.cycleTimeScale();
+      b.textContent = this.timeLabel();
+      b.style.background = this.timeScale === 1 ? BTN_OFF : BTN_ON;
     });
     this.addAction('core.debug.unlock', 'unlock', () => host.unlockAll());
     this.addAction('core.debug.restart', 'restart', () => host.restartRun());
@@ -83,6 +84,10 @@ export class DebugOverlay {
     for (const type of ['pointerdown', 'touchstart', 'mousedown'] as const) {
       this.panel.addEventListener(type, (e) => e.stopPropagation());
     }
+  }
+
+  private timeLabel(): string {
+    return this.timeScale === 1 ? t('core.debug.time') : `${t('core.debug.time')} ×${this.timeScale}`;
   }
 
   private makeButton(key: string, id: string): HTMLButtonElement {
@@ -120,7 +125,8 @@ export class DebugOverlay {
   /** Language changed: re-label the buttons. */
   relabel(): void {
     for (const b of Array.from(this.buttons.children) as HTMLElement[]) {
-      if (b.dataset.key && b.dataset.debug !== 'time') b.textContent = t(b.dataset.key);
+      if (b.dataset.debug === 'time') b.textContent = this.timeLabel();
+      else if (b.dataset.key) b.textContent = t(b.dataset.key);
     }
   }
 

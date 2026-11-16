@@ -605,6 +605,12 @@
   white-space: nowrap;
 }
 
+@media (max-width: 520px) {
+  .wn-shop__level {
+    display: none;
+  }
+}
+
 .wn-shop__scroll {
   flex: 1;
   min-height: 0;

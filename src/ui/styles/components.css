@@ -248,6 +248,12 @@
   box-shadow: 0 4px 14px rgba(227, 6, 19, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
+.wn-seg--tight .wn-seg__item {
+  padding: 0 3px;
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+}
+
 .wn-seg--quiet .wn-seg__item.is-on {
   color: var(--darker);
   background: #fff;
@@ -257,8 +263,8 @@
 /* ── tabs ── */
 .wn-tabs {
   display: flex;
-  gap: 4px;
-  padding: 0 var(--pad);
+  gap: 2px;
+  padding: 0 calc(var(--pad) - 7px);
   overflow-x: auto;
   overflow-y: hidden;
   touch-action: pan-x;
@@ -276,10 +282,10 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 0 13px;
+  padding: 0 9px;
   font-weight: 800;
-  font-size: 16px;
-  letter-spacing: 0.05em;
+  font-size: 15px;
+  letter-spacing: 0.03em;
   color: var(--text-3);
   white-space: nowrap;
   transition: color 0.16s;
@@ -288,8 +294,8 @@
 .wn-tabs__item::after {
   content: '';
   position: absolute;
-  left: 10px;
-  right: 10px;
+  left: 7px;
+  right: 7px;
   bottom: 0;
   height: 3px;
   background: var(--red);

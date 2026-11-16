@@ -1,7 +1,7 @@
 /**
  * Shared state of one spot build: batchers, material library, terrain queries, per-frame updaters.
  */
-import type { Material, Object3D } from 'three';
+import type { BufferGeometry, Material, Object3D } from 'three';
 import type { FoamShape, QualityProfile, SpotDef } from '../types';
 import type { InstanceBatcher, StaticBatcher } from './batch';
 import type { MaterialLibrary } from './materials';
@@ -19,6 +19,8 @@ export interface BuildCtx {
   /** Parent of every unbatched object. */
   dynamic: Object3D;
   updaters: Updater[];
+  /** Per-build cache of shared geometries (instanced props). */
+  shared: Map<string, BufferGeometry>;
   /** Outlines of things standing in the water (→ IWater.setFoamShapes). */
   foam: FoamShape[];
   mat(key: string, opts?: Record<string, unknown>): Material;

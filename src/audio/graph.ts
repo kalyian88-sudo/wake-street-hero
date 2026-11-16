@@ -22,7 +22,7 @@ export const MIX = {
   master: 0.94,
   /** Bus trims at slider = 1. */
   sfx: 1,
-  music: 0.6,
+  music: 0.7,
   /** Pause-menu ducking of the music: gain and low-pass cutoff. */
   duckGain: 0.3,
   duckCutoff: 650,

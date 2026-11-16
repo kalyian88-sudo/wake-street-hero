@@ -139,7 +139,7 @@ function paintFace(ctx: Ctx, rctx: Ctx, o: Outfit): void {
   }
 
   const eyeY = 236;
-  const eyeDX = 76;
+  const eyeDX = 78;
   const brow = shade(mix(o.hairColor, 0x20140e, 0.45), -0.15);
   for (const s of [-1, 1]) {
     const ex = cx + s * eyeDX;
@@ -152,6 +152,7 @@ function paintFace(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     // eye white (almond)
     ctx.save();
     ctx.translate(ex, eyeY);
+    ctx.scale(1.16, 1.2);
     ctx.beginPath();
     ctx.moveTo(-27, 2);
     ctx.quadraticCurveTo(-4 * s, -21, 27, 0);
@@ -209,10 +210,10 @@ function paintFace(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     // eyebrow: tapered stroke, slightly raised outside
     ctx.strokeStyle = css(brow);
     ctx.lineCap = 'round';
-    ctx.lineWidth = o.female ? 6.5 : 10;
+    ctx.lineWidth = o.female ? 7 : 12;
     ctx.beginPath();
-    ctx.moveTo(ex - s * 30, eyeY - 38);
-    ctx.quadraticCurveTo(ex + s * 2, eyeY - (o.female ? 54 : 50), ex + s * 36, eyeY - 40);
+    ctx.moveTo(ex - s * 32, eyeY - 40);
+    ctx.quadraticCurveTo(ex + s * 2, eyeY - (o.female ? 58 : 54), ex + s * 40, eyeY - 43);
     ctx.stroke();
   }
 
@@ -404,7 +405,6 @@ function paintTorso(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     }
   }
   // fake AO: under the arms and into the crotch
-  softShade(ctx, -128, 60, 256, 300, 0);
   for (const x of [0, 256, 512]) {
     const g = ctx.createRadialGradient(x, 150, 6, x, 150, 90);
     g.addColorStop(0, 'rgba(0,0,0,0.28)');
@@ -633,7 +633,7 @@ function paintHeadwear(ctx: Ctx, rctx: Ctx, o: Outfit): void {
       }
     }
     // ear guards (sides) with hearing holes
-    const guard = contrast(look.primary, look.secondary);
+    const guard = luma(look.primary) > 0.45 ? shade(mix(look.primary, look.secondary, 0.35), -0.12) : shade(mix(look.primary, look.secondary, 0.35), 0.16);
     ctx.fillStyle = css(guard);
     for (const x of [0, 256, 512]) {
       ctx.beginPath();

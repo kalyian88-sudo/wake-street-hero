@@ -146,8 +146,10 @@ export class RunSession {
         this.replay.addTrick({ time: e.time, awarded: e.awarded, name: e.trick.name, tier: e.trick.tier, id: e.trick.id });
       }),
       bus.on('sim:pop', (e) => this.markFx('pop', e.pos.x, e.pos.y, e.pos.z, 0.25 + 0.5 * e.power, e.surface === 'water')),
-      bus.on('sim:land', (e) => this.markFx('land', e.pos.x, e.pos.y, e.pos.z, Math.min(1, 0.25 + e.impact / 10), e.onto === 'water')),
-      bus.on('sim:bail', (e) => this.markFx('bail', e.pos.x, e.pos.y, e.pos.z, 0.6 + 0.4 * e.intensity, e.surface === 'water')),
+      bus.on('sim:land', (e) =>
+        this.markFx('land', e.pos.x, e.pos.y, e.pos.z, Math.min(1, Math.max(0.15, e.impact / 9)), e.onto === 'water' || e.surface === 'water'),
+      ),
+      bus.on('sim:bail', (e) => this.markFx('bail', e.pos.x, e.pos.y, e.pos.z, 0.7 + 0.3 * e.intensity, e.surface === 'water')),
     );
 
     loaded.world.setWinchPoint(winch.id);

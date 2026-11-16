@@ -114,7 +114,7 @@ void main() {
 	vec2 slope = vec2( gA.x * 0.9744 + gA.y * 0.2250, gA.y * 0.9744 - gA.x * 0.2250 )
 		+ vec2( gB.x * 0.5446 - gB.y * 0.8387, gB.x * 0.8387 + gB.y * 0.5446 ) * 0.62;
 	float height = sA.a * 0.62 + sB.a * 0.38 - 0.5;
-	float noise = clamp( ( sA.b * 0.56 + sB.b * 0.44 ) * 1.9 - 0.2, 0.0, 1.0 );
+	float noise = sA.b * 0.56 + sB.b * 0.44;
 	#if WATER_DETAIL >= 2
 		// micro chop: only matters close to the camera, the mip chain fades it out by itself
 		vec2 uvC = vec2( p.x * 0.8910 + p.y * 0.4540, p.y * 0.8910 - p.x * 0.4540 ) * 0.83 + uTime * vec2( 0.07, - 0.05 );
@@ -136,7 +136,7 @@ void main() {
 		float w = ( r - rp.z ) / ( 0.2 + 0.09 * rp.z );
 		float e = exp( - w * w );
 		slope -= ( d / max( r, 0.001 ) ) * ( e * sin( w * 2.6 ) * rp.w );
-		ringFoam += e * uRippleFoam[ i ];
+		ringFoam += e * e * e * uRippleFoam[ i ];
 	}
 
 	vec3 N = normalize( vec3( - slope.x, 1.0, - slope.y ) );
@@ -206,8 +206,8 @@ void main() {
 	float cover = band * ( 0.6 + 0.4 * lap );
 	float drift = fract( uTime * 0.11 + sA.b * 0.3 );
 	cover += smoothstep( 0.18, 0.0, abs( dm - ( 0.45 + drift * 1.2 ) ) ) * smoothstep( 0.0, 0.2, drift ) * ( 1.0 - drift ) * 0.55;
-	cover = cover * vDeep.a + ringFoam;
-	float foam = smoothstep( 1.0 - cover * 1.1, 1.26 - cover * 1.1, noise );
+	cover = min( cover * vDeep.a + ringFoam * 0.6, 0.86 );
+	float foam = smoothstep( 1.0 - cover, 1.2 - cover, noise );
 	vec3 foamCol = ( uAmbient * 1.2 + uSunLight * ( sunUp * 0.4 * sh ) ) * vec3( 0.94, 0.97, 1.0 );
 	col = mix( col, foamCol, foam * 0.92 );
 
@@ -289,7 +289,7 @@ void main() {
 	vec2 p = vWorld.xz;
 	float n1 = texture2D( tWaves, p * 0.47 + vec2( uTime * 0.02, 0.0 ) ).b;
 	float n2 = texture2D( tWaves, vec2( p.y, - p.x ) * 1.31 + vec2( 0.0, uTime * 0.035 ) ).b;
-	float n = clamp( ( n1 * 0.55 + n2 * 0.45 ) * 1.9 - 0.2, 0.0, 1.0 );
+	float n = n1 * 0.55 + n2 * 0.45;
 
 	// churned white water straight behind the board: narrow, dense, gone in about a second
 	float coreW = 0.2 + 0.42 * ( 1.0 - exp( - t * 2.2 ) );
@@ -302,8 +302,8 @@ void main() {
 	arm *= 1.0 + 0.6 * clamp( - vLean * sign( vWake.x ), - 1.0, 1.0 );
 	// lacy leftovers between the arms
 	float lace = ( 1.0 - smoothstep( 0.0, halfW * 0.9, ad ) ) * exp( - t * 0.9 ) * 0.34;
-	float cover = clamp( ( core * 0.95 + arm * 0.85 + lace ) * S, 0.0, 0.92 );
-	float foam = smoothstep( 1.0 - cover, 1.22 - cover, n );
+	float cover = clamp( ( core * 0.9 + arm * 0.8 + lace ) * S, 0.0, 0.86 );
+	float foam = smoothstep( 1.0 - cover, 1.2 - cover, n );
 
 	// aerated, flattened water inside the V + the wave itself: bright crest, dark trough behind it
 	float life = 1.0 - smoothstep( WAKE_LIFE * 0.6, WAKE_LIFE, t );

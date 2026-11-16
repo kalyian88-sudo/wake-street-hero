@@ -14,8 +14,8 @@ import { TRACKS, findTrack } from './tracks';
 export interface CheckRow {
   group: 'sfx' | 'layer' | 'music' | 'mix';
   name: string;
-  /** What `value` is: a peak or an RMS level, in dBFS. */
-  metric: 'peak' | 'rms';
+  /** What `value` is: a peak or RMS level in dBFS, or K-weighted loudness in LUFS. */
+  metric: 'peak' | 'rms' | 'lufs';
   value: number;
   target: number | null;
   /** Allowed deviation from the target (dB). */
@@ -153,7 +153,7 @@ export const LAYER_SCENES: readonly LayerScene[] = [
   {
     name: 'hero drone + heartbeat',
     solo: 'hero',
-    target: -27,
+    target: -30,
     setup: (s) => {
       riding(s, 8);
       s.hero = true;
@@ -239,7 +239,7 @@ export function renderBusyMix(seconds = 22, keep = false): Promise<OfflineResult
 }
 
 function row(group: CheckRow['group'], name: string, metric: CheckRow['metric'], result: OfflineResult, target: number | null, tol: number, extra = ''): CheckRow {
-  const value = metric === 'peak' ? result.peakDb : result.rmsDb;
+  const value = metric === 'peak' ? result.peakDb : metric === 'lufs' ? result.lufs : result.rmsDb;
   const problems: string[] = [];
   if (result.bad > 0) problems.push(`${result.bad} NaN`);
   if (result.clipped > 0) problems.push(`${result.clipped} clipped`);
@@ -279,13 +279,13 @@ export async function checkLayers(onRow?: (r: CheckRow) => void): Promise<CheckR
   return rows;
 }
 
-/** Target loudness of every track at the music bus. */
-export const TRACK_TARGET_RMS = -17;
+/** Target programme loudness (LUFS) of every track at the music bus — see TrackDef.gain. */
+export const TRACK_TARGET_LUFS = -16;
 
 export async function checkTracks(onRow?: (r: CheckRow) => void, seconds = 36): Promise<CheckRow[]> {
   const rows: CheckRow[] = [];
   for (const def of TRACKS) {
-    const r = row('music', def.id, 'rms', await renderTrack(def.id, seconds), TRACK_TARGET_RMS, 1.5);
+    const r = row('music', def.id, 'lufs', await renderTrack(def.id, seconds), TRACK_TARGET_LUFS, 1.2);
     rows.push(r);
     onRow?.(r);
   }
@@ -302,7 +302,7 @@ export async function checkMix(onRow?: (r: CheckRow) => void): Promise<CheckRow[
   push(row('mix', 'busy mix · master peak', 'peak', busy, null, 0, busy.peak > 0.975 ? 'over the clipper ceiling' : ''));
   // music alone at default volume through the master chain: this is what the player hears in menus
   const music = await renderTrack('phuket_sunset', 30, false);
-  push(row('mix', 'music alone · default volume', 'rms', music, null, 0, music.rmsDb > -20 ? 'music too hot' : music.rmsDb < -34 ? 'music inaudible' : ''));
+  push(row('mix', 'music alone · default volume', 'lufs', music, null, 0, music.lufs > -21 ? 'music too hot' : music.lufs < -32 ? 'music inaudible' : ''));
   // loudest one-shot alone through the master chain
   const bail = await renderSfx('bail.concrete', 'master');
   push(row('mix', 'bail.concrete · master peak', 'peak', bail, null, 0, bail.peakDb - music.rmsMaxDb < 8 ? 'effects not clearly above music' : ''));

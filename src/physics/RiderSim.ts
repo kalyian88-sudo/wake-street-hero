@@ -154,9 +154,12 @@ export function createRiderSim(config: SimConfig, bus: EventBus): IRiderSim {
         a.timeToLand = t;
         if (c.tricks.busy && t > SIM.slowMoCutoff) want = 1;
       }
+      // exponential ease plus a small constant step so it actually arrives at 0 / 1
       const rate = (want > s.slowMo ? SIM.slowMoIn : SIM.slowMoOut) * realDt;
       s.slowMo += (want - s.slowMo) * (rate > 1 ? 1 : rate);
-      if (s.slowMo < 1e-3) s.slowMo = 0;
+      const lin = 0.8 * realDt;
+      const rest = want - s.slowMo;
+      s.slowMo += rest > lin ? lin : rest < -lin ? -lin : rest;
     },
   };
 }

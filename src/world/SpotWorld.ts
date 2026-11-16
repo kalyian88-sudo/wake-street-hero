@@ -78,6 +78,7 @@ export async function buildSpotWorld(spot: SpotDef, ctx: WorldBuildContext): Pro
     instances: new InstanceBatcher(80),
     dynamic,
     updaters: [],
+    shared: new Map(),
     foam: [],
     mat: (key, opts) => lib.get(key, opts),
   };

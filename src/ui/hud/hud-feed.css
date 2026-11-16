@@ -651,7 +651,7 @@
 /* ══════════════════════════════════════════════════ landscape phones ══ */
 @media (orientation: landscape) and (max-height: 540px) {
   .wsh-feed {
-    top: 34%;
+    top: 36%;
   }
   .wsh-live {
     font-size: 23px;

@@ -42,7 +42,7 @@ export class Gauges {
   private coachOn = false;
 
   constructor(
-    root: HTMLElement,
+    private readonly root: HTMLElement,
     private readonly ctx: HudCtx,
   ) {
     // full-screen effects sit under every other HUD element
@@ -103,6 +103,7 @@ export class Gauges {
       this.coachText.data = text as string;
       if (changed || !this.coachOn) restart(this.coach, 'is-on');
     } else this.coach.classList.remove('is-on');
+    if (on !== this.coachOn) this.root.classList.toggle('has-coach', on);
     this.coachOn = on;
   }
 

@@ -130,7 +130,7 @@ export class ShopScreen extends Screen {
         h(
           'div',
           { class: 'wn-item__titles' },
-          h('div', { class: 'wn-item__tags' }, equipped ? tag(t('ui.shop.equipped'), 'check', 'wn-tag--red') : owned ? tag(t('ui.shop.owned'), undefined, 'wn-tag--dark') : null, item.unlockLevel && !owned ? tag(t('ui.shop.level', { level: item.unlockLevel }), block === 'level' ? 'lock' : undefined, 'wn-tag--dark') : null),
+          h('div', { class: 'wn-item__tags' }, owned && !equipped ? tag(t('ui.shop.owned'), 'check', 'wn-tag--dark') : null, item.unlockLevel && !owned ? tag(t('ui.shop.level', { level: item.unlockLevel }), block === 'level' ? 'lock' : undefined, 'wn-tag--dark') : null),
           h('h3', { class: 'wn-item__name wn-hd' }, l(item.name)),
           l(item.desc) ? h('p', { class: 'wn-item__desc' }, l(item.desc)) : null,
         ),
@@ -174,7 +174,7 @@ export class ShopScreen extends Screen {
     return h(
       'div',
       { class: 'wn-shop wn-scrim wn-scrim--solid' },
-      header({ title: t('ui.shop.title'), kicker: 'WHY NOT', onBack: () => this.ctx.back(), right: [h('span', { class: 'wn-shop__level' }, t('ui.shop.myLevel', { level })), coins(data.coins, 'wn-coins--pill')] }),
+      header({ title: t('ui.shop.title'), kicker: 'WHY NOT', onBack: () => this.ctx.back(), right: [h('span', { class: 'wn-shop__level' }, t('ui.shop.myLevel', { level })), coins(data.coins, 'wn-coins--pill')], cls: 'wn-shop__head' }),
       tabCtl.el,
       h(
         'div',

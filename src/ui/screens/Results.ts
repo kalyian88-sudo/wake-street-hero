@@ -52,7 +52,10 @@ export class ResultsScreen extends Screen {
     const fresh = this.freshStars(r);
     fresh.forEach((_, n) => this.later(STARS_AT + n * STAR_STEP, () => this.ctx.sfx('ui.star')));
     const rewardsAt = STARS_AT + fresh.length * STAR_STEP + 250;
-    this.later(rewardsAt, () => this.el.querySelector('.wn-results__rewards')?.classList.add('is-in'));
+    this.later(rewardsAt, () => {
+      this.el.querySelector('.wn-results__rewards')?.classList.add('is-in');
+      this.el.querySelector('.wn-results__level')?.classList.add('is-in');
+    });
     if (this.leveledUp(r)) this.later(rewardsAt + 600, () => this.ctx.sfx('ui.unlock'));
     if (r.newRecord) this.later(SCORE_AT + SCORE_MS, () => this.ctx.sfx('goal'));
   }
@@ -162,19 +165,21 @@ export class ResultsScreen extends Screen {
     const lvAfter = levelForRep(before + (r.rep || 0));
     const up = lvAfter.level > lvBefore.level;
     const rewards = free
+      ? null
+      : h(
+          'div',
+          { class: cx('wn-results__rewards', this.instant && 'is-in') },
+          h('div', { class: 'wn-reward' }, coinIcon(), h('b', { class: 'wn-hd' }, `+${fmt(r.coins || 0, lang)}`), h('span', null, t('ui.results.coins'))),
+          h('div', { class: 'wn-reward' }, h('span', { class: 'wn-reward__rep' }, icon('bolt')), h('b', { class: 'wn-hd' }, `+${fmt(r.rep || 0, lang)}`), h('span', null, t('ui.results.rep'))),
+        );
+    const level = free
       ? h('p', { class: 'wn-results__free' }, t('ui.results.freeNote'))
       : h(
           'div',
-          { class: cx('wn-results__rewards', this.instant && 'is-in', up && 'is-levelup') },
-          h('div', { class: 'wn-reward' }, coinIcon(), h('b', { class: 'wn-hd' }, `+${fmt(r.coins || 0, lang)}`), h('span', null, t('ui.results.coins'))),
-          h('div', { class: 'wn-reward' }, h('span', { class: 'wn-reward__rep' }, icon('bolt')), h('b', { class: 'wn-hd' }, `+${fmt(r.rep || 0, lang)}`), h('span', null, t('ui.results.rep'))),
-          h(
-            'div',
-            { class: 'wn-reward wn-reward--level' },
-            h('div', { class: 'wn-reward__lv' }, h('span', { class: 'wn-hd' }, t('ui.results.level', { level: lvAfter.level })), h('span', { class: 'wn-muted' }, t(levelTitleKey(lvAfter.level)))),
-            h('div', { class: 'wn-bar' }, h('i', { style: `--from:${up ? 0 : lvBefore.progress.toFixed(3)};--to:${lvAfter.progress.toFixed(3)}` })),
-            up ? tag(t('ui.results.levelUp'), 'crown', 'wn-tag--red wn-reward__up') : null,
-          ),
+          { class: cx('wn-results__level', this.instant && 'is-in', up && 'is-levelup') },
+          h('div', { class: 'wn-results__lv' }, h('span', { class: 'wn-hd' }, t('ui.results.level', { level: lvAfter.level })), h('span', { class: 'wn-muted' }, t(levelTitleKey(lvAfter.level)))),
+          h('div', { class: 'wn-bar' }, h('i', { style: `--from:${up ? 0 : lvBefore.progress.toFixed(3)};--to:${lvAfter.progress.toFixed(3)}` })),
+          up ? tag(t('ui.results.levelUp'), 'crown', 'wn-tag--red wn-results__up') : null,
         );
 
     const tile = (ico: IconName, label: string, onClick: (el: HTMLButtonElement) => void, opts: { disabled?: boolean; back?: boolean } = {}): HTMLButtonElement => {
@@ -205,6 +210,7 @@ export class ResultsScreen extends Screen {
             r.newRecord ? tag(t('ui.results.record'), 'trophy', 'wn-tag--red wn-results__record') : null,
           ),
           free ? null : starRow,
+          rewards,
         ),
         h(
           'div',
@@ -218,7 +224,7 @@ export class ResultsScreen extends Screen {
             metric(t('ui.results.falls'), String(r.falls || 0), 'drop'),
             metric(t('ui.results.tricks'), String(r.tricksLanded || 0), 'check'),
           ),
-          rewards,
+          level,
         ),
       ),
       h(
