@@ -1,2 +1,10 @@
-<!doctype html><html><head><meta charset="utf-8"><base href="../"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>world sandbox</title><style>html,body{margin:0;height:100%;background:#101114;overflow:hidden}canvas{display:block;width:100vw;height:100vh}#info{position:fixed;left:6px;top:6px;font:11px/1.3 monospace;color:#fff;background:rgba(16,17,20,.55);padding:4px 6px;border-radius:4px;white-space:pre;pointer-events:none}</style></head>
+<!doctype html><html><head><meta charset="utf-8"><base href="../"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>world sandbox</title>
+<script>
+// Several agents edit the code base at once: without this the shared dev server would reload the
+// sandbox in the middle of a screenshot session. ?hmr=1 turns live reload back on.
+if (new URLSearchParams(location.search).get('hmr') !== '1') {
+  window.WebSocket = class { constructor() { this.readyState = 0; } addEventListener() {} removeEventListener() {} send() {} close() {} };
+}
+</script>
+<style>html,body{margin:0;height:100%;background:#101114;overflow:hidden}canvas{display:block;width:100vw;height:100vh}#info{position:fixed;left:6px;top:6px;font:11px/1.3 monospace;color:#fff;background:rgba(16,17,20,.55);padding:4px 6px;border-radius:4px;white-space:pre;pointer-events:none}</style></head>
 <body><canvas id="c"></canvas><div id="info"></div><script type="module" src="/src/dev/world.ts"></script></body></html>

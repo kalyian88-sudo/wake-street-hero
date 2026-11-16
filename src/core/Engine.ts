@@ -145,20 +145,13 @@ export class Engine {
     this.onResize?.(w, h);
   }
 
-  /** True once after the drawing buffer was resized (a resize clears the canvas → it must be redrawn). */
-  takeResized(): boolean {
-    const r = this.resized;
-    this.resized = false;
-    return r;
-  }
 
   get aspect(): number {
     return this.width / this.height;
   }
 
-  /** Start of a frame: pending resize, reset draw-call counters. */
-  beginFrame(realDt: number): void {
-    this.frameStart = performance.now();
+  /** Once per animation frame: apply a pending resize. Returns true when the drawing buffer changed. */
+  pollSize(realDt: number): boolean {
     // Belt and braces: some mobile browsers skip resize events on rotation / URL-bar changes.
     this.sizePoll += realDt;
     if (this.sizePoll > 0.5) {
@@ -166,6 +159,14 @@ export class Engine {
       if (this.canvas.clientWidth !== this.width || this.canvas.clientHeight !== this.height) this.sizeDirty = true;
     }
     if (this.sizeDirty) this.syncSize();
+    const r = this.resized;
+    this.resized = false;
+    return r;
+  }
+
+  /** Start of a rendered frame: reset the draw-call counters, start the CPU timer. */
+  beginFrame(): void {
+    this.frameStart = performance.now();
     this.renderer.info.reset();
   }
 

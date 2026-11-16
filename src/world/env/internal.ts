@@ -43,16 +43,16 @@ export function estimateSky(def: EnvDef, zenith: Color, horizon: Color): void {
       horizon.copy(fog).multiplyScalar(0.8);
       break;
     case 'sunset':
-      zenith.setRGB(0.1, 0.16, 0.34);
-      horizon.copy(fog);
+      zenith.setRGB(0.05, 0.1, 0.24);
+      horizon.copy(fog).multiplyScalar(0.7);
       break;
     case 'golden':
-      zenith.setRGB(0.12, 0.25, 0.52);
-      horizon.copy(fog);
+      zenith.setRGB(0.05, 0.14, 0.36);
+      horizon.copy(fog).multiplyScalar(0.7);
       break;
     default:
-      zenith.setRGB(0.1, 0.27, 0.62);
-      horizon.copy(fog);
+      zenith.setRGB(0.04, 0.14, 0.4);
+      horizon.copy(fog).multiplyScalar(0.7);
   }
 }
 

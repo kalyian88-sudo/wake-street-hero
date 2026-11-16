@@ -37,6 +37,8 @@ export interface RigInput {
   /** Unit direction handle → winch anchor, root space. */
   ropeDir: Vector3;
   holding: boolean;
+  /** Preferred shoulder → bar distance (m at scale 1): long arms under load, bar pulled in for spins. */
+  armReach: number;
 }
 
 export type PreviewPose = 'idle' | 'ride' | 'grab' | 'stoked';
@@ -215,6 +217,7 @@ export class Animator {
     input.handle.copy(hl);
     input.ropeDir.copy(rd);
     input.holding = rope.holding;
+    input.armReach = 0.46 + 0.1 * clamp01(rope.tension);
     const rdYaw = Math.hypot(rd.x, rd.z) > 1e-4 ? Math.atan2(rd.x, rd.z) : 0;
     const tdYaw = m * wrapAngle(state.heading - yaw);
     const forward = Math.cos(tdYaw) >= 0 ? 1 : -1;
@@ -314,9 +317,8 @@ export class Animator {
     const c = Math.cos(T.wYaw);
     const s = Math.sin(T.wYaw);
     const len = n.length() || 1;
-    const y = n.y / len < 0.05 ? n.y / len : n.y / len;
     T.nX = (n.x * c - n.z * s) / len;
-    T.nY = y;
+    T.nY = n.y / len;
     T.nZ = (n.x * s + n.z * c) / len;
   }
 
@@ -521,7 +523,6 @@ export class Animator {
       this.relLook = Math.abs(sd) * 0.9;
       this.relYaw = sd * 1.15;
     }
-    T.sTwist += 0; // (handle follows via the solver's reach twist)
 
     // inverts: rotate the whole rider about the board's long axis, tuck shape per trick
     D.roll = -air.roll;
@@ -608,7 +609,7 @@ export class Animator {
     // wakeskate: the board flips under the floating feet
     if (skate) {
       D.flipRoll = -flip.roll;
-      D.flipYaw = flip.yaw * m * 0 + flip.yaw;
+      D.flipYaw = flip.yaw;
       D.flipPitch = flip.pitch;
       if (flipping) {
         const up = smoothstep(0.0, 0.25, flip.progress) * (1 - 0.35 * smoothstep(0.75, 1, flip.progress));
@@ -633,7 +634,6 @@ export class Animator {
     const rail = state.rail;
     const bal = rail ? clamp(rail.balance, -1.2, 1.2) : 0;
     const stance = rail ? rail.stance : 'fifty';
-    T.setNormalDone = undefined as never;
     T.hipY = skate ? 0.72 : 0.76;
     T.pPitch = 0.26;
     T.sBend = 0.14;

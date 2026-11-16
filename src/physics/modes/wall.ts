@@ -69,7 +69,7 @@ function enterWall(c: SimCore, w: WallFace, u: number, h: number, vn: number, di
   run.dir = dir;
   run.vu = Math.abs(v.x * w.dx + v.z * w.dz);
   const push = SIM.wallClimbGain * -vn;
-  run.vh = fromAir ? Math.max(-SIM.wallSinkMax, Math.min(4, v.y * 0.5 + push * 0.6)) : SIM.wallClimbBase + push;
+  run.vh = fromAir ? Math.max(-SIM.wallSinkMax, Math.min(SIM.wallClimbMax, v.y * 0.5 + push * 0.6)) : Math.min(SIM.wallClimbMax, SIM.wallClimbBase + push);
   run.time = 0;
   const cosL = 1 / Math.sqrt(1 + w.tanLean * w.tanLean);
   const ws = c.wallState;
@@ -133,10 +133,11 @@ function leaveWall(c: SimCore, popped: boolean): void {
   const s = c.state;
   const run = c.wall;
   const w = run.face as WallFace;
-  const out = popped ? SIM.wallPopOut : 1.6;
+  // peeling off by itself is still a little hop away from the wall, enough to clear the coping below
+  const out = popped ? SIM.wallPopOut : SIM.wallPopOut * 0.75;
   const vx = w.dx * run.vu * run.dir + w.nx * out;
   const vz = w.dz * run.vu * run.dir + w.nz * out;
-  const vy = popped ? Math.max(0, run.vh) + popSpeed(c.tune, 0.45) * c.mods.pop * 0.8 : Math.max(0.4, run.vh);
+  const vy = popped ? Math.max(0, run.vh) + popSpeed(c.tune, 0.45) * c.mods.pop * 0.8 : Math.max(1.2, run.vh);
   s.vel.set(vx, vy, vz);
   if (run.h < 0.05) s.pos.y = w.ay + 0.05;
   const yaw = Math.atan2(vx, vz);

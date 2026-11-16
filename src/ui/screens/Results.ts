@@ -7,7 +7,7 @@ import { coinIcon, metric, tag } from '../components/game';
 import type { UICtx } from '../context';
 import { cx, fmt, h, prefersReducedMotion, type Child } from '../dom';
 import { goalText } from '../goals';
-import { icon } from '../icons';
+import { icon, type IconName } from '../icons';
 import { Screen, type NavDir } from '../screen';
 
 const SCORE_AT = 250;
@@ -135,9 +135,8 @@ export class ResultsScreen extends Screen {
     const starRow = h('div', { class: 'wn-results__stars' });
     flags.forEach((on, i) => {
       const order = fresh.indexOf(i);
-      starRow.appendChild(
-        h('span', { class: cx('wn-bigstar', on && 'is-on', order >= 0 && 'is-fresh'), style: order >= 0 ? `animation-delay:${STARS_AT + order * STAR_STEP}ms` : undefined }, icon('star')),
-      );
+      // Grey base star + a gold one on top that pops in when it was earned in this run.
+      starRow.appendChild(h('span', { class: cx('wn-bigstar', on && 'is-on', order >= 0 && 'is-fresh'), style: order >= 0 ? `animation-delay:${STARS_AT + order * STAR_STEP}ms` : undefined }, icon('star'), on ? icon('star') : null));
     });
 
     const goals =
@@ -178,7 +177,14 @@ export class ResultsScreen extends Screen {
           ),
         );
 
-    const share = button({ label: t('ui.results.share'), icon: 'share', kind: 'secondary', size: 'md', onClick: () => void this.share(share, r) });
+    const tile = (ico: IconName, label: string, onClick: (el: HTMLButtonElement) => void, opts: { disabled?: boolean; back?: boolean } = {}): HTMLButtonElement => {
+      const el = h('button', { type: 'button', class: 'wn-navbtn', disabled: opts.disabled === true }, icon(ico), h('span', null, label));
+      el.addEventListener('click', () => {
+        this.ctx.sfx(opts.back ? 'ui.back' : 'ui.tap');
+        onClick(el);
+      });
+      return el;
+    };
 
     return h(
       'div',
@@ -220,12 +226,12 @@ export class ResultsScreen extends Screen {
         { class: 'wn-results__actions' },
         h(
           'div',
-          { class: 'wn-results__row' },
-          button({ label: t('ui.results.replay'), icon: 'replay', kind: 'secondary', size: 'md', disabled: !r.bestTrick, onClick: () => this.ctx.replay() }),
-          share,
+          { class: 'wn-results__tiles' },
+          tile('replay', t('ui.results.replay'), () => this.ctx.replay(), { disabled: !r.bestTrick }),
+          tile('share', t('ui.results.share'), (el) => void this.share(el, r)),
+          tile('city', t('ui.results.toCity'), () => this.ctx.quit(), { back: true }),
         ),
         button({ label: t('ui.results.again'), icon: 'restart', kind: 'primary', size: 'lg', block: true, onClick: () => this.ctx.restart() }),
-        button({ label: t('ui.results.toCity'), icon: 'city', kind: 'ghost', size: 'md', block: true, sfx: 'ui.back', onClick: () => this.ctx.quit() }),
       ),
     );
   }

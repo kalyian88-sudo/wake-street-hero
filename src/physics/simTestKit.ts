@@ -127,3 +127,18 @@ export function createSimHarness(opts: HarnessOptions): SimHarness {
   if (opts.go !== false) sim.go();
   return h;
 }
+
+/** Stick value that brings the rider to the lateral position `x` (spots whose line runs along +Z). */
+export function steerToX(h: SimHarness, x: number): number {
+  const s = h.sim.state;
+  const v = (s.pos.x - x) * 0.6 + s.vel.x * 0.22;
+  return v < -1 ? -1 : v > 1 ? 1 : v;
+}
+
+/** Stick value that keeps the rail balance centred. */
+export function balanceSteer(h: SimHarness): number {
+  const r = h.sim.state.rail;
+  if (!r) return 0;
+  const v = -r.balance * 4;
+  return v < -1 ? -1 : v > 1 ? 1 : v;
+}

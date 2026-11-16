@@ -102,26 +102,14 @@ async function main(): Promise<void> {
   W.__scene = scene;
   W.__props = listPropTypes();
 
-  const winchId = q.get('winch') ?? spot.winchPoints[0].id;
-  world.setWinchPoint(winchId);
-  const wp = spot.winchPoints.find((w) => w.id === winchId) ?? spot.winchPoints[0];
-  const li = lineInfo(wp);
   if (q.get('debug')) world.setDebug(true, helperShapes(spot));
   if (q.get('preview')) world.setLinePreview(true);
   if (q.get('letters')) world.setLetters(q.get('letters')!.split('').map((c) => c === '1'));
 
-  // point on the line at world z (or by fraction when the line does not advance in z)
-  const linePoint = (z: number, out: THREE.Vector3): THREE.Vector3 => {
-    const dz = wp.pos[2] - wp.start[2];
-    const t = Math.abs(dz) > 1e-3 ? (z - wp.start[2]) / dz : 0;
-    return out.set(wp.start[0] + (wp.pos[0] - wp.start[0]) * t, wp.start[1], wp.start[2] + dz * t);
-  };
-
   // placeholder rider so the rope, the wake and the scale can be judged
   const state = createRiderSimState();
-  const showRider = q.get('rider') !== '0';
   const dummy = new THREE.Group();
-  if (showRider) {
+  {
     const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 1.15, 4, 10), new THREE.MeshStandardMaterial({ color: 0x1c1d21, roughness: 0.7 }));
     body.position.y = 0.95;
     body.castShadow = true;
@@ -132,84 +120,133 @@ async function main(): Promise<void> {
     scene.add(dummy);
   }
 
-  const cam = q.get('cam') ?? 'chase';
   const P = new THREE.Vector3();
   const look = new THREE.Vector3();
   let active: THREE.Camera = camera;
-  const z = num('z', 20);
-  linePoint(z, P);
-  state.pos.copy(P);
-  state.mode = 'water';
-  state.surface = 'water';
-  state.heading = li.yaw;
-  state.boardYaw = li.yaw;
-  state.speed = num('speed', 9.5);
-  state.vel.set(li.dx * state.speed, 0, li.dz * state.speed);
-  state.lean = num('lean', 0);
-  state.rope.holding = true;
-  state.rope.tension = num('tension', 0.6);
-  state.rope.taut = state.rope.tension > 0.1;
-  state.rope.slack = num('slack', 0);
-  state.rope.reelSpeed = state.speed;
-  state.rope.handlePos.set(P.x + li.dx * 0.75, P.y + 1.05, P.z + li.dz * 0.75);
-  const a = winchAnchor(wp);
-  state.rope.anchorPos.set(a[0], a[1], a[2]);
-  dummy.position.copy(P);
-  dummy.rotation.y = li.yaw;
+  let showRider = true;
+  let camFrame = 0;
+  let frames = 0;
+  let label = '';
 
-  const ang = num('a', 35) * DEG;
-  if (cam === 'chase') {
-    camera.fov = num('fov', 70);
-    camera.position.set(P.x - li.dx * 6, P.y + 3, P.z - li.dz * 6);
-    look.set(P.x + li.dx * 9, P.y + 1.3, P.z + li.dz * 9);
-  } else if (cam === 'orbit') {
-    const r = num('r', 46);
-    camera.fov = num('fov', 50);
-    camera.position.set(P.x + Math.sin(ang) * r, num('h', 20), P.z - Math.cos(ang) * r);
-    look.set(P.x, 1, P.z);
-  } else if (cam === 'top') {
-    const b = spot.bounds;
-    const cx = (b.min[0] + b.max[0]) / 2;
-    const cz = (b.min[1] + b.max[1]) / 2;
-    const hw = (b.max[0] - b.min[0]) / 2 + 14;
-    const hh = (b.max[1] - b.min[1]) / 2 + 8;
-    // fit the spot into the viewport, long axis vertical
-    const aspect = innerWidth / innerHeight;
-    const half = Math.max(hh, hw / aspect);
-    const oc = new THREE.OrthographicCamera(-half * aspect, half * aspect, half, -half, 1, 500);
-    oc.position.set(cx, 200, cz);
-    oc.up.set(0, 0, 1);
-    oc.lookAt(cx, 0, cz);
-    active = oc;
-  } else if (cam === 'winch') {
-    const d = num('d', 4.2);
-    camera.fov = num('fov', 45);
-    const yaw = li.yaw + Math.PI + ang;
-    camera.position.set(wp.pos[0] + Math.sin(yaw) * d, wp.pos[1] + num('h', 1.7), wp.pos[2] + Math.cos(yaw) * d);
-    look.set(wp.pos[0] - li.dx * 0.5, wp.pos[1] + 0.85, wp.pos[2] - li.dz * 0.5);
-  } else if (cam === 'obstacle') {
-    const o = spot.obstacles.find((x) => x.id === q.get('id')) ?? spot.obstacles[0];
-    const f = obstacleFocus(o);
-    const d = num('d', f.r * 1.5 + 2.6);
-    camera.fov = num('fov', 50);
-    camera.position.set(f.x + Math.sin(ang) * d, f.y + num('h', f.r * 0.45 + 1.3), f.z - Math.cos(ang) * d);
-    look.set(f.x, f.y, f.z);
-  } else if (cam === 'letter') {
-    const l = spot.letters[num('i', 0)] ?? spot.letters[0];
-    camera.fov = num('fov', 50);
-    camera.position.set(l.pos[0] + 1.6, l.pos[1] + 0.9, l.pos[2] - 4.2);
-    look.set(l.pos[0], l.pos[1], l.pos[2]);
-  } else {
-    const p = (q.get('pos') ?? '0,6,-10').split(',').map(Number);
-    const l = (q.get('look') ?? '0,1,20').split(',').map(Number);
-    camera.fov = num('fov', 60);
-    camera.position.set(p[0], p[1], p[2]);
-    look.set(l[0], l[1], l[2]);
-  }
-  if (active === camera) {
-    camera.lookAt(look);
-    camera.updateProjectionMatrix();
-  }
+  /** (Re)position everything from a query string — window.__cam('cam=chase&z=40') switches without rebuilding. */
+  const apply = (p: URLSearchParams): void => {
+    const n = (k: string, d: number): number => (p.has(k) ? Number(p.get(k)) : d);
+    const winchId = p.get('winch') ?? spot.winchPoints[0].id;
+    world.setWinchPoint(winchId);
+    const wp = spot.winchPoints.find((w) => w.id === winchId) ?? spot.winchPoints[0];
+    const li = lineInfo(wp);
+    showRider = p.get('rider') !== '0';
+    dummy.visible = showRider;
+    const cam = p.get('cam') ?? 'chase';
+    const z = n('z', 20);
+    // point on the line at world z
+    const dzl = wp.pos[2] - wp.start[2];
+    const tl = Math.abs(dzl) > 1e-3 ? (z - wp.start[2]) / dzl : 0;
+    P.set(wp.start[0] + (wp.pos[0] - wp.start[0]) * tl, wp.start[1], wp.start[2] + dzl * tl);
+    state.pos.copy(P);
+    state.mode = 'water';
+    state.surface = 'water';
+    state.heading = li.yaw;
+    state.boardYaw = li.yaw;
+    state.speed = n('speed', 9.5);
+    state.vel.set(li.dx * state.speed, 0, li.dz * state.speed);
+    state.lean = n('lean', 0);
+    state.rope.holding = true;
+    state.rope.tension = n('tension', 0.6);
+    state.rope.taut = state.rope.tension > 0.1;
+    state.rope.slack = n('slack', 0);
+    state.rope.reelSpeed = state.speed;
+    state.rope.handlePos.set(P.x + li.dx * 0.75, P.y + 1.05, P.z + li.dz * 0.75);
+    const a = winchAnchor(wp);
+    state.rope.anchorPos.set(a[0], a[1], a[2]);
+    dummy.position.copy(P);
+    dummy.rotation.y = li.yaw;
+    active = camera;
+    const ang = n('a', 35) * DEG;
+    if (cam === 'chase') {
+      camera.fov = n('fov', 70);
+      camera.position.set(P.x - li.dx * 6, P.y + 3, P.z - li.dz * 6);
+      look.set(P.x + li.dx * 9, P.y + 1.3, P.z + li.dz * 9);
+    } else if (cam === 'orbit') {
+      const r = n('r', 46);
+      camera.fov = n('fov', 50);
+      camera.position.set(P.x + Math.sin(ang) * r, n('h', 20), P.z - Math.cos(ang) * r);
+      look.set(P.x, 1, P.z);
+    } else if (cam === 'top') {
+      const b = spot.bounds;
+      const cx = (b.min[0] + b.max[0]) / 2;
+      const cz = (b.min[1] + b.max[1]) / 2;
+      const hw = (b.max[0] - b.min[0]) / 2 + 14;
+      const hh = (b.max[1] - b.min[1]) / 2 + 8;
+      // fit the spot into the viewport, long axis vertical
+      const aspect = innerWidth / innerHeight;
+      const half = Math.max(hh, hw / aspect);
+      const oc = new THREE.OrthographicCamera(-half * aspect, half * aspect, half, -half, 1, 500);
+      oc.position.set(cx, 200, cz);
+      oc.up.set(0, 0, 1);
+      oc.lookAt(cx, 0, cz);
+      active = oc;
+    } else if (cam === 'winch') {
+      const d = n('d', 4.2);
+      camera.fov = n('fov', 45);
+      const yaw = li.yaw + Math.PI + ang;
+      camera.position.set(wp.pos[0] + Math.sin(yaw) * d, wp.pos[1] + n('h', 1.7), wp.pos[2] + Math.cos(yaw) * d);
+      look.set(wp.pos[0] + li.dx * 0.5, wp.pos[1] + 0.85, wp.pos[2] + li.dz * 0.5);
+    } else if (cam === 'obstacle') {
+      const o = spot.obstacles.find((x) => x.id === p.get('id')) ?? spot.obstacles[0];
+      const f = obstacleFocus(o);
+      const d = n('d', f.r * 1.5 + 2.6);
+      camera.fov = n('fov', 50);
+      camera.position.set(f.x + Math.sin(ang) * d, f.y + n('h', f.r * 0.45 + 1.3), f.z - Math.cos(ang) * d);
+      look.set(f.x, f.y, f.z);
+    } else if (cam === 'letter') {
+      const l = spot.letters[n('i', 0)] ?? spot.letters[0];
+      camera.fov = n('fov', 50);
+      camera.position.set(l.pos[0] + 1.6, l.pos[1] + 0.9, l.pos[2] - 4.2);
+      look.set(l.pos[0], l.pos[1], l.pos[2]);
+    } else {
+      const pp = (p.get('pos') ?? '0,6,-10').split(',').map(Number);
+      const l = (p.get('look') ?? '0,1,20').split(',').map(Number);
+      camera.fov = n('fov', 60);
+      camera.position.set(pp[0], pp[1], pp[2]);
+      look.set(l[0], l[1], l[2]);
+    }
+    if (active === camera) {
+      camera.lookAt(look);
+      camera.updateProjectionMatrix();
+    }
+    camFrame = frames;
+    label = `${spot.id} · ${winchId} · ${cam} z=${z} · ${quality}`;
+  };
+  apply(q);
+  W.__cam = (str: string): void => apply(new URLSearchParams(str));
+  /** True once a few frames have been rendered since the last camera change. */
+  W.__settled = (nFrames = 3): boolean => frames - camFrame >= nFrames;
+  /** Per-mesh draw statistics of everything currently visible in the frustum (for budgeting). */
+  W.__breakdown = (): string => {
+    const fr = new THREE.Frustum();
+    const m = new THREE.Matrix4();
+    active.updateMatrixWorld();
+    m.multiplyMatrices((active as THREE.PerspectiveCamera).projectionMatrix, active.matrixWorldInverse);
+    fr.setFromProjectionMatrix(m);
+    const rows: string[] = [];
+    let calls = 0;
+    let tris = 0;
+    scene.traverseVisible((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!(mesh.isMesh || (o as THREE.Points).isPoints || (o as THREE.LineSegments).isLineSegments)) return;
+      if (mesh.frustumCulled && mesh.isMesh && !fr.intersectsObject(mesh)) return;
+      const g = mesh.geometry;
+      const cnt = (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+      const inst = (o as THREE.InstancedMesh).isInstancedMesh ? (o as THREE.InstancedMesh).count : 1;
+      calls++;
+      tris += cnt * inst;
+      const mat = mesh.material as THREE.Material;
+      rows.push(`${String(Math.round(cnt * inst)).padStart(7)}  ${o.name || o.parent?.name || o.type}  [${mat.name || mat.type}]${mesh.castShadow ? ' S' : ''}`);
+    });
+    rows.sort().reverse();
+    return `visible meshes ${calls}, tris ${Math.round(tris)}\n` + rows.join('\n');
+  };
 
   const onResize = (): void => {
     renderer.setSize(innerWidth, innerHeight, false);
@@ -221,7 +258,6 @@ async function main(): Promise<void> {
   const frozen = q.has('t') ? num('t', 0) : null;
   let last = performance.now();
   let time = frozen ?? 0;
-  let frames = 0;
   renderer.info.autoReset = false;
   renderer.setAnimationLoop(() => {
     const now = performance.now();
@@ -235,7 +271,7 @@ async function main(): Promise<void> {
     const r = renderer.info.render;
     const stats = { calls: r.calls, triangles: r.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, frames, buildMs: Math.round(buildMs) };
     W.__stats = stats;
-    if (frames % 10 === 1) info.textContent = `${spot.id} · ${winchId} · ${cam} z=${z} · ${quality}\ncalls ${r.calls} · tris ${(r.triangles / 1000).toFixed(1)}k · build ${stats.buildMs} ms`;
+    if (frames % 5 === 1) info.textContent = `${label}\ncalls ${r.calls} · tris ${(r.triangles / 1000).toFixed(1)}k · build ${stats.buildMs} ms`;
   });
   W.__ready = true;
 }

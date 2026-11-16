@@ -120,22 +120,27 @@
   animation: wn-rise 0.6s var(--ease) 0.45s both;
 }
 
+.wn-splash__title {
+  justify-content: center;
+}
+
 .wn-splash__title i {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 14px;
   height: 3px;
   background: var(--red);
   transform: skewX(-30deg);
 }
 
 .wn-splash__title span {
-  font-size: clamp(21px, 6.2vw, 30px);
-  letter-spacing: 0.13em;
+  font-size: clamp(17px, 5.1vw, 27px);
+  letter-spacing: 0.12em;
   white-space: nowrap;
   padding-right: 0.04em;
 }
 
 .wn-splash__tagline {
-  margin-top: 16px;
+  margin-top: 22px;
   color: var(--text-2);
   font-size: 15px;
   letter-spacing: 0.01em;
@@ -304,8 +309,9 @@
 }
 
 .wn-hub__title h1 {
-  font-size: 38px;
+  font-size: clamp(28px, 8.4vw, 36px);
   margin-top: 4px;
+  white-space: nowrap;
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
 }
 
@@ -407,37 +413,67 @@
   border-color: rgba(255, 255, 255, 0.55);
 }
 
-.wn-pin__label {
+.wn-pin__mini {
   position: absolute;
-  top: -19px;
-  left: 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 5px 10px 6px;
-  border-radius: 9px;
-  background: rgba(14, 15, 18, 0.9);
-  box-shadow: inset 0 0 0 1px var(--line-2), 0 6px 16px rgba(0, 0, 0, 0.4);
+  top: 19px;
+  left: 0;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 7px;
+  background: rgba(14, 15, 18, 0.88);
+  font: italic 900 12px/1.1 var(--font-head);
   white-space: nowrap;
-  text-align: left;
 }
 
-.wn-pin[data-side='l'] .wn-pin__label {
-  left: auto;
-  right: 22px;
-  text-align: right;
-  align-items: flex-end;
+.wn-pin__mini .wn-ico {
+  font-size: 9px;
+  color: var(--gold);
+}
+
+/* Name plate above the pin; `--shift` (set per frame) keeps it inside the stage. */
+.wn-pin__label {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 11px 7px;
+  border-radius: 9px;
+  background: rgba(14, 15, 18, 0.92);
+  box-shadow: inset 0 0 0 1px var(--line-2), 0 6px 16px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  text-align: center;
+  opacity: 0;
+  transform: translate3d(calc(-50% + var(--shift, 0px)), 6px, 0);
+  transition: opacity 0.2s, transform 0.25s var(--ease);
+  pointer-events: none;
+}
+
+.wn-pin.is-focus .wn-pin__label,
+.wn-pin--always .wn-pin__label {
+  opacity: 1;
+  transform: translate3d(calc(-50% + var(--shift, 0px)), 0, 0);
+}
+
+.wn-pin.is-focus {
+  z-index: 2;
 }
 
 .wn-pin__label b {
-  font: italic 900 14px/1.1 var(--font-head);
+  font: italic 900 15px/1.1 var(--font-head);
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  padding-right: 2px;
+  padding: 0 2px;
 }
 
-.wn-pin__label .wn-starcount {
-  font-size: 12px;
+.wn-pin__sub {
+  font: 600 11px/1 var(--font-body);
+  color: var(--text-3);
 }
 
 .wn-pin__label .wn-stars {
@@ -625,8 +661,8 @@
   justify-content: center;
   gap: 6px;
   isolation: isolate;
-  font: italic 800 12.5px/1 var(--font-head);
-  letter-spacing: 0.06em;
+  font: italic 800 11.5px/1 var(--font-head);
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   text-align: center;
   color: var(--text-2);
@@ -652,6 +688,29 @@
 .wn-navbtn .wn-ico {
   font-size: 23px;
   color: #fff;
+}
+
+.wn-navbtn:disabled {
+  opacity: 0.4;
+}
+
+.wn-navbtn.is-busy {
+  pointer-events: none;
+}
+
+.wn-navbtn.is-busy > * {
+  opacity: 0.25;
+}
+
+.wn-navbtn.is-busy::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  animation: wn-spin 0.7s linear infinite;
 }
 
 .wn-navbtn span:last-child {

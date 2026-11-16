@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { GAME } from '../../src/config';
 import { EventBus, type GameEvents } from '../../src/core/events';
-import { createScoreKeeper, resolveTrick, SCORE_RULES, trickKey } from '../../src/tricks/scoring';
+import { createScoreKeeper, letterBonus, resolveTrick, SCORE_RULES, trickKey } from '../../src/tricks/scoring';
 import type { IScoreKeeper, ResolvedTrick, TrickRecord } from '../../src/types';
 
 function rec(over: Partial<TrickRecord> = {}): TrickRecord {
@@ -314,6 +314,18 @@ describe('score keeper — fillers and bonuses', () => {
     expect(bonuses).toEqual([{ id: 'letter', name: { ru: 'Буква', en: 'Letter' }, points: 100 }]);
     keeper.update(2.1, false);
     expect(keeper.state.total).toBe(350);
+  });
+
+  it('letterBonus gives the addBonus arguments for a collected letter', () => {
+    expect(letterBonus(0, 1)).toEqual({ id: 'letter', name: { ru: 'Буква W', en: 'Letter W' }, points: 100 });
+    expect(letterBonus(3, 2).name.en).toBe('Letter N');
+    expect(letterBonus(5, 6)).toEqual({ id: 'letter', name: { ru: 'WHY NOT собрано!', en: 'WHY NOT complete!' }, points: 600 });
+    const bonuses = listen('score:bonus');
+    const b = letterBonus(1, 1);
+    keeper.addBonus(b.id, b.name, b.points);
+    keeper.finish();
+    expect(keeper.state.total).toBe(100);
+    expect(bonuses).toHaveLength(1);
   });
 
   it('a bonus on its own banks after the window', () => {

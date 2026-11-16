@@ -76,6 +76,18 @@ function sideWall(g: GB, p: Profile, x: number, side: number, yBottom: number, d
   }
 }
 
+/** Thin vertical strip just under the surface edge (thickness of a sheet). */
+function edgeStrip(g: GB, p: Profile, x: number, side: number, t: number): void {
+  for (let i = 0; i < SEG; i++) {
+    const a: P3 = [x, p.y[i] - t, p.z[i]];
+    const c: P3 = [x, p.y[i + 1] - t, p.z[i + 1]];
+    const d: P3 = [x, p.y[i + 1], p.z[i + 1]];
+    const e: P3 = [x, p.y[i], p.z[i]];
+    if (side > 0) g.quad(c, a, e, d);
+    else g.quad(a, c, d, e);
+  }
+}
+
 function backWall(g: GB, def: KickerDef, yBottom: number, x0: number, x1: number, drop = 0): void {
   const L = def.length;
   g.quad([x0, yBottom, L], [x1, yBottom, L], [x1, def.height - drop, L], [x0, def.height - drop, L]);
@@ -132,10 +144,10 @@ export function buildKicker(b: BuildCtx, def: KickerDef): void {
   const level = inWater ? b.terrain.heightAt(cx, cz) : def.pos[1];
   const yB = inWater ? -0.9 : 0;
   const place = (g: GB): GB => g.reset().translate(def.pos[0], def.pos[1], def.pos[2]).rotY(rot);
-  const wet = (g: GB, from = 0): void => {
+  const wet = (g: GB, algae = true): void => {
     if (!inWater) return;
-    g.shadeBy(from, (_x, y) => wetShade(y, level));
-    g.tintBy(from, ALGAE, (_x, y) => algaeWeight(y, level) * 0.7);
+    g.shadeBy(0, (_x, y) => (algae ? wetShade(y, level) : 0.62 + 0.38 * Math.min(1, Math.max(0, (y - level) / 0.3))));
+    if (algae) g.tintBy(0, ALGAE, (_x, y) => algaeWeight(y, level) * 0.6);
   };
   const add = (g: GB, key: string, cast = true, opts: Record<string, unknown> = {}): void => {
     if (!g.empty) b.statics.add(g.build(), b.mat(key, opts), null, { cast });
@@ -148,7 +160,7 @@ export function buildKicker(b: BuildCtx, def: KickerDef): void {
       top.color(0xffffff, 1.02);
       top.uvSwap = true;
       surface(top, p, -hw, hw);
-      wet(top);
+      wet(top, false);
       add(top, 'plywood');
       // side panels (inset) + back panel
       const panel = place(new GB());
@@ -187,8 +199,14 @@ export function buildKicker(b: BuildCtx, def: KickerDef): void {
       lip.box(0, H + 0.004, L - 0.03, W, 0.01, 0.07);
       lip.box(0, H - 0.03, L + 0.004, W, 0.07, 0.01);
       add(lip, 'metal', false);
-      sideDecal(decals, hw - 0.05, 1, L * 0.62, H * 0.3, Math.min(1.5, L * 0.36), Math.min(0.38, H * 0.3), BRAND_UV.plateRed);
-      sideDecal(decals, -hw + 0.05, -1, L * 0.62, H * 0.3, Math.min(1.5, L * 0.36), Math.min(0.38, H * 0.3), BRAND_UV.plateRed);
+      // plates screwed onto the studs
+      const pw = Math.min(1.6, L * 0.4);
+      const backing = place(new GB());
+      backing.color(0x1c1d21);
+      for (const sx of [-1, 1]) backing.box(sx * (hw + 0.022), H * 0.34, L * 0.6, 0.012, pw / 4 + 0.04, pw + 0.04);
+      add(backing, 'paintedMetal', false);
+      sideDecal(decals, hw + 0.03, 1, L * 0.6, H * 0.34, pw, pw / 4, BRAND_UV.plateRed);
+      sideDecal(decals, -hw - 0.03, -1, L * 0.6, H * 0.34, pw, pw / 4, BRAND_UV.plateRed);
       surfaceDecal(decals, p, 0.18, 0.5, Math.min(1, hw * 0.8), BRAND_UV.wmRed);
       break;
     }
@@ -199,8 +217,9 @@ export function buildKicker(b: BuildCtx, def: KickerDef): void {
       surface(top, p, -hw - 0.04, hw + 0.04);
       // sheet thickness
       top.color(0xb89b6a, 0.7);
-      sideWall(top, p, hw + 0.04, 1, -0.02, 0, 0);
-      wet(top);
+      edgeStrip(top, p, hw + 0.04, 1, 0.03);
+      edgeStrip(top, p, -hw - 0.04, -1, 0.03);
+      wet(top, false);
       const pal = place(new GB());
       const nAcross = Math.max(1, Math.round(W / 1.15));
       const pw = W / nAcross;
@@ -303,8 +322,11 @@ export function buildKicker(b: BuildCtx, def: KickerDef): void {
       const key = def.style === 'stone' ? 'stone' : 'concrete';
       const body = place(new GB());
       const flare = def.style === 'bank' ? 1 : 0;
-      body.color(0xffffff, def.style === 'stone' ? 1 : 1.06);
-      surface(body, p, -hw, hw);
+      const top = place(new GB());
+      top.color(0xffffff, def.style === 'stone' ? 1 : 1.06);
+      surface(top, p, -hw, hw);
+      wet(top, false);
+      add(top, key);
       body.color(0xffffff, 0.94);
       if (flare) {
         // sloping skirts instead of vertical walls

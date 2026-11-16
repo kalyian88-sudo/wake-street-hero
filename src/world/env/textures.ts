@@ -54,7 +54,7 @@ export function generateWaveData(size: number): Uint8Array {
   const w2 = worley(n, Math.round(n / 17), 0xf0a2);
   const blot = spectralNoise(n, 0xb107, (_kx, _ky, k) => (k < 28 ? k ** -1.6 : 0));
   const foam = new Float32Array(n * n);
-  for (let i = 0; i < foam.length; i++) foam[i] = 0.5 * w1[i] + 0.28 * w2[i] + 0.11 * blot[i];
+  for (let i = 0; i < foam.length; i++) foam[i] = 0.62 * w1[i] ** 1.5 + 0.34 * w2[i] ** 1.3 + 0.07 * blot[i];
   const [flo, fhi] = fieldRange(foam);
 
   const out = new Uint8Array(n * n * 4);

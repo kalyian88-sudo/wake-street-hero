@@ -20,7 +20,7 @@
  */
 import { GAME } from '../config';
 import type { EventBus } from '../core/events';
-import { getTrick } from '../data/tricks';
+import { TRICK_WORDS, getTrick } from '../data/tricks';
 import type { IScoreKeeper, L10n, LandingQuality, ResolvedTrick, ScoreState } from '../types';
 
 export { resolveTrick } from './resolve';
@@ -38,6 +38,9 @@ export const SCORE_RULES = {
   heroNewTrick: 1.5,
   heroPerfect: 1.3,
   heroBailDrain: 0.2,
+  /** Flat bonus for a W-H-Y-N-O-T letter, and the extra for the sixth one (see letterBonus). */
+  letterPoints: 100,
+  lettersAllPoints: 500,
 };
 
 function freshState(): ScoreState {
@@ -68,6 +71,21 @@ export function trickKey(trick: ResolvedTrick): string {
     if (def && def.category !== 'bonus' && !core.includes(part.id)) core.push(part.id);
   }
   return core.length ? core.sort().join('|') : trick.id;
+}
+
+/**
+ * Arguments for `score.addBonus(...)` when a letter is picked up: the score keeper cannot listen for
+ * 'letter:collect' itself (it has no dispose), so whoever owns the run wires it:
+ *   bus.on('letter:collect', (e) => { const b = letterBonus(e.index, e.count); sim.score.addBonus(b.id, b.name, b.points); });
+ */
+export function letterBonus(index: number, count: number): { id: string; name: L10n; points: number } {
+  const letter = GAME.letters[index] ?? '';
+  const all = count >= GAME.letters.length;
+  return {
+    id: 'letter',
+    name: all ? TRICK_WORDS.lettersAll : { ru: `${TRICK_WORDS.letter.ru} ${letter}`, en: `${TRICK_WORDS.letter.en} ${letter}` },
+    points: SCORE_RULES.letterPoints + (all ? SCORE_RULES.lettersAllPoints : 0),
+  };
 }
 
 export function createScoreKeeper(bus: EventBus): IScoreKeeper {

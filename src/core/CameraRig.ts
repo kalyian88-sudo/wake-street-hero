@@ -64,6 +64,8 @@ export class CameraRig {
   private pvTime = 0;
   private pvSide = 1;
   private pvSnap = true;
+  private lensShift = 0;
+  private lensFov = 50;
 
   // filmer state
   private readonly filmerPos = new Vector3();
@@ -95,8 +97,41 @@ export class CameraRig {
 
   setAspect(aspect: number): void {
     this.aspect = aspect;
-    this.camera.aspect = aspect;
-    this.camera.updateProjectionMatrix();
+    if (this.lensShift > 0) {
+      const shift = this.lensShift;
+      this.lensShift = -1;
+      this.setLens(this.lensFov, shift);
+    } else {
+      this.camera.aspect = aspect;
+      this.camera.updateProjectionMatrix();
+    }
+  }
+
+  /**
+   * FOV + vertical lens shift. `shift` moves the optical centre up by that fraction of the screen
+   * height (like a shift lens): the spot preview composes for the part of a portrait screen that is not
+   * covered by the spot card, without pitching the camera into a top-down view. `fov` stays the field
+   * of view of the screen itself.
+   */
+  private setLens(fov: number, shift: number): void {
+    const cam = this.camera;
+    if (shift < 1e-3) {
+      if (this.lensShift !== 0) {
+        this.lensShift = 0;
+        cam.clearViewOffset();
+        cam.aspect = this.aspect;
+        cam.fov = fov;
+        cam.updateProjectionMatrix();
+      } else this.setFov(fov);
+      return;
+    }
+    if (Math.abs(shift - this.lensShift) < 1e-4 && Math.abs(fov - this.lensFov) < 0.005) return;
+    this.lensShift = shift;
+    this.lensFov = fov;
+    // Virtual frame k times taller than the screen; the screen is its lower part.
+    const k = 1 + 2 * shift;
+    cam.fov = (2 * Math.atan(k * Math.tan((fov * DEG) / 2))) / DEG;
+    cam.setViewOffset(this.aspect, k, 0, 2 * shift, this.aspect, 1);
   }
 
   setFar(far: number): void {
@@ -117,6 +152,7 @@ export class CameraRig {
   setMode(mode: CameraMode, surface?: HTMLElement): void {
     if (mode === this.mode) return;
     if (this.mode === 'free') this.free.disable();
+    if (this.mode === 'preview') this.setLens(this.camera.fov > 90 ? 50 : this.lensFov, 0);
     this.mode = mode;
     if (mode === 'free' && surface) this.free.enable(this.camera, surface);
     if (mode === 'chase') this.camera.up.set(0, 1, 0);
@@ -401,16 +437,15 @@ export class CameraRig {
     // Do not fly past the last obstacles into the winch itself.
     u = 0.04 + u * 0.86;
 
-    const back = MathUtils.lerp(9.5, 11.5, p);
-    const lateral = MathUtils.lerp(7.5, 6.5, p) * this.pvSide;
-    const up = MathUtils.lerp(6, 8.5, p);
+    const back = MathUtils.lerp(9.5, 12.5, p);
+    const lateral = MathUtils.lerp(7.5, 6, p) * this.pvSide;
+    const up = MathUtils.lerp(6, 6.2, p);
     const fx = this.pvStart.x + dx * u;
     const fz = this.pvStart.z + dz * u;
     const fy = this.pvStart.y;
     const sway = Math.sin(this.clock * 0.35) * 0.9;
     const wantPos = this.tmpA.set(fx - ux * back + uz * (lateral + sway), fy + up, fz - uz * back - ux * (lateral + sway));
-    // Look a little ahead of the focus and (portrait) below it, so the action sits in the upper half above the card.
-    const wantLook = this.tmpB.set(fx + ux * 3.5, fy + 0.4 - 1.9 * p, fz + uz * 3.5);
+    const wantLook = this.tmpB.set(fx + ux * 2, fy + 0.4, fz + uz * 2);
     this.constrain(wantPos, null);
     if (this.pvSnap) {
       this.camPos.copy(wantPos);
@@ -426,7 +461,8 @@ export class CameraRig {
     cam.position.copy(this.camPos);
     cam.up.set(0, 1, 0);
     cam.lookAt(this.look);
-    this.setFov(MathUtils.lerp(42, 50, p));
+    // Portrait: the spot card covers the lower half, so the optical centre moves up to ~30 % of the screen.
+    this.setLens(MathUtils.lerp(42, 50, p), 0.2 * p);
   }
 
   // ──────────────────────────────────────────────────────────── filmer ──
@@ -438,13 +474,18 @@ export class CameraRig {
     this.look.copy(subject);
     this.lookVel.set(0, 0, 0);
     this.filmerTime = 0;
-    this.fov = this.filmerFov(subject, 0.34);
+    this.fov = this.filmerFov(subject, 1);
   }
 
-  /** FOV that makes the rider fill `frac` of the frame height from the filmer position. */
-  private filmerFov(subject: Vector3, frac: number): number {
+  /**
+   * Zoom of the filmer's lens: the rider takes about a third of the frame height — but on a portrait
+   * phone the frame is so narrow that the limit is the WIDTH (board, spinning arms and the operator's
+   * tracking error need ~2 m either side), which also brings water and skyline into the tall frame.
+   */
+  private filmerFov(subject: Vector3, zoom: number): number {
     const d = Math.max(1.5, this.filmerPos.distanceTo(subject));
-    return MathUtils.clamp((2 * Math.atan(RIDER_HEIGHT / frac / 2 / d)) / DEG, 11, 62);
+    const halfV = Math.max(RIDER_HEIGHT / 0.34 / 2, 2.0 / Math.max(0.2, this.aspect)) / d / zoom;
+    return MathUtils.clamp((2 * Math.atan(halfV)) / DEG, 11, 68);
   }
 
   /** Replay camera: pans/tilts after the rider like a person holding a camera, slowly zooming in. */
@@ -458,10 +499,14 @@ export class CameraRig {
     const subject = this.tmpA;
     if (rig) rig.getChestWorldPosition(subject);
     else subject.copy(s.pos).setY(s.pos.y + 1);
-    // A human operator trails the action slightly.
-    smoothDampVec(this.look, subject, this.lookVel, 0.14, 0.14, realDt);
-    const frac = 0.34 + 0.12 * smoothstep(0, 6, this.filmerTime);
-    this.fov = expDamp(this.fov, this.filmerFov(this.look, frac), 2.5, realDt);
+    // A good operator pans slightly AHEAD of the rider (lead room), and never quite perfectly.
+    if (s.mode !== 'bail') {
+      subject.x += s.vel.x * 0.1;
+      subject.z += s.vel.z * 0.1;
+    }
+    smoothDampVec(this.look, subject, this.lookVel, 0.1, 0.1, realDt);
+    const zoom = 1 + 0.3 * smoothstep(0, 6, this.filmerTime);
+    this.fov = expDamp(this.fov, this.filmerFov(this.look, zoom), 2.5, realDt);
 
     const cam = this.camera;
     const t = this.clock;
@@ -486,6 +531,11 @@ export class CameraRig {
   frameStill(cam: PerspectiveCamera, from: Vector3, chest: Vector3, aspect: number): void {
     const pos = this.tmpA.copy(from);
     this.constrain(pos, null);
+    // A filmer on the bank looks steeply UP at a big air and gets nothing but sky. For the card keep the
+    // lens about level with the rider (≤ 3° below): the horizon lands around two thirds down, so the
+    // water and the spot stay in the picture and the rider flies in front of the street.
+    const flat = Math.hypot(pos.x - chest.x, pos.z - chest.z);
+    pos.y = Math.max(pos.y, chest.y - 0.05 * Math.max(3, flat));
     const d = Math.max(1.5, pos.distanceTo(chest));
     // In a very tall frame the horizontal FOV is tiny — keep the rider's width (board ≈ 1.4 m) inside it too.
     const fracV = 0.3;

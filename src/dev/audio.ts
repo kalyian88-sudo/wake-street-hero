@@ -604,10 +604,20 @@ const hooks = {
     track: renderTrack,
     mix: renderBusyMix,
     /** Run a group through the table UI and return compact rows. */
-    async check(group: 'all' | 'sfx' | 'layers' | 'tracks' | 'mix' = 'all'): Promise<{ name: string; peak: number; rms: number; target: number | null; ok: boolean; note: string }[]> {
+    async check(group: 'all' | 'sfx' | 'layers' | 'tracks' | 'mix' = 'all'): Promise<{ name: string; peak: number; rms: number; lufs: number; bands: string; target: number | null; ok: boolean; note: string }[]> {
       const fn = group === 'sfx' ? checkSfx : group === 'layers' ? checkLayers : group === 'tracks' ? (on: (r: CheckRow) => void) => checkTracks(on) : group === 'mix' ? checkMix : checkAll;
       const rows = await runCheck(fn);
-      return rows.map((r) => ({ name: r.name, peak: Math.round(r.result.peakDb * 10) / 10, rms: Math.round(r.result.rmsDb * 10) / 10, target: r.target, ok: r.ok, note: r.note }));
+      const r1 = (v: number): number => Math.round(v * 10) / 10;
+      return rows.map((r) => ({
+        name: r.name,
+        peak: r1(r.result.peakDb),
+        rms: r1(r.result.rmsDb),
+        lufs: r1(r.result.lufs),
+        bands: r.result.bandsDb.map(r1).join('/'),
+        target: r.target,
+        ok: r.ok,
+        note: r.note,
+      }));
     },
     spectrogram: (name: string) => {
       const r = checkRows.find((x) => x.name === name);

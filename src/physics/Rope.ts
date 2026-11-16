@@ -108,6 +108,12 @@ export class Rope {
         // picked up from (almost) a standstill: the operator eases the drum in again
         this.rampT = 0;
         this.rampDur = SIM.respawnRamp;
+      } else if (this.pulling) {
+        // grabbed while slower than the drum: the rope yanks (matters if it happens at a landing)
+        const s = this.s;
+        const vr = s.vel.x * r.dir.x + s.vel.z * r.dir.z;
+        const jerk = (this.reelMax - vr) * SIM.regrabJerk;
+        if (jerk > 0.4) this.noteJerk(jerk);
       }
     } else {
       this.dropBlend = 0;
@@ -115,6 +121,14 @@ export class Rope {
       r.taut = false;
     }
     this.bus.emit('sim:handle', { holding: on });
+  }
+
+  private noteJerk(jerk: number): void {
+    const r = this.s.rope;
+    if (jerk > r.jerk) r.jerk = jerk;
+    this.jerkPeak = this.jerkAge <= SIM.landingJerkWindow ? Math.max(this.jerkPeak, jerk) : jerk;
+    this.jerkAge = 0;
+    if (jerk >= SIM.jerkEvent) this.bus.emit('sim:ropeJerk', { jerk });
   }
 
   /** Largest re-tension jerk (m/s) inside the landing window. */
@@ -181,15 +195,12 @@ export class Rope {
         if (!this.wasTaut) {
           // rope snaps tight
           const deficit = reel * SIM.slackReel - vr;
-          if (deficit > 0.4 && this.slackPeak > 0.12) {
+          if (deficit > 0.4 && this.slackPeak > 0.08) {
             const jerk = deficit * this.holdBlend;
             const kick = jerk * SIM.jerkImpulse;
             s.vel.x += r.dir.x * kick;
             s.vel.z += r.dir.z * kick;
-            if (jerk > r.jerk) r.jerk = jerk;
-            this.jerkPeak = this.jerkAge <= SIM.landingJerkWindow ? Math.max(this.jerkPeak, jerk) : jerk;
-            this.jerkAge = 0;
-            if (jerk >= SIM.jerkEvent) this.bus.emit('sim:ropeJerk', { jerk });
+            this.noteJerk(jerk);
           }
           this.slackPeak = 0;
           this.length = d;

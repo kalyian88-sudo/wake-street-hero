@@ -554,6 +554,9 @@ export const TRICK_WORDS = {
   distance: { ru: 'Дистанция', en: 'Distance' },
   press: { ru: 'Пресс', en: 'Press' },
   wallTime: { ru: 'Время на стене', en: 'Wall Time' },
+  /** Bonus popups for the W-H-Y-N-O-T letters: «Буква W», and the sixth one. */
+  letter: { ru: 'Буква', en: 'Letter' },
+  lettersAll: { ru: 'WHY NOT собрано!', en: 'WHY NOT complete!' },
 } satisfies Record<string, L10n>;
 
 /**

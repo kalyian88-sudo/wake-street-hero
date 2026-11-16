@@ -146,8 +146,8 @@ export class DotGlobe {
     let avgLon = 0;
     for (const p of this.pins) avgLon += p.lon;
     avgLon /= this.pins.length || 1;
-    this.targetLon = pin.lon * 0.62 + avgLon * 0.38;
-    this.targetLat = clamp(pin.lat * 0.55 + 14, -40, 60);
+    this.targetLon = pin.lon * 0.3 + avgLon * 0.7 + 4;
+    this.targetLat = clamp(pin.lat * 0.25 + 20, -40, 60);
     this.settling = true;
     this.velLon = this.velLat = 0;
     if (snap) {

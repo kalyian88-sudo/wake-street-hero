@@ -648,9 +648,10 @@ export class SimCore {
     this.relockLine = -1;
     this.rope.reset(0);
     this.rope.startPull(SIM.respawnRamp);
+    // a deep-water start again: the drum eases in from zero, so no slack and no jerk
     const dir = s.rope.dir;
-    s.vel.set(dir.x * SIM.respawnSpeed, 0, dir.z * SIM.respawnSpeed);
-    s.speed = SIM.respawnSpeed;
+    s.vel.set(0, 0, 0);
+    s.speed = 0;
     this.boardDir = Math.atan2(dir.x, dir.z);
     s.heading = s.boardYaw = this.boardDir;
     if (from !== 'water') this.bus.emit('sim:surface', { from, to: 'water' });

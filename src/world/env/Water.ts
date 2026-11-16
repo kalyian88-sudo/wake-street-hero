@@ -90,7 +90,7 @@ class Water implements IWater {
       uSunDir: { value: new Vector3(0, 1, 0) },
       uSunLight: { value: new Color() },
       uAmbient: { value: new Color() },
-      uWaveStrength: { value: 0.04 + 0.56 * waveScale },
+      uWaveStrength: { value: 0.035 + 0.5 * waveScale },
       uSunSpec: { value: 1 },
       uRipples: { value: this.rippleData },
       uRippleFoam: { value: this.rippleFoam },

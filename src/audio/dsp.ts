@@ -54,6 +54,20 @@ export class Biquad {
   static bandpass(sr: number, f: number, q = 1): Biquad {
     return Biquad.make(sr, f, q, 'bp');
   }
+  static highshelf(sr: number, f: number, gainDb: number, q = 0.707): Biquad {
+    const a = Math.pow(10, gainDb / 40);
+    const w0 = (2 * Math.PI * f) / sr;
+    const cos = Math.cos(w0);
+    const k = 2 * Math.sqrt(a) * (Math.sin(w0) / (2 * q));
+    const a0 = a + 1 - (a - 1) * cos + k;
+    return new Biquad(
+      (a * (a + 1 + (a - 1) * cos + k)) / a0,
+      (-2 * a * (a - 1 + (a + 1) * cos)) / a0,
+      (a * (a + 1 + (a - 1) * cos - k)) / a0,
+      (2 * (a - 1 - (a + 1) * cos)) / a0,
+      (a + 1 - (a - 1) * cos - k) / a0,
+    );
+  }
 
   process(x: number): number {
     const y = this.b0 * x + this.b1 * this.x1 + this.b2 * this.x2 - this.a1 * this.y1 - this.a2 * this.y2;
@@ -72,6 +86,52 @@ export function peakOf(buf: ArrayLike<number>, from = 0, to = buf.length): numbe
     if (a > p) p = a;
   }
   return p;
+}
+
+/**
+ * Ungated programme loudness in LUFS (ITU-R BS.1770 K-weighting: +4 dB shelf above ≈1.7 kHz and a
+ * 38 Hz high-pass) of one or two channels. Closer to "how loud it sounds" than plain RMS — a sub
+ * bass no phone can reproduce counts for little.
+ */
+export function loudnessOf(channels: readonly ArrayLike<number>[], sr: number, from = 0, to = channels[0].length): number {
+  let sum = 0;
+  for (const ch of channels) {
+    const shelf = Biquad.highshelf(sr, 1681.97, 3.99984, 0.7071752);
+    const hp = Biquad.highpass(sr, 38.135, 0.500327);
+    let s = 0;
+    for (let i = 0; i < to; i++) {
+      const y = hp.process(shelf.process(ch[i]));
+      if (i >= from) s += y * y;
+    }
+    sum += s / Math.max(1, to - from);
+  }
+  return sum > 1e-12 ? -0.691 + 10 * Math.log10(sum) : -120;
+}
+
+/** RMS (linear) of the bands below 200 Hz, 200 Hz – 2 kHz and above 2 kHz. */
+export function bandsOf(buf: ArrayLike<number>, sr: number, from = 0, to = buf.length): [number, number, number] {
+  const lo = Biquad.lowpass(sr, 200);
+  const lo2 = Biquad.lowpass(sr, 200);
+  const hi = Biquad.highpass(sr, 2000);
+  const hi2 = Biquad.highpass(sr, 2000);
+  const midA = Biquad.highpass(sr, 200);
+  const midB = Biquad.lowpass(sr, 2000);
+  let l = 0;
+  let m = 0;
+  let h = 0;
+  for (let i = 0; i < to; i++) {
+    const x = buf[i];
+    const a = lo2.process(lo.process(x));
+    const b = midB.process(midA.process(x));
+    const c = hi2.process(hi.process(x));
+    if (i >= from) {
+      l += a * a;
+      m += b * b;
+      h += c * c;
+    }
+  }
+  const n = Math.max(1, to - from);
+  return [Math.sqrt(l / n), Math.sqrt(m / n), Math.sqrt(h / n)];
 }
 
 export function rmsOf(buf: ArrayLike<number>, from = 0, to = buf.length): number {

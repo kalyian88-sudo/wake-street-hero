@@ -105,21 +105,21 @@ void main() {
 	vec2 p = vWorld.xz;
 
 	// ── normals: two rotated, counter-scrolling fetches of the wave texture ──
-	vec2 uvA = vec2( p.x * 0.9744 - p.y * 0.2250, p.x * 0.2250 + p.y * 0.9744 ) * 0.118 + uTime * vec2( 0.017, 0.031 );
-	vec2 uvB = vec2( p.x * 0.5446 + p.y * 0.8387, p.y * 0.5446 - p.x * 0.8387 ) * 0.31 + uTime * vec2( - 0.052, 0.027 );
+	vec2 uvA = vec2( p.x * 0.9744 - p.y * 0.2250, p.x * 0.2250 + p.y * 0.9744 ) * 0.085 + uTime * vec2( 0.012, 0.022 );
+	vec2 uvB = vec2( p.x * 0.5446 + p.y * 0.8387, p.y * 0.5446 - p.x * 0.8387 ) * 0.21 + uTime * vec2( - 0.036, 0.019 );
 	vec4 sA = texture2D( tWaves, uvA );
 	vec4 sB = texture2D( tWaves, uvB );
 	vec2 gA = sA.rg * 2.0 - 1.0;
 	vec2 gB = sB.rg * 2.0 - 1.0;
 	vec2 slope = vec2( gA.x * 0.9744 + gA.y * 0.2250, gA.y * 0.9744 - gA.x * 0.2250 )
-		+ vec2( gB.x * 0.5446 - gB.y * 0.8387, gB.x * 0.8387 + gB.y * 0.5446 ) * 0.8;
+		+ vec2( gB.x * 0.5446 - gB.y * 0.8387, gB.x * 0.8387 + gB.y * 0.5446 ) * 0.62;
 	float height = sA.a * 0.62 + sB.a * 0.38 - 0.5;
-	float noise = sA.b * 0.58 + sB.b * 0.42;
+	float noise = clamp( ( sA.b * 0.56 + sB.b * 0.44 ) * 1.9 - 0.2, 0.0, 1.0 );
 	#if WATER_DETAIL >= 2
 		// micro chop: only matters close to the camera, the mip chain fades it out by itself
-		vec2 uvC = vec2( p.x * 0.8910 + p.y * 0.4540, p.y * 0.8910 - p.x * 0.4540 ) * 1.07 + uTime * vec2( 0.09, - 0.06 );
+		vec2 uvC = vec2( p.x * 0.8910 + p.y * 0.4540, p.y * 0.8910 - p.x * 0.4540 ) * 0.83 + uTime * vec2( 0.07, - 0.05 );
 		vec2 gC = texture2D( tWaves, uvC ).rg * 2.0 - 1.0;
-		slope += vec2( gC.x * 0.8910 - gC.y * 0.4540, gC.x * 0.4540 + gC.y * 0.8910 ) * 0.5;
+		slope += vec2( gC.x * 0.8910 - gC.y * 0.4540, gC.x * 0.4540 + gC.y * 0.8910 ) * 0.36;
 	#endif
 	#if WATER_DETAIL >= 1
 		// long slow undulation: wide moving bands in the reflection (a third layer for free)
@@ -287,30 +287,30 @@ void main() {
 	float t = vWake.z;
 	float S = vWake.w;
 	vec2 p = vWorld.xz;
-	float n1 = texture2D( tWaves, p * 0.41 + vec2( uTime * 0.02, 0.0 ) ).b;
-	float n2 = texture2D( tWaves, vec2( p.y, - p.x ) * 1.13 + vec2( 0.0, uTime * 0.035 ) ).b;
-	float n = n1 * 0.6 + n2 * 0.4;
+	float n1 = texture2D( tWaves, p * 0.47 + vec2( uTime * 0.02, 0.0 ) ).b;
+	float n2 = texture2D( tWaves, vec2( p.y, - p.x ) * 1.31 + vec2( 0.0, uTime * 0.035 ) ).b;
+	float n = clamp( ( n1 * 0.55 + n2 * 0.45 ) * 1.9 - 0.2, 0.0, 1.0 );
 
-	// churned white water straight behind the board
-	float coreW = 0.24 + 0.8 * ( 1.0 - exp( - t * 1.3 ) );
-	float core = ( 1.0 - smoothstep( coreW * 0.3, coreW, ad ) ) * exp( - t * 1.0 );
-	// diverging arms: a foam crest riding the outer edge of the V
+	// churned white water straight behind the board: narrow, dense, gone in about a second
+	float coreW = 0.2 + 0.42 * ( 1.0 - exp( - t * 2.2 ) );
+	float core = ( 1.0 - smoothstep( coreW * 0.4, coreW, ad ) ) * exp( - t * 1.7 );
+	// diverging arms: a thin foam crest riding the outer edge of the V
 	float inset = halfW - ad;
-	float armW = 0.15 + 0.2 * t;
-	float edgeIn = smoothstep( 0.0, 0.05, inset );
-	float arm = edgeIn * ( 1.0 - smoothstep( armW * 0.35, armW, inset ) ) * exp( - t * 0.6 );
+	float armW = 0.1 + 0.14 * t;
+	float edgeIn = smoothstep( 0.0, 0.035, inset );
+	float arm = edgeIn * ( 1.0 - smoothstep( armW * 0.3, armW, inset ) ) * exp( - t * 0.75 );
 	arm *= 1.0 + 0.6 * clamp( - vLean * sign( vWake.x ), - 1.0, 1.0 );
 	// lacy leftovers between the arms
-	float lace = ( 1.0 - smoothstep( 0.0, halfW, ad ) ) * exp( - t * 0.75 ) * 0.4;
-	float cover = clamp( ( core * 1.3 + arm + lace ) * S, 0.0, 1.0 );
-	float foam = smoothstep( 1.0 - cover * 1.1, 1.26 - cover * 1.1, n );
+	float lace = ( 1.0 - smoothstep( 0.0, halfW * 0.9, ad ) ) * exp( - t * 0.9 ) * 0.34;
+	float cover = clamp( ( core * 0.95 + arm * 0.85 + lace ) * S, 0.0, 0.92 );
+	float foam = smoothstep( 1.0 - cover, 1.22 - cover, n );
 
 	// aerated, flattened water inside the V + the wave itself: bright crest, dark trough behind it
 	float life = 1.0 - smoothstep( WAKE_LIFE * 0.6, WAKE_LIFE, t );
 	float wave = exp( - t * 0.34 ) * min( S, 1.0 ) * edgeIn;
-	float aer = ( 1.0 - smoothstep( halfW * 0.2, halfW, ad ) ) * exp( - t * 0.6 ) * 0.42 * min( S, 1.0 );
-	float crest = ( 1.0 - smoothstep( 0.05, 0.3, abs( inset - 0.16 ) ) ) * wave * 0.34;
-	float trough = ( 1.0 - smoothstep( 0.1, 0.45, abs( inset - 0.62 ) ) ) * wave * 0.2;
+	float aer = ( 1.0 - smoothstep( halfW * 0.15, halfW, ad ) ) * exp( - t * 0.7 ) * 0.36 * min( S, 1.0 );
+	float crest = ( 1.0 - smoothstep( 0.03, 0.22, abs( inset - 0.1 ) ) ) * wave * 0.3;
+	float trough = ( 1.0 - smoothstep( 0.08, 0.36, abs( inset - 0.46 ) ) ) * wave * 0.22;
 
 	float sh = wshShadow( vWorld );
 	vec3 foamCol = mix( uFoamShade, uFoamLit, sh );

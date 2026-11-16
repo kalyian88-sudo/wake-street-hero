@@ -4,6 +4,7 @@
  * calibrate and verify levels; not used by the game itself.
  */
 import { seededRng } from '../data/geometry';
+import { bandsOf, loudnessOf } from './dsp';
 import { AudioCore } from './graph';
 import { Layers } from './layers';
 import { MusicEngine } from './music';
@@ -42,6 +43,10 @@ export interface OfflineResult {
   rmsDb: number;
   /** Loudest 300 ms window. */
   rmsMaxDb: number;
+  /** K-weighted loudness over [skip, end] (LUFS, ungated). */
+  lufs: number;
+  /** RMS (dB) below 200 Hz / 200 Hz – 2 kHz / above 2 kHz of the mono mix over [skip, end]. */
+  bandsDb: [number, number, number];
   /** Samples at or above 0.999 (hard clipping). */
   clipped: number;
   /** NaN / Infinity samples (a broken filter). */
@@ -110,6 +115,9 @@ export async function renderOffline(seconds: number, setup: (rig: OfflineRig) =>
     }
   }
   const rms = Math.sqrt(sum / Math.max(1, length - from));
+  const mono = new Float32Array(length);
+  for (let i = 0; i < length; i++) mono[i] = (l[i] + r[i]) * 0.5;
+  const bands = bandsOf(mono, sr, from);
   const result: OfflineResult = {
     seconds,
     sampleRate: sr,
@@ -118,14 +126,12 @@ export async function renderOffline(seconds: number, setup: (rig: OfflineRig) =>
     rms,
     rmsDb: gainToDb(rms),
     rmsMaxDb: gainToDb(Math.sqrt(Math.max(0, winMax) / Math.min(win, length))),
+    lufs: bad > 0 ? -120 : loudnessOf([l, r], sr, from),
+    bandsDb: [gainToDb(bands[0]), gainToDb(bands[1]), gainToDb(bands[2])],
     clipped,
     bad,
     tailPeak,
   };
-  if (opts.keep) {
-    const mono = new Float32Array(length);
-    for (let i = 0; i < length; i++) mono[i] = (l[i] + r[i]) * 0.5;
-    result.data = mono;
-  }
+  if (opts.keep) result.data = mono;
   return result;
 }

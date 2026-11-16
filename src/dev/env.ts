@@ -78,8 +78,8 @@ const box = (w: number, h: number, d: number, x: number, y: number, z: number, m
   return shadowed(m, cast);
 };
 
-const stone = std(0x9c968a, 0.9);
-const kerb = std(0xc9c3b6, 0.8);
+const stone = std(0x8b8479, 0.9);
+const kerb = std(0xa9a294, 0.8);
 const foamShapes: FoamShape[] = [];
 const rectShape = (cx: number, cz: number, w: number, d: number): FoamShape => ({
   points: [
@@ -103,7 +103,7 @@ foamShapes.push(rectShape(0, 182, 44, 14), rectShape(0, -20, 44, 10));
 box(60, 0.2, 230, 0, -1.7, 80, std(0x3b4038, 1), false);
 
 // shophouse-ish rows on both quays: pastel bodies, terracotta roofs, dark arcades, window grid
-const pastel = [0xf0d9a2, 0xe9b9a9, 0xc2dccb, 0xf2ecdb, 0xadc9de, 0xe4a970, 0xd9c7e4];
+const pastel = [0xd9b96a, 0xd48f7c, 0x8fbf9f, 0xd8cfb4, 0x7fa9c9, 0xcf8448, 0xb49bc9];
 const windowMat = new THREE.MeshStandardMaterial({ color: 0x1d2630, roughness: 0.25, metalness: 0.2, emissive: night ? 0xffb36b : 0x000000, emissiveIntensity: night ? 1.6 : 0 });
 const roofMat = std(0xa4583c, 0.8);
 const arcadeMat = std(0x4a4038, 0.9);
@@ -228,7 +228,7 @@ function step(dt: number): void {
   riderAt(simTime);
   lapBreak = pos.z < prevZ - 10;
   rider.position.copy(pos);
-  rider.rotation.set(0, Math.atan2(vel.x, vel.z), -wake.lean * 0.42);
+  rider.rotation.set(0, Math.atan2(vel.x, vel.z), -wake.lean * 0.3, 'YXZ');
 
   if (dt > 0) {
     const air = !wake.onWater;

@@ -51,6 +51,13 @@ const CLOUDS: Record<EnvDef['timeOfDay'], CloudLook> = {
   night: { coverage: 0.42, scale: 0.27, softness: 0.36, opacity: 0.8, drift: 0.0011 },
 };
 
+/**
+ * three's Preetham sky is tuned to look right as a backdrop at exposure 0.5; in the same linear units as
+ * our sun (a sunlit white wall ≈ sunIntensity / π) it is several times too bright, which washes the IBL
+ * out and hides every shadow. These gains bring the sky to a believable sun : sky ratio.
+ */
+const SKY_GAIN: Record<EnvDef['timeOfDay'], number> = { day: 0.3, golden: 0.32, sunset: 0.42, overcast: 0.3, night: 1 };
+
 const SHARED_PARS = /* glsl */ `
 uniform sampler2D wshCloudTex;
 uniform vec4 wshCloud;        // coverage, uv scale, softness, opacity
@@ -64,6 +71,7 @@ uniform vec4 wshSkyline;      // height (sin elevation), gap share, opacity, neo
 uniform vec3 wshWallLit;
 uniform vec3 wshWallShade;
 uniform float wshBake;
+uniform float wshGain;        // Preetham radiance → scene units (the raw sky is ~4× too bright for our sun)
 uniform vec3 fogColor;
 
 float wshHash1( float n ) { return fract( sin( n * 12.9898 ) * 43758.5453 ); }
@@ -91,9 +99,9 @@ vec3 wshClouds( vec3 col, vec3 dir, float cosSun ) {
 vec3 wshSurround( vec3 col, vec3 dir ) {
 	if ( wshBake > 0.5 ) {
 		float az = atan( dir.z, dir.x );
-		float h1 = wshHash1( floor( az * 5.4113 ) );
-		float h2 = wshHash1( floor( az * 13.369 + 2.3 ) + 91.0 );
-		float top = wshSkyline.x * ( ( 0.35 + 0.65 * h1 ) * step( wshSkyline.y, h1 ) + 0.2 * h2 );
+		float h1 = wshHash1( floor( az * 8.276 ) );
+		float h2 = wshHash1( floor( az * 21.008 + 2.3 ) + 91.0 );
+		float top = wshSkyline.x * ( ( 0.4 + 0.6 * h1 ) * step( wshSkyline.y, h1 ) + 0.22 * h2 );
 		float sil = smoothstep( top + 0.012, top - 0.012, dir.y ) * wshSkyline.z;
 		float facing = 0.5 - 0.5 * dot( normalize( dir.xz + 1e-5 ), wshSunXZ );
 		vec3 wall = wshWallShade + wshWallLit * facing * facing;
@@ -207,7 +215,7 @@ function sharedUniforms(def: EnvDef, sunDir: Vector3): Record<string, IUniform> 
   const ground = new Color();
   let hazeDensity = 9;
   let hazeAmount = 0.9;
-  let skylineHeight = 0.27;
+  let skylineHeight = 0.2;
   let neon = 0;
   switch (def.timeOfDay) {
     case 'day':
@@ -239,7 +247,7 @@ function sharedUniforms(def: EnvDef, sunDir: Vector3): Record<string, IUniform> 
       wallShade.setRGB(0.006, 0.006, 0.01);
       hazeDensity = 8;
       hazeAmount = 0.7;
-      skylineHeight = 0.3;
+      skylineHeight = 0.24;
       neon = def.neon ? 1.6 : 0;
       break;
   }
@@ -261,10 +269,11 @@ function sharedUniforms(def: EnvDef, sunDir: Vector3): Record<string, IUniform> 
     wshCloudShade: { value: shade },
     wshGround: { value: ground },
     wshHaze: { value: new Vector3(hazeDensity, hazeAmount, def.timeOfDay === 'overcast' ? 0 : 0.8) },
-    wshSkyline: { value: new Vector4(skylineHeight, 0.3, 0.94, neon) },
+    wshSkyline: { value: new Vector4(skylineHeight, 0.28, 0.96, neon) },
     wshWallLit: { value: wallLit },
     wshWallShade: { value: wallShade },
     wshBake: { value: 0 },
+    wshGain: { value: SKY_GAIN[def.timeOfDay] },
     // refreshed by the renderer from scene.fog (material.fog = true) in the right colour space
     fogColor: { value: fog.clone() },
     fogNear: { value: def.fogNear },
@@ -304,7 +313,7 @@ function createDayDome(def: EnvDef, sunDir: Vector3): SkyDome {
     insert(
       frag,
       'gl_FragColor = vec4( texColor, 1.0 );',
-      'texColor = wshSurround( wshClouds( texColor, direction, cosTheta ), direction );\n\t\t\t',
+      'texColor = wshSurround( wshClouds( texColor * wshGain, direction, cosTheta ), direction );\n\t\t\t',
       'before',
     );
   frag =

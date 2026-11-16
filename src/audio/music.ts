@@ -17,12 +17,12 @@ import { stepSeconds } from './theory';
 import { TRACKS, findTrack, type SectionKind, type TrackDef } from './tracks';
 
 /** Bus levels inside a track (before the per-track loudness trim `TrackDef.gain`). */
-const LEVEL = { drums: 0.8, bass: 0.55, keys: 0.9, lead: 0.7, crackle: 0.05, riser: 0.1 };
+const LEVEL = { drums: 0.8, bass: 0.39, keys: 2, lead: 1.1, crackle: 0.07, riser: 0.14 };
 /** Headroom in front of the tape saturation: the summed beat peaks around 0.5 there (gentle drive, no squashing). */
 const PRE_SAT = 0.42;
 /** Relative level of every drum voice. */
-const DRUM_LEVEL: Record<DrumId, number> = { kick: 1, snare: 0.72, clap: 0.55, hat: 0.3, openHat: 0.28, rim: 0.5, shaker: 0.2, perc: 0.36 };
-const BASS_DRIVE: Record<TrackDef['bass'], number> = { sub: 1.6, '808': 2.6, upright: 1.2, synth: 1.8 };
+const DRUM_LEVEL: Record<DrumId, number> = { kick: 0.85, snare: 0.9, clap: 0.7, hat: 0.5, openHat: 0.42, rim: 0.6, shaker: 0.32, perc: 0.45 };
+const BASS_DRIVE: Record<TrackDef['bass'], number> = { sub: 2, '808': 2.6, upright: 1.4, synth: 1.8 };
 
 const kitCache = new WeakMap<AudioCore, Map<string, Record<DrumId, AudioBuffer>>>();
 const crackleCache = new WeakMap<AudioCore, AudioBuffer>();
@@ -309,7 +309,8 @@ export class TrackPlayer {
       const tonal = inst === 'kick' || inst === 'perc';
       const rate = tonal ? 1 : 1 + (this.rng() - 0.5) * 0.03;
       const wet = inst === 'snare' || inst === 'clap' || inst === 'rim' || inst === 'perc';
-      playSample(ctx, this.drumBus, this.kit[inst], t, ev.vel * ev.vel * DRUM_LEVEL[inst], rate, wet ? this.drumRev : undefined);
+      const level = Math.pow(ev.vel, 1.5) * DRUM_LEVEL[inst] * (def.drumMix?.[inst] ?? 1);
+      playSample(ctx, this.drumBus, this.kit[inst], t, level, rate, wet ? this.drumRev : undefined);
       if (inst === 'kick' && ev.vel > 0.5) {
         // sidechain: the kick pushes keys (and, less, the bass) down for a moment
         const depth = def.duck * ev.vel;

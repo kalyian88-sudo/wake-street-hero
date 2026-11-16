@@ -266,11 +266,16 @@ export class Game implements IGame, DebugHost {
     this.last = now;
     if (document.hidden || this.engine.contextLost) return;
     const realDt = Math.min(Math.max(raw, 0), MAX_DT);
-    this.engine.beginFrame(realDt);
+    const resized = this.engine.pollSize(realDt);
     if (this._state === 'boot') this.setState('menu');
-    if (!this.manualClock) this.advance(realDt);
-    // Manual clock (tests): nothing moves between step() calls, so there is nothing new to draw.
-    if (!this.manualClock || this.engine.takeResized()) this.draw(realDt);
+    if (this.manualClock) {
+      // Tests drive the clock through step(): nothing moves in between, so only a resize needs a redraw.
+      if (resized) this.requestStepDraw();
+      return;
+    }
+    this.engine.beginFrame();
+    this.advance(realDt);
+    this.draw(realDt);
     this.overlay.update(realDt);
     const cpu = this.engine.endFrame(raw);
     this.quality.frame(raw, cpu);
@@ -330,12 +335,17 @@ export class Game implements IGame, DebugHost {
     const n = Math.max(1, Math.round(seconds / STEP));
     if (this._state === 'boot') this.setState('menu');
     for (let i = 0; i < n; i++) this.advance(STEP);
+    this.requestStepDraw();
+  }
+
+  private requestStepDraw(): void {
     if (this.stepDrawQueued) return;
     this.stepDrawQueued = true;
     queueMicrotask(() => {
       this.stepDrawQueued = false;
       if (this.engine.contextLost) return;
-      this.engine.beginFrame(0);
+      this.engine.pollSize(0);
+      this.engine.beginFrame();
       this.draw(STEP);
       this.overlay.update(1);
       this.engine.endFrame(0);

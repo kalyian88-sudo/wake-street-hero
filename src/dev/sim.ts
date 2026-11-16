@@ -136,18 +136,18 @@ function makeView(w: number, h: number): View {
       hud: [pad + 2, 20],
     };
   }
-  // landscape: +Z to the right, rider's left (+X) up
-  const scale = Math.min((w - pad * 2) / sz, (h * 0.48) / sx);
+  // landscape: +Z to the right, rider's left (+X) up; profile under the map, HUD under that
+  const scale = Math.min((w - pad * 2) / sz, (h * 0.4) / sx);
   const mapH = sx * scale;
-  const py0 = pad + mapH + 12;
-  const ph = Math.min(h - py0 - pad, 110);
-  const py = ph / 5.2;
+  const py0 = pad + mapH + 8;
+  const ph = Math.max(50, Math.min(h - py0 - 96, 110));
+  const py = ph / 5.4;
   return {
     scale,
     map: (x, z) => [pad + (z - b.min[1]) * scale, pad + (b.max[0] - x) * scale],
     prof: (z, y) => [pad + (z - b.min[1]) * scale, py0 + ph - (y + 0.4) * py],
     profRect: [pad, py0, sz * scale, ph],
-    hud: [pad + 6, py0 + ph + 18],
+    hud: [pad + 6, py0 + ph + 16],
   };
 }
 
@@ -303,36 +303,32 @@ function drawHud(v: View, w: number, h: number): void {
   const s = sim.state;
   const sc = sim.score.state;
   const portrait = h >= w;
-  let x = v.hud[0];
-  let y = v.hud[1];
   ctx.font = '11px ui-monospace, monospace';
+  const rows = portrait ? 11 : Math.max(3, Math.floor((h - v.hud[1] + 4) / 14));
+  const colW = portrait ? 196 : 205;
+  let n = 0;
   const line = (text: string, color = '#c9d1dc'): void => {
     ctx.fillStyle = color;
-    ctx.fillText(text, x, y);
-    y += 14;
+    ctx.fillText(text, v.hud[0] + Math.floor(n / rows) * colW, v.hud[1] + (n % rows) * 14);
+    n++;
   };
-  const colW = portrait ? 196 : 230;
   line(`${winchId} · ${board} · ${power}${auto ? ' · A' : ''}`, '#fff');
   line(`t ${s.time.toFixed(1)}s  ${s.mode}`, MODE_COLOR[s.mode]);
   line(`v ${s.speed.toFixed(1)} m/s  y ${s.pos.y.toFixed(2)}`);
   line(`rope ${s.rope.taut ? 'TAUT' : s.rope.holding ? 'slack' : 'released'} ${(s.rope.tension * 100).toFixed(0)}%`);
+  line(`score ${Math.round(sc.total)}  +${Math.round(sc.comboPoints)}×${sc.comboMult}`, '#ffe14d');
+  line(`falls ${sc.falls}  hero ${(sc.hero.meter * 100).toFixed(0)}%${sc.hero.active ? ' ON' : ''}`);
   line(`crouch ${(s.crouch * 100).toFixed(0)}%  ${s.switch ? 'SWITCH' : ''}`);
   if (s.mode === 'air') line(`air ${s.air.time.toFixed(2)}s  land in ${s.air.timeToLand.toFixed(2)}s`, '#fff');
   if (s.air.flip.id) line(`flip ${s.air.flip.id} ${(s.air.flip.progress * 100).toFixed(0)}% catch ${(s.air.flip.catchWindow * 100).toFixed(0)}%`, '#ffe14d');
   if (s.rail) {
-    line(`${s.rail.stance}`, '#ff8a94');
-    // balance bar
-    ctx.strokeStyle = '#5a6170';
-    ctx.strokeRect(x, y - 8, 100, 8);
-    ctx.fillStyle = Math.abs(s.rail.balance) > 0.7 ? '#ff2a3a' : '#59d98e';
-    ctx.fillRect(x + 50 + s.rail.balance * 50 - 2, y - 10, 4, 12);
-    y += 12;
+    const bar = Math.round((s.rail.balance + 1) * 7);
+    line(`${s.rail.stance} [${'·'.repeat(Math.max(0, bar))}|${'·'.repeat(Math.max(0, 14 - bar))}]`, Math.abs(s.rail.balance) > 0.7 ? '#ff2a3a' : '#ff8a94');
   }
-  line(`score ${Math.round(sc.total)}  +${Math.round(sc.comboPoints)}×${sc.comboMult}`, '#ffe14d');
-  line(`falls ${sc.falls}  hero ${(sc.hero.meter * 100).toFixed(0)}%${sc.hero.active ? ' ON' : ''}`);
   if (auto && bot.targetId) line(`→ ${bot.targetId}`, '#7ad957');
-  x += colW;
-  y = v.hud[1];
+  // event ticker in the next free column
+  n = Math.ceil(n / rows) * rows;
+  const x = v.hud[0] + Math.floor(n / rows) * colW;
   const maxChars = Math.max(12, Math.floor((w - x - 6) / 6.7));
   for (const t of ticker) {
     ctx.globalAlpha = Math.max(0.4, 1 - (s.time - t.t) / 8);
@@ -364,6 +360,7 @@ window.addEventListener('keyup', (e: KeyboardEvent) => keys.delete(e.code));
 
 start();
 let last = performance.now();
+let idleFrames = 0;
 function frame(now: number): void {
   const real = Math.min(0.05, (now - last) / 1000);
   last = now;
@@ -371,7 +368,10 @@ function frame(now: number): void {
     const n = Math.max(1, Math.round(rate));
     for (let i = 0; i < n; i++) tick(real * (rate < 1 ? rate : 1));
   }
-  draw();
+  // nothing moves after the finish: stop repainting once the last frame is on screen
+  const idle = sim.state.mode === 'finished' && sim.state.speed < 0.02;
+  idleFrames = idle ? idleFrames + 1 : 0;
+  if (idleFrames < 20 || canvas.width !== Math.round(window.innerWidth * Math.min(2, window.devicePixelRatio || 1))) draw();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

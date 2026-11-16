@@ -173,8 +173,11 @@ const _a = new Vector3();
 const _b = new Vector3();
 const UP = new Vector3(0, 1, 0);
 
-/** `stance` = half distance between the feet (binding chassis positions on the wakeboard). */
-export function buildBoard(spec: BoardSpec, look: GearLook, bindings: GearLook | null, stance: number): BoardBuild {
+/**
+ * `stance` = half distance between the feet (binding chassis positions on the wakeboard).
+ * `goofy` mirrors the chassis (toes on +X) — the rig mirrors the whole pose for goofy riders.
+ */
+export function buildBoard(spec: BoardSpec, look: GearLook, bindings: GearLook | null, stance: number, goofy = false): BoardBuild {
   const wb = spec.kind === 'wakeboard';
   const railColor = wb ? shade(look.secondary, luma(look.secondary) > 0.5 ? -0.25 : 0.1) : shade(look.primary, -0.18);
   const parts: BufferGeometry[] = [slab(spec, railColor)];
@@ -212,9 +215,9 @@ export function buildBoard(spec: BoardSpec, look: GearLook, bindings: GearLook |
       const y = deckHeight(spec, z);
       const duck = side > 0 ? spec.duckFront : -spec.duckRear;
       // local frame of the binding: +Y′ runs heel → toe (towards −X of the board, rotated by the duck angle)
-      const fx = -Math.cos(duck);
+      const fx = -Math.cos(duck) * (goofy ? -1 : 1);
       const fz = Math.sin(duck);
-      const cx = 0.006;
+      const cx = goofy ? -0.006 : 0.006;
       b.color(shade(bindings.secondary, -0.2));
       _a.set(cx - fx * 0.155, y + 0.006, z - fz * 0.155);
       _b.set(cx + fx * 0.15, y + 0.006, z + fz * 0.15);
@@ -278,15 +281,22 @@ export function buildHandle(): BoardBuild {
   _a.set(-0.03, 0, 0);
   _b.set(0.03, 0, 0);
   b.segment(_a, _b, front).capsule(0.06, HANDLE.radius + 0.0015, HANDLE.radius + 0.0015, { radial: 8, capSeg: 1 });
-  // V-bridle + apex knot
+  const geometry = b.build();
+  return { geometry, triangles: b.triangleCount };
+}
+
+/**
+ * V-bridle built for an apex at z = 1: the rig scales the mesh along Z to the real bar → rope-end
+ * distance, so the rope drawn by the world always meets the apex.
+ */
+export function buildBridle(): BoardBuild {
+  const b = new MeshBuilder(false);
   b.color(0xf1efe8);
   for (const s of [1, -1]) {
     _a.set(s * HANDLE.barHalf, 0, 0);
-    _b.set(0, 0, HANDLE.bridle);
+    _b.set(0, 0, 1);
     b.segment(_a, _b, UP).capsule(_a.distanceTo(_b), 0.0045, 0.0045, { radial: 5, capSeg: 1 });
   }
-  b.color(BRAND.colors.red);
-  b.at(0, 0, HANDLE.bridle).ellipsoid(0.012, 0.012, 0.02, { radial: 6, rings: 3 });
   const geometry = b.build();
   return { geometry, triangles: b.triangleCount };
 }

@@ -53,15 +53,15 @@ export const SIM = {
   /** Elastic gain 1/s: radial speed deficit → pull acceleration. */
   ropeGain: 4,
   /** Extra target speed (m/s) per metre of stretch — lets the rider catch the drum up. */
-  stretchGain: 2.5,
+  stretchGain: 5,
   /** Rope cannot stretch more than this; beyond it the drum slips. */
-  maxStretch: 1.5,
+  maxStretch: 0.7,
   /** Pull acceleration cap m/s². */
   maxPull: 16,
   /** Pull that reads as tension = 1. */
   tensionRef: 9,
   /** The drum takes slack up this much faster than its normal speed. */
-  slackReel: 1.15,
+  slackReel: 1.06,
   /** Fraction of the speed deficit handed over instantly when the rope snaps tight. */
   jerkImpulse: 0.45,
   /** 'sim:ropeJerk' is emitted above this (m/s). */
@@ -78,10 +78,12 @@ export const SIM = {
   releasedLead: 7,
   /** Seconds for the tension to ramp in after a re-grab. */
   regrabRamp: 0.45,
+  /** Grabbing the handle while slower than the drum yanks: jerk = this × the speed deficit. */
+  regrabJerk: 0.55,
   /** Run ends when the rope is this short even if the rider never got there. */
   minRope: 4,
   /** Rider pinned somewhere with the rope stretched this far for stuckTime → bail. */
-  stuckStretch: 1.45,
+  stuckStretch: 0.66,
   stuckTime: 1.6,
 
   // ── water ──
@@ -91,6 +93,8 @@ export const SIM = {
   /** Below this speed the board stops planing and sinks (extra drag). */
   planingSpeed: 3,
   sinkDrag: 2.4,
+  /** Share of the speed an edge keeps when it turns the board's travel direction (0 = keel that only scrubs). */
+  edgeEfficiency: 0.55,
   /** Heading turn rate cap rad/s. */
   turnRate: 2.6,
   /** Free steering (handle released) rad/s at full stick. */
@@ -161,6 +165,7 @@ export const SIM = {
   /** Climb speed = base + share of the speed into the wall. */
   wallClimbBase: 2.2,
   wallClimbGain: 0.75,
+  wallClimbMax: 3.3,
   wallGravity: 3.4,
   wallSinkMax: 1.1,
   wallDrag: 0.7,
@@ -169,7 +174,6 @@ export const SIM = {
 
   // ── bail / respawn ──
   respawnTime: 2.0,
-  respawnSpeed: 2.2,
   /** How far ahead on the line (m) the search for a respawn point starts, and how far it looks. */
   respawnAhead: 4,
   respawnSearch: 60,

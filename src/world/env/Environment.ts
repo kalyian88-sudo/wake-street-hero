@@ -32,8 +32,8 @@ import { createSkyDome, type SkyDome } from './sky';
 /** Distance of the sun light from the shadow focus (m) — far enough for long evening shadows of tall facades. */
 const SUN_DISTANCE = 140;
 /** IBL gain on top of EnvDef.ambientIntensity (the hemisphere light adds the rest of the fill). */
-const IBL_GAIN = 0.9;
-const HEMI_GAIN = 0.28;
+const IBL_GAIN = 1.0;
+const HEMI_GAIN = 0.25;
 
 const _v = new Vector3();
 const _fwd = new Vector3();

@@ -51,11 +51,19 @@ export function stepGround(c: SimCore, dt: number): void {
   const fz = Math.cos(c.boardDir);
   let vx = v.x + c.rope.ax * dt;
   let vz = v.z + c.rope.az * dt;
+  const before = Math.hypot(vx, vz);
   const vf = vx * fx + vz * fz;
   const grip = Math.exp(-surf.grip * (water ? tune.grip : 1) * dt);
   vx = vf * fx + (vx - vf * fx) * grip;
   vz = vf * fz + (vz - vf * fz) * grip;
   let speed = Math.hypot(vx, vz);
+  if (water && speed > 1e-4 && vf > 0) {
+    // an edge mostly REDIRECTS speed rather than scrubbing it: give part of the loss back
+    const k = 1 + (before / speed - 1) * SIM.edgeEfficiency;
+    vx *= k;
+    vz *= k;
+    speed *= k;
+  }
   if (speed > 1e-5) {
     let dec: number;
     if (water) {
