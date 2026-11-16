@@ -14,7 +14,7 @@ import { MathUtils, PerspectiveCamera, Vector3 } from 'three';
 import type { ICollisionWorld, IRiderRig, RiderSimState, SpotDef, WinchPointDef } from '../types';
 import type { EventBus } from './events';
 import { FreeCam } from './FreeCam';
-import { clamp01, expDamp, smoothDamp, smoothDampAngle, smoothDampVec, smoothstep, wobble, type Spring } from './math';
+import { clamp01, expDamp, smoothDampAngle, smoothDampVec, smoothstep, wobble, type Spring } from './math';
 
 export type CameraMode = 'chase' | 'preview' | 'filmer' | 'free';
 
@@ -163,14 +163,9 @@ export class CameraRig {
     this.orbitSpring.v = 0;
     this.camVel.set(0, 0, 0);
     this.lookVel.set(0, 0, 0);
-    // Establishing shot from the sunny side so the rider's face is lit.
-    if (this.spot) {
-      const az = this.spot.env.sunAzimuth * DEG;
-      const a = this.yaw + ESTABLISH_ORBIT;
-      // camera offset direction for side = +1 is −(sin a, cos a)
-      const dot = -(Math.sin(a) * Math.sin(az) + Math.cos(a) * Math.cos(az));
-      this.side = dot >= 0 ? 1 : -1;
-    }
+    // Orbit shots sit on the sunny side so the rider's face is lit. A positive orbit moves the camera
+    // towards the rider's right (−cos yaw, sin yaw); its dot with the sun direction is sin(yaw − az).
+    if (this.spot) this.side = Math.sin(this.yaw - this.spot.env.sunAzimuth * DEG) >= 0 ? 1 : -1;
   }
 
   /**
@@ -246,7 +241,7 @@ export class CameraRig {
       } else if (mode === 'wall' && s.wall) {
         // Swing out to the open side so the wall is the backdrop, not an obstruction.
         const cross = Math.sin(this.yaw) * s.wall.normal.z - Math.cos(this.yaw) * s.wall.normal.x;
-        orbit = (cross > 0 ? -1 : 1) * 0.5;
+        orbit = (cross > 0 ? 1 : -1) * 0.5;
         dist += 0.5;
         lookAhead -= 2;
       }
@@ -503,10 +498,5 @@ export class CameraRig {
     cam.lookAt(this.tmpB);
     cam.updateProjectionMatrix();
     cam.updateMatrixWorld(true);
-  }
-
-  /** Dummy spring helper kept for symmetry with smoothDamp users (avoids unused import pruning in tests). */
-  static settle(value: number, target: number, spring: Spring, time: number, dt: number): number {
-    return smoothDamp(value, target, spring, time, dt);
   }
 }
