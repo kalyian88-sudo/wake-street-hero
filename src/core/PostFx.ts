@@ -300,7 +300,7 @@ export class PostFx {
       chain.composer.render(0);
       fxaa.setSize(w, h);
       fxaa.renderToScreen = false;
-      fxaa.render(renderer, out, chain.composer.readBuffer);
+      fxaa.render(renderer, out, chain.composer.readBuffer, 0, false);
       renderer.readRenderTargetPixels(out, 0, 0, w, h, pixels);
     } finally {
       renderer.setRenderTarget(prevTarget);

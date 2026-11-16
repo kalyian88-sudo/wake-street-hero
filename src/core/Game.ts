@@ -3,7 +3,6 @@
  *   boot → menu ⇄ preview → countdown → run ⇄ paused → results ⇄ replay → menu
  * and the render loop. The UI talks to it through IGame only.
  */
-import { Scene, Vector3 } from 'three';
 import { createAudio } from '../audio/Audio';
 import { BRAND } from '../config';
 import { SPOTS } from '../data/spots';
@@ -17,7 +16,6 @@ import type {
   FrameStats,
   GameState,
   IAudio,
-  IBackdropScene,
   IGame,
   IHud,
   II18n,
@@ -33,7 +31,7 @@ import type {
   WorldView,
 } from '../types';
 import { createHud } from '../ui/hud/Hud';
-import { createBackdrop } from '../world/menu/backdrops';
+import { Backdrops } from './Backdrops';
 import { CameraRig } from './CameraRig';
 import { DebugOverlay, type DebugHost } from './debug';
 import { Engine } from './Engine';
@@ -41,7 +39,7 @@ import { EventBus } from './events';
 import type { FxParams } from './PostFx';
 import { QualityManager } from './Quality';
 import { RunSession, type SessionDeps } from './RunSession';
-import { SpotLoader, markMaterialsDirty, type LoadedSpot } from './SpotLoader';
+import { SpotLoader, type LoadedSpot } from './SpotLoader';
 import { installTestHooks } from './testHooks';
 import { TimeScale } from './Time';
 import { readUrlParams, type UrlParams } from './urlParams';
@@ -52,24 +50,10 @@ export interface GameOptions {
   hudRoot: HTMLElement;
 }
 
-/** Backdrops that can morph into each other through IBackdropScene.set() share one instance. */
-type BackdropGroup = 'map' | 'rider' | 'splash';
-interface BackdropEntry {
-  scene: IBackdropScene;
-  exposure: number;
-}
-
 const MAX_DT = 1 / 20;
 const STEP = 1 / 60;
 const DEBUG_TIME_SCALES = [1, 0.5, 0.25, 2] as const;
 const MENU_BLOOM = 0.3;
-
-function backdropGroup(b: MenuBackdrop): BackdropGroup | null {
-  if (b.kind === 'hub' || b.kind === 'city') return 'map';
-  if (b.kind === 'rider') return 'rider';
-  if (b.kind === 'splash') return 'splash';
-  return null;
-}
 
 function banner(parent: HTMLElement, text: string): HTMLDivElement {
   const el = document.createElement('div');
@@ -106,8 +90,7 @@ export class Game implements IGame, DebugHost {
   private readonly app: HTMLElement;
   private readonly canvas: HTMLCanvasElement;
   private readonly overlay: DebugOverlay;
-  private readonly backdrops = new Map<BackdropGroup, BackdropEntry>();
-  private backdrop: BackdropEntry | null = null;
+  private readonly backdrops: Backdrops;
   private navToken = 0;
   private raf = 0;
   private last = 0;
@@ -115,16 +98,9 @@ export class Game implements IGame, DebugHost {
   private lookKey: object | null = null;
   private lostBanner: HTMLDivElement | null = null;
   private debugTimeIndex = 0;
-  private dragId = -1;
-  private dragX = 0;
-  private dragY = 0;
   private readonly menuFx: FxParams = { slowMo: 0, hero: 0, bloom: MENU_BLOOM, time: 0 };
   private readonly previewView: WorldView;
   private readonly menuAudio: AudioView = { state: null, timeScale: 1, paused: false };
-  private readonly ndc = { x: 0, y: 0 };
-  private readonly v = new Vector3();
-  private readonly v2 = new Vector3();
-  private readonly menuScene = new Scene();
   private readonly sessionDeps: SessionDeps;
 
   constructor(opts: GameOptions) {
@@ -163,6 +139,7 @@ export class Game implements IGame, DebugHost {
     this.cameraRig.setAspect(this.engine.aspect);
     this.cameraRig.setFar(this.farPlane(this.quality.profile));
     this.loader = new SpotLoader(this.engine.renderer, this.cameraRig.camera, this.bus, () => this.quality.profile);
+    this.backdrops = new Backdrops(this.engine, this.cameraRig.camera, this.bus, () => this.quality.profile, () => this._state === 'menu', opts.canvas);
     this.previewView = { rider: null, camera: this.cameraRig.camera };
     this.sessionDeps = {
       bus: this.bus,
@@ -178,7 +155,7 @@ export class Game implements IGame, DebugHost {
     this.quality.onChange = (profile) => this.applyProfile(profile);
     this.engine.onResize = (w, h) => {
       this.cameraRig.setAspect(w / h);
-      for (const b of this.backdrops.values()) b.scene.resize(w, h);
+      this.backdrops.resize(w, h);
     };
     this.engine.onContextLost = () => {
       this.pauseRun();
@@ -244,7 +221,7 @@ export class Game implements IGame, DebugHost {
     this.engine.applyProfile(profile);
     this.cameraRig.setFar(this.farPlane(profile));
     this.loader.applyProfile(profile, shadowsChanged);
-    if (shadowsChanged) for (const b of this.backdrops.values()) markMaterialsDirty(b.scene.scene);
+    if (shadowsChanged) this.backdrops.markDirty();
   }
 
   /** Tone-mapping exposure belongs to whatever scene is on screen (spot env vs. menu backdrop). */
@@ -280,33 +257,6 @@ export class Game implements IGame, DebugHost {
     window.addEventListener('pageshow', () => {
       this.last = performance.now();
     });
-
-    // Drags on the bare canvas rotate the globe / pan the map / spin the rider.
-    const c = this.canvas;
-    c.addEventListener('pointerdown', (e) => {
-      if (this._state !== 'menu' || !this.backdrop || this.dragId !== -1) return;
-      this.dragId = e.pointerId;
-      this.dragX = e.clientX;
-      this.dragY = e.clientY;
-      try {
-        c.setPointerCapture(e.pointerId);
-      } catch {
-        /* pointer already gone */
-      }
-    });
-    c.addEventListener('pointermove', (e) => {
-      if (e.pointerId !== this.dragId) return;
-      const dx = e.clientX - this.dragX;
-      const dy = e.clientY - this.dragY;
-      this.dragX = e.clientX;
-      this.dragY = e.clientY;
-      if (this._state === 'menu' && this.backdrop && (dx || dy)) this.backdrop.scene.drag(dx, dy);
-    });
-    const end = (e: PointerEvent): void => {
-      if (e.pointerId === this.dragId) this.dragId = -1;
-    };
-    c.addEventListener('pointerup', end);
-    c.addEventListener('pointercancel', end);
   }
 
   // ─────────────────────────────────────────────────────────────── loop ──
@@ -340,8 +290,8 @@ export class Game implements IGame, DebugHost {
       this.previewView.camera = this.cameraRig.camera;
       loaded.world.update(realDt, this.clock, this.previewView);
       this.cameraRig.updatePreview(realDt);
-    } else if (this.backdrop) {
-      this.backdrop.scene.update(realDt, this.clock);
+    } else if (this.backdrops.current) {
+      this.backdrops.current.scene.update(realDt, this.clock);
     }
     this.audio.update(realDt, this.menuAudio);
   }
@@ -359,12 +309,13 @@ export class Game implements IGame, DebugHost {
       fx.bloom = loaded.spot.env.bloom;
       fx.time = this.clock;
       this.engine.render(loaded.scene, this.cameraRig.camera, fx, realDt);
-    } else if (this.backdrop) {
-      this.useLook(this.backdrop, this.backdrop.exposure);
+    } else if (this.backdrops.current) {
+      const b = this.backdrops.current;
+      this.useLook(b, b.exposure);
       const fx = this.menuFx;
       fx.bloom = MENU_BLOOM;
       fx.time = this.clock;
-      this.engine.render(this.backdrop.scene.scene, this.backdrop.scene.camera, fx, realDt);
+      this.engine.render(b.scene.scene, b.scene.camera, fx, realDt);
     } else {
       this.engine.clear(BRAND.colors.darker);
     }
@@ -383,34 +334,9 @@ export class Game implements IGame, DebugHost {
   // ─────────────────────────────────────────────────────────── backdrop ──
 
   setBackdrop(b: MenuBackdrop): void {
-    const group = backdropGroup(b);
-    if (!group) {
-      // 'none' while a spot preview is up means "nothing extra" — the preview stays.
-      this.backdrop = null;
-      return;
-    }
-    let entry = this.backdrops.get(group) ?? null;
-    if (entry) entry.scene.set(b);
-    else {
-      const r = this.engine.renderer;
-      const keep = r.toneMappingExposure;
-      r.toneMappingExposure = 1;
-      let scene: IBackdropScene | null = null;
-      try {
-        // Backdrops own their scene + camera; the context only carries the renderer, profile and bus.
-        scene = createBackdrop(b, { renderer: r, scene: this.menuScene, camera: this.cameraRig.camera, profile: this.quality.profile, bus: this.bus });
-      } catch (err) {
-        console.error('[core] backdrop failed', err);
-      }
-      if (scene) {
-        entry = { scene, exposure: r.toneMappingExposure };
-        scene.resize(this.engine.width, this.engine.height);
-        this.backdrops.set(group, entry);
-      }
-      r.toneMappingExposure = keep;
-      this.lookKey = null;
-    }
-    this.backdrop = entry;
+    // 'none' while a spot preview is up means "nothing extra" — the preview stays on screen.
+    if (!this.backdrops.set(b)) return;
+    this.lookKey = null;
     // Leaving the spot card for a menu screen with its own backdrop ends the preview.
     if (this._state === 'preview') {
       this.navToken++;
@@ -420,23 +346,11 @@ export class Game implements IGame, DebugHost {
   }
 
   pickBackdrop(clientX: number, clientY: number): { type: 'city' | 'spot'; id: string } | null {
-    if (!this.backdrop || this._state !== 'menu') return null;
-    const n = this.engine.clientToNdc(clientX, clientY, this.ndc);
-    if (Math.abs(n.x) > 1 || Math.abs(n.y) > 1) return null;
-    return this.backdrop.scene.pick(n.x, n.y);
+    return this._state === 'menu' ? this.backdrops.pick(clientX, clientY) : null;
   }
 
   projectMarker(type: 'city' | 'spot', id: string): { x: number; y: number; visible: boolean } | null {
-    const b = this.backdrop;
-    if (!b || !b.scene.markerPosition(type, id, this.v)) return null;
-    const cam = b.scene.camera;
-    cam.updateMatrixWorld();
-    // Behind the camera → project() mirrors the point; treat it as hidden.
-    const behind = this.v2.copy(this.v).applyMatrix4(cam.matrixWorldInverse).z > 0;
-    this.v.project(cam);
-    const visible = !behind && Math.abs(this.v.x) <= 1 && Math.abs(this.v.y) <= 1 && this.v.z >= -1 && this.v.z <= 1;
-    const p = this.engine.ndcToClient(this.v.x, this.v.y, this.ndc);
-    return { x: p.x, y: p.y, visible };
+    return this.backdrops.project(type, id);
   }
 
   // ──────────────────────────────────────────────────────── preview / run ──
@@ -563,7 +477,7 @@ export class Game implements IGame, DebugHost {
     if (s.phase !== 'replay') return;
     this.setState('replay');
     await done;
-    if (this._state === 'replay' && this.session === s) this.setState('results');
+    if (this.state === 'replay' && this.session === s) this.setState('results');
   }
 
   stopReplay(): void {
@@ -639,8 +553,7 @@ export class Game implements IGame, DebugHost {
     cancelAnimationFrame(this.raf);
     this.endSession();
     this.loader.unload();
-    for (const b of this.backdrops.values()) b.scene.dispose();
-    this.backdrops.clear();
+    this.backdrops.dispose();
     this.overlay.dispose();
     this.cameraRig.dispose();
     this.input.detach();
