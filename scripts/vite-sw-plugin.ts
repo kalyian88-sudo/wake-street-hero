@@ -34,8 +34,8 @@ export function swPrecachePlugin(): Plugin {
       const list = [...files].sort();
       const build = Date.now().toString(36);
       src = src
-        .replace('self.__PRECACHE__', JSON.stringify(list))
-        .replace('self.__BUILD__', JSON.stringify(build));
+        .replace(/self\.__PRECACHE__/g, JSON.stringify(list))
+        .replace(/self\.__BUILD__/g, JSON.stringify(build));
       await fs.writeFile(swPath, src);
     },
   };
