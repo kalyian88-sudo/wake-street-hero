@@ -17,16 +17,16 @@ export type LayerName = 'water' | 'carve' | 'chatter' | 'wind' | 'engine' | 'rop
 
 /** Calibration gains (measured offline): layer level 1 → the RMS listed in the table in Audio.ts. */
 const G = {
-  water: 0.5,
-  fizz: 0.2,
-  carve: 0.4,
-  chatter: 0.5,
-  wind: 0.5,
-  engine: 0.5,
-  ropeHum: 0.3,
-  creak: 3,
-  drone: 0.2,
-  heart: 0.8,
+  water: 0.4,
+  fizz: 0.16,
+  carve: 0.325,
+  chatter: 0.7,
+  wind: 0.7,
+  engine: 1.08,
+  ropeHum: 0.1,
+  creak: 1.3,
+  drone: 0.03,
+  heart: 0.11,
 };
 
 /** setTargetAtTime wrapper that ignores changes too small to hear (keeps the automation queue short). */
@@ -378,10 +378,11 @@ export class Layers {
     const rSaw = osc('sawtooth', 124.6);
     follow(rTri.detune);
     follow(rSaw.detune);
-    const rSawG = gain(0.3);
+    const rSawG = gain(0.9);
+    const rTriG = gain(0.5);
     const rBp = biq('bandpass', 700, 3);
     const rHum = gain(0);
-    rTri.connect(rHum);
+    rTri.connect(rTriG).connect(rHum);
     rSaw.connect(rSawG).connect(rBp).connect(rHum);
     rHum.connect(out);
     const crBp = biq('bandpass', 1100, 28);

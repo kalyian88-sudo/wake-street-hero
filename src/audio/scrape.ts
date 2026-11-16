@@ -40,7 +40,7 @@ const SCRAPES: Record<ScrapeKind, ScrapeDef> = {
     ],
     am: { rate: 34, depth: 0.35 },
     lp: 6500,
-    gain: 1,
+    gain: 0.27,
   },
   stone: {
     bands: [
@@ -50,7 +50,7 @@ const SCRAPES: Record<ScrapeKind, ScrapeDef> = {
     ],
     am: { rate: 43, depth: 0.5 },
     lp: 2000,
-    gain: 1,
+    gain: 0.48,
   },
   wood: {
     bands: [{ src: 'pink', type: 'bandpass', f: 900, q: 0.6, gain: 0.25 }],
@@ -64,7 +64,7 @@ const SCRAPES: Record<ScrapeKind, ScrapeDef> = {
       ],
     },
     lp: 3000,
-    gain: 1,
+    gain: 1.64,
   },
   plastic: {
     bands: [
@@ -73,7 +73,7 @@ const SCRAPES: Record<ScrapeKind, ScrapeDef> = {
     ],
     am: { rate: 17, depth: 0.15 },
     lp: 1100,
-    gain: 1,
+    gain: 0.81,
   },
   concrete: {
     bands: [
@@ -82,7 +82,7 @@ const SCRAPES: Record<ScrapeKind, ScrapeDef> = {
     ],
     am: { rate: 55, depth: 0.4 },
     lp: 3600,
-    gain: 1,
+    gain: 0.87,
   },
   wet: {
     bands: [
@@ -91,12 +91,12 @@ const SCRAPES: Record<ScrapeKind, ScrapeDef> = {
     ],
     am: { rate: 23, depth: 0.12 },
     lp: 7000,
-    gain: 1,
+    gain: 0.5,
   },
   soft: {
     bands: [{ src: 'pink', type: 'lowpass', f: 1400, q: 0.5, gain: 0.6 }],
     lp: 1600,
-    gain: 1,
+    gain: 0.35,
   },
 };
 

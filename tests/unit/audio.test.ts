@@ -497,7 +497,7 @@ describe('audio / layer targets', () => {
       prev = hz;
     }
     expect(winchAttenuation(0)).toBeCloseTo(1, 6);
-    expect(winchAttenuation(200)).toBeCloseTo(0.2, 6);
+    expect(winchAttenuation(200)).toBeCloseTo(0.35, 6);
     expect(winchAttenuation(30)).toBeGreaterThan(winchAttenuation(90));
 
     const s = riding(10);

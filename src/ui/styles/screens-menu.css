@@ -477,10 +477,6 @@
   transition: transform 0.14s var(--ease), box-shadow 0.2s;
 }
 
-.wn-ui .wn-citycard {
-  text-align: left;
-}
-
 .wn-citycard::before {
   content: '';
   position: absolute;
@@ -632,11 +628,8 @@
   font: italic 800 12.5px/1 var(--font-head);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-2);
-}
-
-.wn-ui .wn-navbtn {
   text-align: center;
+  color: var(--text-2);
 }
 
 .wn-navbtn::before {
@@ -840,10 +833,6 @@
   padding: 10px 12px 10px 14px;
   flex: none;
   transition: transform 0.14s var(--ease);
-}
-
-.wn-ui .wn-spotcard {
-  text-align: left;
 }
 
 .wn-spotcard:active {

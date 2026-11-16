@@ -16,14 +16,9 @@
   letter-spacing: 0.035em;
   color: #fff;
   white-space: nowrap;
+  text-align: center;
   isolation: isolate;
   flex: none;
-}
-
-.wn-ui .wn-btn {
-  font-family: var(--font-head);
-  font-style: italic;
-  text-align: center;
 }
 
 .wn-btn::before {
@@ -228,13 +223,8 @@
   font-size: 15px;
   letter-spacing: 0.04em;
   color: var(--text-2);
-  transition: background 0.16s, color 0.16s, transform 0.12s var(--ease);
-}
-
-.wn-ui .wn-seg__item {
-  font-family: var(--font-head);
-  font-style: italic;
   text-align: center;
+  transition: background 0.16s, color 0.16s, transform 0.12s var(--ease);
 }
 
 .wn-seg__item > span:not(.wn-ico) {
@@ -293,11 +283,6 @@
   color: var(--text-3);
   white-space: nowrap;
   transition: color 0.16s;
-}
-
-.wn-ui .wn-tabs__item {
-  font-family: var(--font-head);
-  font-style: italic;
 }
 
 .wn-tabs__item::after {

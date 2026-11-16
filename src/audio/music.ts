@@ -18,6 +18,8 @@ import { TRACKS, findTrack, type SectionKind, type TrackDef } from './tracks';
 
 /** Bus levels inside a track (before the per-track loudness trim `TrackDef.gain`). */
 const LEVEL = { drums: 0.8, bass: 0.55, keys: 0.9, lead: 0.7, crackle: 0.05, riser: 0.1 };
+/** Headroom in front of the tape saturation: the summed beat peaks around 0.5 there (gentle drive, no squashing). */
+const PRE_SAT = 0.42;
 /** Relative level of every drum voice. */
 const DRUM_LEVEL: Record<DrumId, number> = { kick: 1, snare: 0.72, clap: 0.55, hat: 0.3, openHat: 0.28, rim: 0.5, shaker: 0.2, perc: 0.36 };
 const BASS_DRIVE: Record<TrackDef['bass'], number> = { sub: 1.6, '808': 2.6, upright: 1.2, synth: 1.8 };
@@ -119,7 +121,7 @@ export class TrackPlayer {
     const flutter = gain(0.00002 * def.wobble);
     lfo(0.43).connect(wow).connect(tape.delayTime);
     lfo(4.9).connect(flutter).connect(tape.delayTime);
-    this.sum = gain(1);
+    this.sum = gain(PRE_SAT);
     this.sum.connect(tape).connect(this.lofi).connect(sat).connect(trim).connect(this.out);
 
     // reverb send follows the fade of the track

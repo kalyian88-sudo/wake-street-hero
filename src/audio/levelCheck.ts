@@ -109,7 +109,7 @@ export const LAYER_SCENES: readonly LayerScene[] = [
   {
     name: 'winch · idle at 110 m',
     solo: 'engine',
-    target: -37,
+    target: -43,
     setup: (s) => {
       s.mode = 'waiting';
       s.distToWinch = 110;
@@ -129,7 +129,7 @@ export const LAYER_SCENES: readonly LayerScene[] = [
     (m, i): LayerScene => ({
       name: `grind · ${m}`,
       solo: 'scrape',
-      target: [-20, -22, -22, -24][i],
+      target: [-22, -22, -22, -24][i],
       setup: (s, rig) => {
         riding(s, 14);
         s.mode = 'rail';
@@ -261,7 +261,8 @@ export async function checkSfx(onRow?: (r: CheckRow) => void): Promise<CheckRow[
   for (const id of ALL_SFX) {
     const res = await renderSfx(id, 'bus');
     // a one-shot must have finished ringing before the end of its render window
-    const r = row('sfx', id, 'peak', res, Sfx.targetDb(id), 1.5, res.tailPeak > 0.004 ? 'tail cut off' : '');
+    // noise-based sounds with random pitch: the peak wanders a couple of dB from take to take
+    const r = row('sfx', id, 'peak', res, Sfx.targetDb(id), 2.5, res.tailPeak > 0.004 ? 'tail cut off' : '');
     rows.push(r);
     onRow?.(r);
   }

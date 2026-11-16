@@ -99,10 +99,10 @@ export function engineHz(reelSpeed: number, load: number): number {
   return (26 + 64 * Math.pow(rpm, 0.9)) * (1 - 0.09 * clamp(load, 0, 1));
 }
 
-/** Loudness of the winch by distance: ≈0.2 at the far end of the line, 1 next to it. */
+/** Loudness of the winch by distance: 0.35 at the far end of the line (still there, just small), 1 next to it. */
 export function winchAttenuation(dist: number): number {
   const near = 1 - clamp(dist / 110, 0, 1);
-  return 0.2 + 0.8 * Math.pow(near, 1.7);
+  return 0.35 + 0.65 * Math.pow(near, 1.7);
 }
 
 export function computeLayerTargets(state: RiderSimState | null, paused: boolean, out: LayerTargets): LayerTargets {
@@ -158,7 +158,7 @@ export function computeLayerTargets(state: RiderSimState | null, paused: boolean
   const near = 1 - clamp(state.distToWinch / 110, 0, 1);
   out.engineHz = engineHz(rope.reelSpeed, load);
   out.engineLoad = load;
-  out.engine = (0.3 + 0.45 * rpm + 0.25 * load) * winchAttenuation(state.distToWinch);
+  out.engine = (0.45 + 0.35 * rpm + 0.2 * load) * winchAttenuation(state.distToWinch);
   // + = winch is to the left of the direction of travel → pan left; centred when standing next to it
   const leftness = rope.dir.x * Math.cos(state.heading) - rope.dir.z * Math.sin(state.heading);
   out.enginePan = clamp(-leftness, -1, 1) * 0.6 * (1 - near * near * near);

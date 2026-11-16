@@ -54,9 +54,10 @@
   box-sizing: border-box;
 }
 
-.wn-ui button,
-.wn-ui a,
-.wn-ui input {
+/* Resets use :where() so they never out-rank a component class. */
+:where(.wn-ui) button,
+:where(.wn-ui) a,
+:where(.wn-ui) input {
   pointer-events: auto;
   font: inherit;
   color: inherit;
@@ -64,7 +65,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.wn-ui button {
+:where(.wn-ui) button {
   margin: 0;
   padding: 0;
   border: 0;
@@ -73,24 +74,25 @@
   text-align: inherit;
 }
 
-.wn-ui button:disabled {
+:where(.wn-ui) button:disabled {
   cursor: default;
 }
 
-.wn-ui :focus {
+:where(.wn-ui) a {
+  text-decoration: none;
+}
+
+:where(.wn-ui) :focus {
   outline: none;
 }
 
-.wn-ui :focus-visible {
+:where(.wn-ui) :focus-visible {
   outline: 2px solid #fff;
   outline-offset: 3px;
   border-radius: 6px;
 }
 
-.wn-ui h1,
-.wn-ui h2,
-.wn-ui h3,
-.wn-ui p {
+:where(.wn-ui) :is(h1, h2, h3, p) {
   margin: 0;
 }
 
