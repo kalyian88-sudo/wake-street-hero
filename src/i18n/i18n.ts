@@ -19,6 +19,7 @@ export const i18n: II18n = {
   t: (key) => key,
   l: (text) => text[lang],
   onChange: () => () => undefined,
+  extend: () => undefined,
 };
 
 export const t = (key: string, params?: Record<string, string | number>): string => i18n.t(key, params);

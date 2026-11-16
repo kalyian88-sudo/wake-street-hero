@@ -89,6 +89,8 @@ export interface IInput {
   /** Haptic feedback (no-op when unsupported / disabled). */
   vibrate(pattern: number | number[]): void;
   setHaptics(on: boolean): void;
+  /** Invert the stick's vertical axis (settings.invertY). */
+  setInvertY(on: boolean): void;
   /** Synthetic input (tests, bots, tutorial demos). Pass null to return control to the player. */
   setVirtual(v: Partial<VirtualInput> | null): void;
   /** True if the last real input came from touch (HUD shows touch controls) vs keyboard. */
@@ -367,6 +369,8 @@ export interface II18n {
   /** Pick the current language from a data L10n. */
   l(text: L10n): string;
   onChange(cb: (lang: Lang) => void): () => void;
+  /** Merge extra strings into a language at runtime (modules register their own namespaces, e.g. 'hud.*'). */
+  extend(lang: Lang, dict: Record<string, string>): void;
 }
 
 // ───────────────────────────────────────────────────────────── Game / UI ──
