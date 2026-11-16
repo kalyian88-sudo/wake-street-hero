@@ -20,6 +20,11 @@ const PAD_BUTTONS: readonly (readonly [number, number])[] = [
   [9, BTN.pause],
 ];
 
+function held(buttons: readonly GamepadButton[], i: number): boolean {
+  const b = buttons[i];
+  return !!b && (b.pressed || b.value > 0.5);
+}
+
 export class GamepadReader {
   /** Shaped stick: x = steer (+ right), y = pitch (+ up). */
   readonly stick: Vec2 = { x: 0, y: 0 };
@@ -59,9 +64,10 @@ export class GamepadReader {
     this.active = false;
   }
 
-  /** @returns true when a pad is connected (state fields are then up to date). */
-  read(): boolean {
-    if (this.connected === 0 || typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') return false;
+  /** Refresh the state fields. Cheap no-op while no pad is connected. */
+  read(): void {
+    if (this.connected === 0) return;
+    if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') return;
     let pad: Gamepad | null = null;
     try {
       const pads = navigator.getGamepads();
@@ -73,27 +79,25 @@ export class GamepadReader {
         }
       }
     } catch {
-      return false;
+      pad = null;
     }
     if (!pad) {
       this.clear();
-      return false;
+      return;
     }
     axesOutput(pad.axes[0] ?? 0, pad.axes[1] ?? 0, PAD_DEAD_ZONE, PAD_CURVE, this.stick);
     const b = pad.buttons;
-    const held = (i: number): boolean => !!b[i] && (b[i].pressed || b[i].value > 0.5);
-    this.dpad.x = (held(15) ? 1 : 0) - (held(14) ? 1 : 0);
-    this.dpad.y = (held(12) ? 1 : 0) - (held(13) ? 1 : 0);
+    this.dpad.x = (held(b, 15) ? 1 : 0) - (held(b, 14) ? 1 : 0);
+    this.dpad.y = (held(b, 12) ? 1 : 0) - (held(b, 13) ? 1 : 0);
     this.down.fill(false);
     let any = this.stick.x !== 0 || this.stick.y !== 0 || this.dpad.x !== 0 || this.dpad.y !== 0;
     for (let i = 0; i < PAD_BUTTONS.length; i++) {
       const m = PAD_BUTTONS[i];
-      if (held(m[0])) {
+      if (held(b, m[0])) {
         this.down[m[1]] = true;
         any = true;
       }
     }
     this.active = any;
-    return true;
   }
 }
