@@ -66,6 +66,8 @@ export function createRunObjectives(spot: SpotDef, config: RunConfig, doneBefore
   /** Obstacles touched since the last scored trick, waiting for a landed trick to commit them. */
   const pending: string[] = [];
   let pendingStale = false;
+  /** Per goal: how many of a line goal's obstacles are in the chain (to emit 'line:progress' only on change). */
+  const lineHits = goals.map(() => 0);
 
   function complete(i: number): void {
     const g = state.goals[i];
@@ -110,7 +112,14 @@ export function createRunObjectives(spot: SpotDef, config: RunConfig, doneBefore
     pendingStale = false;
     if (state.chain.length === 0) return;
     state.chain.length = 0;
-    for (let i = 0; i < goals.length; i++) if (goals[i].type === 'line') setProgress(i, 0);
+    for (let i = 0; i < goals.length; i++) {
+      const goal = goals[i];
+      if (goal.type !== 'line' || lineHits[i] === 0) continue;
+      lineHits[i] = 0;
+      if (achieved[i]) continue;
+      setProgress(i, 0);
+      bus.emit('line:progress', { chain: [], total: goal.obstacles.length });
+    }
   }
 
   function commitChain(): void {
@@ -121,10 +130,13 @@ export function createRunObjectives(spot: SpotDef, config: RunConfig, doneBefore
     for (let i = 0; i < goals.length; i++) {
       const goal = goals[i];
       if (goal.type !== 'line' || achieved[i] || !lineApplies(goal)) continue;
-      const hit = goal.obstacles.filter((id) => state.chain.includes(id));
-      setProgress(i, goal.obstacles.length ? hit.length / goal.obstacles.length : 0);
-      bus.emit('line:progress', { chain: hit, total: goal.obstacles.length });
-      if (goal.obstacles.length > 0 && hit.length === goal.obstacles.length) complete(i);
+      const hit = state.chain.filter((id) => goal.obstacles.includes(id));
+      if (hit.length === lineHits[i]) continue;
+      lineHits[i] = hit.length;
+      const total = new Set(goal.obstacles).size;
+      setProgress(i, total ? hit.length / total : 0);
+      bus.emit('line:progress', { chain: hit, total });
+      if (total > 0 && hit.length >= total) complete(i);
     }
   }
 
@@ -132,7 +144,8 @@ export function createRunObjectives(spot: SpotDef, config: RunConfig, doneBefore
     for (let z = 0; z < zones.length; z++) zoneSeen[z] = zoneNow[z];
   }
 
-  function markZones(x: number, z: number): void {
+  /** `midTrick`: airborne / on a rail / on a wall — a zone the rider has left still counts for the trick in progress. */
+  function markZones(x: number, z: number, midTrick: boolean): void {
     let inside: string | null = null;
     for (let k = 0; k < zones.length; k++) {
       const zone = zones[k];
@@ -143,7 +156,7 @@ export function createRunObjectives(spot: SpotDef, config: RunConfig, doneBefore
       if (hit) {
         zoneSeen[k] = true;
         inside ??= zone.id;
-      }
+      } else if (!midTrick) zoneSeen[k] = false;
     }
     state.inFilmerZone = inside;
   }
@@ -204,7 +217,7 @@ export function createRunObjectives(spot: SpotDef, config: RunConfig, doneBefore
         if (e.obstacleId) touch(e.obstacleId);
       }),
       bus.on('sim:land', (e) => {
-        markZones(e.pos.x, e.pos.z);
+        markZones(e.pos.x, e.pos.z, true);
         if (!e.hadTrick) pendingStale = true;
       }),
     );
@@ -265,7 +278,7 @@ export function createRunObjectives(spot: SpotDef, config: RunConfig, doneBefore
     state,
     update(rs: RiderSimState, score: ScoreState, _dt: number): void {
       collectLetters(rs);
-      markZones(rs.pos.x, rs.pos.z);
+      markZones(rs.pos.x, rs.pos.z, rs.mode === 'air' || rs.mode === 'rail' || rs.mode === 'wall');
       if (tracking) checkScore(score.total);
     },
     dispose(): void {

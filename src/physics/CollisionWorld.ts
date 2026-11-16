@@ -3,7 +3,7 @@
  * stair steps), faces to hit (box sides, kicker sides), grind lines, wallride faces and gap zones.
  * All queries are allocation-free (results go into caller-owned objects) and use a coarse grid.
  */
-import { footprintContains, footprintOutline, kickerProfile, kickerProfileSlope } from '../data/geometry';
+import { footprintContains, kickerProfile, kickerProfileSlope } from '../data/geometry';
 import type { CollisionDebugShape, ICollisionWorld, SpotDef, SurfaceKind, SurfaceSample } from '../types';
 import { buildColliders, type Aabb, type GapZone, type GrindLine, type Ramp, type SolidBox, type SpotColliders, type WallFace } from './collision/shapes';
 import { collisionDebugShapes } from './collision/debug';
@@ -423,9 +423,6 @@ function entryNormal(a0: number, b0: number, a1: number, b1: number, hx: number,
   out.nx = lnx * cos + lnz * sin;
   out.nz = -lnx * sin + lnz * cos;
 }
-
-/** Outline helper shared with the debug view. */
-export { footprintOutline };
 
 export function createCollisionWorld(spot: SpotDef): CollisionWorld {
   return new CollisionWorld(spot);

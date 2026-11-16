@@ -355,12 +355,11 @@ export class TrickController {
       }
       return;
     }
-    f.progress = Math.min(TRICK.flipOverrun + 2, f.progress + dt / spec.time);
-    // slight ease-in on the first tenth, then constant speed (and it keeps turning if not caught)
-    const p = f.progress < 0.1 ? f.progress * f.progress * 5 + f.progress * 0.5 : f.progress - 0.025 * (1 - Math.min(1, (f.progress - 0.1) / 0.4));
-    f.roll = spec.roll * p;
-    f.yaw = spec.yaw * p;
-    f.pitch = spec.pitch * p;
+    // constant speed — and the board keeps turning past the full flip if nobody catches it
+    f.progress = Math.min(TRICK.flipOverrun, f.progress + dt / spec.time);
+    f.roll = spec.roll * f.progress;
+    f.yaw = spec.yaw * f.progress;
+    f.pitch = spec.pitch * f.progress;
     if (this.flipLost) {
       f.catchWindow = 0;
       return;
