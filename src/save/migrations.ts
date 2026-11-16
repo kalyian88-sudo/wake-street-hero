@@ -157,8 +157,8 @@ function v2ToV3(old: Dict): Dict {
   const gear = dict(old.gear);
   const eq = dict(gear.equipped);
   const spots: Dict = {};
-  for (const [id, raw] of safeEntries(old.spots)) {
-    const sp = dict(raw);
+  for (const [id, sp] of safeEntries(old.spots)) {
+    if (!isDict(sp)) continue;
     const best = num(sp.best, 0, 0, MAX_CURRENCY);
     const goals = goalFlags(sp.goals);
     spots[id] = { goals, bestScore: best, bestCombo: 0, bestTrick: null, runs: best > 0 || goals.some(Boolean) ? 1 : 0 };
