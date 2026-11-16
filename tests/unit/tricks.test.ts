@@ -91,7 +91,7 @@ describe('trick table — integrity', () => {
 
   it('input hints use the controls of PLAN §4.2', () => {
     const input = (id: string): { ru: string; en: string } => getTrick(id)!.input;
-    expect(input('spin180')).toEqual({ ru: 'В воздухе: ТРЮК + ← или →', en: 'In the air: TRICK + ← or →' });
+    expect(input('spin180')).toEqual({ ru: 'В воздухе: джойстик ← или → (или ТРЮК + ←/→)', en: 'In the air: stick ← or → (or TRICK + ←/→)' });
     expect(input('backroll').en).toBe('In the air: TRICK + ↑');
     expect(input('frontroll').en).toBe('In the air: TRICK + ↓');
     expect(input('tantrum').en).toContain('kicker');

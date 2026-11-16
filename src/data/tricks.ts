@@ -33,7 +33,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 100,
     difficulty: 1,
-    input: { ru: 'В воздухе: ТРЮК + ← или →', en: 'In the air: TRICK + ← or →' },
+    input: { ru: 'В воздухе: джойстик ← или → (или ТРЮК + ←/→)', en: 'In the air: stick ← or → (or TRICK + ←/→)' },
     tip: { ru: 'Приедешь в свитче — это нормально. Любой трюк из свитча стоит на 20% дороже.', en: 'You land switch — that is fine. Any trick taken off switch pays 20% more.' },
   },
   {
@@ -43,7 +43,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 250,
     difficulty: 2,
-    input: { ru: 'В воздухе: ТРЮК + ←/→ два раза (каждое нажатие +180°)', en: 'In the air: TRICK + ←/→ twice (each press adds 180°)' },
+    input: { ru: 'В воздухе: держи джойстик ←/→, пока не докрутишь 360 (каждые 180° — по ходу вращения)', en: 'In the air: hold the stick ←/→ until you reach 360 (adds 180° at a time)' },
     tip: { ru: 'Жми второй раз сразу, пока летишь вверх — иначе не докрутишь.', en: 'Hit the second press on the way up or you will come up short.' },
   },
   {
@@ -53,7 +53,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 450,
     difficulty: 3,
-    input: { ru: 'В воздухе: ТРЮК + ←/→ три раза', en: 'In the air: TRICK + ←/→ three times' },
+    input: { ru: 'В воздухе: держи джойстик ←/→ до 540', en: 'In the air: hold the stick ←/→ to 540' },
     tip: { ru: 'Нужен нормальный вылет: заряди канат до конца или бери кикер.', en: 'Needs real airtime: load the rope fully or take a kicker.' },
   },
   {
@@ -63,7 +63,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard'],
     points: 800,
     difficulty: 4,
-    input: { ru: 'В воздухе: ТРЮК + ←/→ четыре раза', en: 'In the air: TRICK + ←/→ four times' },
+    input: { ru: 'С кикера: держи джойстик ←/→ до 720', en: 'Off a kicker: hold the stick ←/→ to 720' },
     tip: { ru: 'Только с кикера. Держи ПРЫЖОК до самого края: выше вылет — до +45% за амплитуду.', en: 'Kicker only. Hold JUMP all the way to the lip: a bigger air pays up to +45% for amplitude.' },
   },
   {
@@ -73,7 +73,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard'],
     points: 1300,
     difficulty: 5,
-    input: { ru: 'В воздухе: ТРЮК + ←/→ пять раз', en: 'In the air: TRICK + ←/→ five times' },
+    input: { ru: 'С кикера: держи джойстик ←/→ до 900', en: 'Off a kicker: hold the stick ←/→ to 900' },
     tip: { ru: 'Быстрая лебёдка, большой кикер и режим HERO — так докрутить проще.', en: 'Fast winch, big kicker and HERO mode make it a lot easier.' },
   },
   {
@@ -83,7 +83,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard'],
     points: 2000,
     difficulty: 5,
-    input: { ru: 'В воздухе: ТРЮК + ←/→ шесть раз', en: 'In the air: TRICK + ←/→ six times' },
+    input: { ru: 'С большого кикера на быстрой тяге: держи джойстик ←/→ до 1080', en: 'Off a big kicker at fast power: hold the stick ←/→ to 1080' },
     tip: { ru: 'Три полных оборота. Доска на вращение и самый высокий вылет на споте.', en: 'Three full rotations. Bring a spin board and the biggest air on the spot.' },
   },
 

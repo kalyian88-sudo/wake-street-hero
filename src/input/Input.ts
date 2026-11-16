@@ -501,7 +501,9 @@ class Input implements IInput {
     latches[BTN.jump].poll(f.jump);
     latches[BTN.trick].poll(f.trick);
     latches[BTN.grab].poll(f.grab);
-    f.handlePressed = latches[BTN.handle].poll(this.aux[0]).pressed;
+    // Handle release is disabled: the rider always holds the rope (no HANDLE control in the game).
+    latches[BTN.handle].poll(this.aux[0]);
+    f.handlePressed = false;
     f.heroPressed = latches[BTN.hero].poll(this.aux[1]).pressed;
     f.pausePressed = latches[BTN.pause].poll(this.aux[2]).pressed;
 

@@ -40,7 +40,7 @@ const SHEET: { title: string; rows: Combo[] }[] = [
   {
     title: 'ui.controls.sec.air',
     rows: [
-      { keys: ['trick', 'lr'], text: 'ui.controls.spin' },
+      { keys: ['lr'], hold: true, text: 'ui.controls.spin' },
       { keys: ['trick', 'ud'], text: 'ui.controls.invert', board: 'wakeboard' },
       { keys: ['trick'], text: 'ui.controls.shifty' },
       { keys: ['grab', 'stick'], hold: true, text: 'ui.controls.grabs', board: 'wakeboard' },
@@ -60,7 +60,6 @@ const SHEET: { title: string; rows: Combo[] }[] = [
   {
     title: 'ui.controls.sec.any',
     rows: [
-      { keys: ['handle'], text: 'ui.controls.handle' },
       { keys: ['hero'], text: 'ui.controls.hero' },
       { keys: ['pause'], text: 'ui.controls.pause', only: 'keys' },
     ],
@@ -137,7 +136,7 @@ export class TricksScreen extends Screen {
         : h(
             'div',
             { class: 'wn-diagram wn-diagram--keys', 'aria-hidden': 'true' },
-            (['stick', 'jump', 'trick', 'grab', 'handle', 'hero'] as const).map((k) =>
+            (['stick', 'jump', 'trick', 'grab', 'hero'] as const).map((k) =>
               h('div', { class: 'wn-diagram__key' }, h('kbd', { class: cx('wn-key', (k === 'jump' || k === 'hero') && 'wn-key--wide') }, k === 'stick' ? '← ↑ ↓ →' : KEYCAP[k]), h('span', null, t(k === 'stick' ? 'ui.btn.stick' : k === 'grab' ? 'ui.btn.grabflip' : `ui.btn.${k}`))),
             ),
           );

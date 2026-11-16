@@ -110,7 +110,14 @@ export class TrickController {
     this.flips.length = 0;
     this.boneless = false;
     this.obstacleId = undefined;
+    this.stickArmed = false;
   }
+
+  /**
+   * Stick spins: once the stick has been neutral after take-off (so carving into a kicker does not
+   * spin by accident), holding it left/right keeps adding 180° in that direction.
+   */
+  private stickArmed = false;
 
   /** Start of an air. boardYaw must already be final for the take-off. */
   begin(kind: TakeoffKind, obstacleId: string | undefined, boneless: boolean): void {
@@ -152,6 +159,21 @@ export class TrickController {
     const thr = TRICK.dirThreshold;
     const ax = Math.abs(inp.steer);
     const ay = Math.abs(inp.pitch);
+
+    // ── stick spins (no button needed): hold ←/→ in the air ──
+    if (ax < thr * 0.7) this.stickArmed = true;
+    else if (this.stickArmed && ax >= thr && ax >= ay && !inp.trick.down && !inp.grab.pressed) {
+      const dir = inp.steer < 0 ? 1 : -1; // stick left = spin left (+yaw)
+      const sameWay = a.spinTarget === 0 || Math.sign(a.spinTarget) === dir;
+      const nearlyThere = Math.abs(a.spinTarget - a.spin) < Math.PI * 0.55;
+      const limit = (wakeboard ? 6 : 3) * Math.PI + 1e-6;
+      const next = a.spinTarget + dir * Math.PI;
+      if (sameWay && nearlyThere && Math.abs(next) <= limit) {
+        a.spinTarget = next;
+        this.didTrick = true;
+        this.bus.emit('trick:spin', { deg: Math.round(Math.abs(next) / DEG) });
+      }
+    }
 
     // ── TRICK button ──
     if (inp.trick.pressed) {

@@ -30,6 +30,8 @@ interface AirOptions {
   kicker?: 'none' | 'hold' | 'lip';
   /** Extra input while airborne. `frame` counts air frames from 0. */
   air?: (frame: number, h: SimHarness) => Held | void;
+  /** Stick steer on the ground (before take-off). */
+  groundSteer?: number;
 }
 
 function fly(o: AirOptions): AirResult {
@@ -49,9 +51,11 @@ function fly(o: AirOptions): AirResult {
         res.rollDeg = s.air.roll * DEG;
         res.maxSlowMo = Math.max(res.maxSlowMo, s.slowMo);
       } else if (o.kicker) {
+        if (o.groundSteer) held.steer = o.groundSteer;
         if (o.kicker === 'hold') held.jump = s.pos.z > 18;
         if (o.kicker === 'lip') held.jump = s.pos.z > 18 && s.pos.z < 28.6;
       } else {
+        if (o.groundSteer) held.steer = o.groundSteer;
         const hold = o.hold ?? 1;
         held.jump = s.time > 1.4 && s.time < 1.4 + hold;
       }
@@ -189,6 +193,20 @@ describe('sim: kicker', () => {
 });
 
 describe('sim: spins and inverts (wakeboard)', () => {
+  it('holding the stick left in the air spins without the TRICK button (360 when let go past 180)', () => {
+    const r = fly({ hold: 1, air: (f, hh) => (f >= 2 && hh.sim.state.air.spin * DEG < 200 ? { steer: -1 } : undefined) });
+    expect(r.landed).toBe(true);
+    expect(Math.abs(r.spinDeg - 360)).toBeLessThan(3);
+    expect(r.h.of('trick:spin').map((e) => e.deg)).toEqual([180, 360]);
+    expect(r.h.count('score:trick')).toBe(1);
+  });
+
+  it('a stick already held at take-off does not spin until it passes neutral', () => {
+    const r = fly({ hold: 1, groundSteer: -0.6, air: () => ({ steer: -0.6 }) });
+    expect(r.h.count('trick:spin')).toBe(0);
+    expect(Math.abs(r.spinDeg)).toBeLessThan(1);
+  });
+
   it('a 180 lands switch, a 360 from a full pop lands regular and scores', () => {
     const r180 = fly({ hold: 0.25, air: presses([LEFT]) });
     expect(r180.landed).toBe(true);

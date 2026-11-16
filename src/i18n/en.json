@@ -171,7 +171,7 @@
   "ui.controls.charge": "Hold to load the rope, release to pop. Hold through a kicker lip to go bigger.",
   "ui.controls.surface180": "Surface 180: to switch and back. Keeps the combo alive.",
   "ui.controls.boneless": "Boneless: hold FLIP while releasing JUMP — a planted pop, a bit higher.",
-  "ui.controls.spin": "Spin. Every press adds 180°.",
+  "ui.controls.spin": "Spin: in the air hold the stick ← or → — it keeps adding 180° while held. Let go and it finishes the current half-turn.",
   "ui.controls.invert": "↑ backroll, ↓ frontroll. Press again for a double. Off a kicker a backroll becomes a tantrum.",
   "ui.controls.shifty": "Stick neutral: tap for a shifty, hold for a raley (wakeboard).",
   "ui.controls.grabs": "Grabs: neutral Indy · ← Melon · → Mute · ↑ Nose · ↓ Tail · ↓ + side Stalefish. Longer hold, more points. Let go before you land!",

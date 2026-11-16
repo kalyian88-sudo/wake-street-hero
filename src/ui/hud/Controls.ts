@@ -86,6 +86,8 @@ export class Controls {
     this.grab = this.makeButton('grab');
     this.catchRing = h('div', 'wsh-catch', this.grab.el);
     this.handle = this.makeButton('handle', ICON.handle);
+    // The rope handle button is not shown: the rider always holds the handle (owner's decision).
+    this.handle.el.style.display = 'none';
     this.hero = this.makeButton('hero', ICON.bolt);
     this.relabel();
   }
@@ -134,7 +136,7 @@ export class Controls {
     input.bindButton('jump', on ? this.jump.el : null);
     input.bindButton('trick', on ? this.trick.el : null);
     input.bindButton('grab', on ? this.grab.el : null);
-    input.bindButton('handle', on ? this.handle.el : null);
+    input.bindButton('handle', null);
     input.bindButton('hero', on && this.heroOn ? this.hero.el : null);
   }
 

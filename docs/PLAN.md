@@ -98,7 +98,7 @@ URL params: `?debug` (overlay, hitboxes, free camera, unlock all), `?spot=<id>&w
 |-------|-------|--------|
 | water / solid | hold JUMP | charge rope load (crouch 0→1 in ≈0.7 s); release = pop. Holding into a kicker lip adds boost |
 | water | TRICK + ←/→ | surface 180 (switch ⇄ regular), small combo link |
-| air | TRICK + ←/→ | spin: each press adds 180° to the target (← = left / +yaw) |
+| air | stick ←/→ (held) | spin: keeps adding 180° in that direction while held; release = finish the current half-turn. Needs the stick to pass neutral after take-off. TRICK + ←/→ also adds 180° per press |
 | air | TRICK + ↑ / ↓ | backroll / frontroll (+360° roll each press → doubles). Backroll off a kicker is named Tantrum |
 | air | TRICK, stick neutral | tap = shifty; hold ≥ 0.25 s (wakeboard) = raley |
 | air, wakeboard | hold GRAB + direction | neutral Indy · ← Melon · → Mute · ↑ Nose · ↓ Tail · ↓+side Stalefish. Longer hold = more points. Release before landing |
@@ -108,9 +108,9 @@ URL params: `?debug` (overlay, hitboxes, free camera, unlock all), `?spot=<id>&w
 | rail | TRICK + ←/→ | 50-50 ⇄ boardslide (→ direction = lipslide) |
 | rail | hold GRAB | press (stick ↑ nose press, ↓ tail press) |
 | rail | JUMP | pop off — air tricks allowed out |
-| any | HANDLE | release / re-grab the rope handle |
 | any | HERO | start HERO mode when the meter is full |
-Keyboard: arrows = stick, Space = JUMP, X = TRICK, C = GRAB/FLIP, V = HANDLE, Shift = HERO, Esc/P = pause.
+Keyboard: arrows = stick, Space = JUMP, X = TRICK, C = GRAB/FLIP, Shift = HERO, Esc/P = pause.
+No HANDLE control (owner's decision): the rider always holds the rope handle.
 
 ### 4.3 Slow-motion, landing, score
 - `state.slowMo` → 1 while a spin / invert / flip / grab is in progress. Core smooths the global scale to `GAME.slowMoScale` (0.35) and shows a vignette.
