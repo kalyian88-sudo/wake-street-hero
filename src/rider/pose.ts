@@ -27,6 +27,8 @@ export interface PoseParams {
   bYaw: number;
   /** z of the pitch pivot (presses pivot under one foot). */
   bPivot: number;
+  /** Slide of the board (and the rider on it) along its long axis, metres; + = towards the nose. Nose/tail slides. */
+  bZ: number;
   /** Board drop / lift relative to the feet (wakeskate flips). */
   bY: number;
   /** Surface normal the board lies on (frame space). */
@@ -110,6 +112,7 @@ export function createPose(): PoseParams {
     bPitch: 0,
     bYaw: 0,
     bPivot: 0,
+    bZ: 0,
     bY: 0,
     nX: 0,
     nY: 1,
@@ -198,6 +201,7 @@ const FAST: Partial<Record<PoseKey, number>> = {
   bYaw: 16,
   bY: 22,
   bPivot: 16,
+  bZ: 12,
   liftF: 22,
   liftR: 22,
   spread: 18,

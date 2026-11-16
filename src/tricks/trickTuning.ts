@@ -34,7 +34,7 @@ export const TRICK_TUNING = {
   airPerMetre: 30,
   airMax: 150,
   /** Рейлы: очки за метр в каждой стойке. */
-  railPerMetre: { fifty: 40, boardslide: 60, lipslide: 60, nosepress: 50, tailpress: 50 } satisfies Record<RailStance, number>,
+  railPerMetre: { fifty: 40, boardslide: 60, lipslide: 60, noseslide: 70, tailslide: 70, nosepress: 50, tailpress: 50 } satisfies Record<RailStance, number>,
   /** Тип фигуры: перила сложнее, толстая труба проще. */
   railKind: { rail: 1, ledge: 0.9, pipe: 0.8, handrail: 1.25 },
   /** Пресс: до +50% к очкам рейла, если держать pressFull секунд. */

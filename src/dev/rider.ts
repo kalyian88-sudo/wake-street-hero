@@ -254,6 +254,8 @@ const POSES: Record<string, Builder> = {
   rail5050: (st) => rail(st, 'fifty', 0.35),
   boardslide: (st) => rail(st, 'boardslide', -0.2),
   lipslide: (st) => rail(st, 'lipslide', 0.2),
+  noseslide: (st) => rail(st, 'noseslide', 0.1),
+  tailslide: (st) => rail(st, 'tailslide', -0.1),
   nosepress: (st) => rail(st, 'nosepress', 0.1),
   tailpress: (st) => rail(st, 'tailpress', -0.1),
   wallride: (st) => {
@@ -328,7 +330,7 @@ function rail(st: RiderSimState, stance: NonNullable<RiderSimState['rail']>['sta
   st.surface = 'rail';
   st.pos.set(0, 0.62, 0);
   st.speed = 7;
-  const yaw = stance === 'boardslide' ? Math.PI / 2 : stance === 'lipslide' ? -Math.PI / 2 : 0;
+  const yaw = stance === 'boardslide' || stance === 'noseslide' ? Math.PI / 2 : stance === 'lipslide' || stance === 'tailslide' ? -Math.PI / 2 : 0;
   st.boardYaw = yaw; // the sim turns the board itself (src/physics/modes/rail.ts)
   st.rail = { obstacleId: 'r', kind: 'rail', stance, balance, time: 0.5, tangent: new THREE.Vector3(0, 0, 1) };
 }

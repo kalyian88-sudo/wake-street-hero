@@ -176,6 +176,7 @@ export class Solver {
     this.qC.setFromAxisAngle(Z, p.edge);
     this.phQ.copy(this.qA).multiply(this.qB).multiply(this.qC);
     this.phP.sub(v2.set(0, 0, p.bPivot).applyQuaternion(this.phQ));
+    if (p.bZ !== 0) this.phP.add(v2.set(0, 0, p.bZ * s).applyQuaternion(this.qA));
 
     // ── 2. pelvis in frame space ──
     this.qBody.copy(this.ident).slerp(this.qN, clamp01(p.upMix));

@@ -166,3 +166,36 @@ describe('sim: full runs on phuket_oldtown', () => {
     expect(s.mode).toBe('finished');
   });
 });
+
+describe('sim: rail slides', () => {
+  it('TRICK + ↑/↓ on a rail switches to nose / tail slide, the same direction again goes back to 50-50', () => {
+    for (const winchId of LINES) {
+      const h = createSimHarness({ spot: phuketOldTown, winchId });
+      const bot = createAutopilot(h.sim);
+      const s = h.sim.state;
+      for (let i = 0; i < 60 * 40 && s.mode !== 'rail' && s.mode !== 'finished'; i++) h.sim.step(h.dt, bot.update(), 1);
+      if (s.mode !== 'rail') continue;
+      const press = (pitch: number): void => {
+        const f = bot.update();
+        f.pitch = pitch;
+        f.steer = 0;
+        f.trick = { down: true, pressed: true, released: false };
+        h.sim.step(h.dt, f, 1);
+        const g = bot.update();
+        g.trick = { down: false, pressed: false, released: true };
+        h.sim.step(h.dt, g, 1);
+      };
+      press(1);
+      if (s.mode !== 'rail') continue;
+      expect(s.rail?.stance).toBe('noseslide');
+      press(1);
+      if (s.mode !== 'rail') continue;
+      expect(s.rail?.stance).toBe('fifty');
+      press(-1);
+      if (s.mode !== 'rail') continue;
+      expect(s.rail?.stance).toBe('tailslide');
+      return;
+    }
+    throw new Error('the autopilot never reached a rail on any line');
+  });
+});

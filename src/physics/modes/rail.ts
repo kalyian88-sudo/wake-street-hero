@@ -139,17 +139,31 @@ export function lockRail(c: SimCore, dir: 1 | -1, quality: LandingQuality, fromA
   c.bus.emit('sim:surface', { from, to: 'rail', obstacleId: line.id });
 }
 
+/** Board yaw relative to the rail for a stance: slides turn the board across (nose slide one way, tail slide the other). */
+function stanceYaw(stance: RailStance): number {
+  switch (stance) {
+    case 'boardslide':
+    case 'noseslide':
+      return HALF;
+    case 'lipslide':
+    case 'tailslide':
+      return -HALF;
+    default:
+      return 0;
+  }
+}
+
 function setStance(c: SimCore, stance: RailStance): void {
   const rs = c.railState;
   if (rs.stance === stance) return;
   rs.stance = stance;
   const run = c.rail;
-  run.stanceYawTarget = stance === 'boardslide' ? HALF : stance === 'lipslide' ? -HALF : 0;
+  run.stanceYawTarget = stanceYaw(stance);
   if (run.stances.indexOf(stance) < 0 && run.stances.length < 8) run.stances.push(stance);
   c.bus.emit('sim:railStance', { stance });
 }
 
-const STANCE_DIFFICULTY: Record<RailStance, number> = { fifty: 1, boardslide: 1.3, lipslide: 1.35, nosepress: 1.2, tailpress: 1.2 };
+const STANCE_DIFFICULTY: Record<RailStance, number> = { fifty: 1, boardslide: 1.3, lipslide: 1.35, noseslide: 1.45, tailslide: 1.4, nosepress: 1.2, tailpress: 1.2 };
 
 export function stepRail(c: SimCore, dt: number): void {
   const s = c.state;
@@ -170,7 +184,7 @@ export function stepRail(c: SimCore, dt: number): void {
   let ty = ((line.py[i + 1] - line.py[i]) / len) * run.dir;
   let tz = ((line.pz[i + 1] - line.pz[i]) / len) * run.dir;
   const pressing = rs.stance === 'nosepress' || rs.stance === 'tailpress';
-  const sliding = rs.stance === 'boardslide' || rs.stance === 'lipslide';
+  const sliding = rs.stance === 'boardslide' || rs.stance === 'lipslide' || rs.stance === 'noseslide' || rs.stance === 'tailslide';
   const friction = line.friction * (pressing ? 1.5 : sliding ? 1.25 : 1);
   const accel = c.rope.ax * tx + c.rope.az * tz - friction - gravityAt(9) * SIM.railSlopeGravity * ty;
   run.speed += accel * dt;
@@ -218,9 +232,15 @@ export function stepRail(c: SimCore, dt: number): void {
   c.boardDir = tanYaw;
 
   // ── stance ──
-  if (inp.trick.pressed && Math.abs(inp.steer) >= TRICK.dirThreshold) {
-    if (sliding) setStance(c, 'fifty');
-    else setStance(c, inp.steer < 0 ? 'boardslide' : 'lipslide');
+  // TRICK + ← boardslide · → lipslide · ↑ noseslide · ↓ tailslide; the same direction again (or TRICK alone) = back to 50-50.
+  if (inp.trick.pressed) {
+    const ax = Math.abs(inp.steer);
+    const ay = Math.abs(inp.pitch);
+    const thr = TRICK.dirThreshold;
+    let want: RailStance = 'fifty';
+    if (ax >= thr && ax >= ay) want = inp.steer < 0 ? 'boardslide' : 'lipslide';
+    else if (ay >= thr) want = inp.pitch > 0 ? 'noseslide' : 'tailslide';
+    setStance(c, want === rs.stance ? 'fifty' : want);
   }
   if (inp.grab.down && !sliding) {
     const want: RailStance = inp.pitch < -0.3 ? 'tailpress' : inp.pitch > 0.3 ? 'nosepress' : rs.stance === 'tailpress' ? 'tailpress' : 'nosepress';

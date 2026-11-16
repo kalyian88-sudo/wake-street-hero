@@ -329,6 +329,10 @@ export class Animator {
     const c = clamp01(state.crouch);
     const k = clamp01(state.rope.tension);
     const taut = state.rope.holding ? k : 0;
+    // athletic base: knees softer, hips lower and a touch back, chest slightly over the board
+    T.hipY -= skate ? 0.03 : 0.045;
+    T.kneeOut += 0.035;
+    T.pPitch += 0.05;
     if (L > 0) {
       // toeside: hips driven forward over the toe edge, chest stacked over the toes, shoulders closed
       T.lean = 0.4 * L;
@@ -663,12 +667,22 @@ export class Animator {
     let fold = wrapAngle(along);
     if (fold > HALF_PI) fold -= Math.PI;
     else if (fold <= -HALF_PI) fold += Math.PI;
-    if (stance === 'boardslide' || stance === 'lipslide') {
+    if (stance === 'boardslide' || stance === 'lipslide' || stance === 'noseslide' || stance === 'tailslide') {
       if (Math.abs(fold) > Math.PI / 4) {
         // the sim already turned the board across: only square it up
         T.wYaw = fold - Math.sign(fold) * HALF_PI;
       } else {
-        T.wYaw = fold + (stance === 'boardslide' ? 1 : -1) * m * HALF_PI;
+        T.wYaw = fold + (stance === 'boardslide' || stance === 'noseslide' ? 1 : -1) * m * HALF_PI;
+      }
+      if (stance === 'noseslide' || stance === 'tailslide') {
+        // only the nose (tail) sits on the rail: the board slides back (forward) along itself,
+        // weight over that end, the free end tipped up a little
+        const nose = stance === 'noseslide' ? 1 : -1;
+        const half = this.spec.kind === 'wakeboard' ? 0.5 : 0.42;
+        T.bZ = -nose * half;
+        T.hipZ = nose * 0.16;
+        T.bPitch = -nose * 0.12;
+        T.pRoll = -nose * 0.1;
       }
       T.hipY -= 0.03;
       T.kneeOut = 0.24;

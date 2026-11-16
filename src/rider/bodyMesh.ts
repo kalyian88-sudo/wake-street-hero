@@ -162,7 +162,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     sw(sleeveLong ? (hoodie ? SWATCH.matte : SWATCH.rubber) : SWATCH.skin);
     _a.set(x, P.shoulderY, 0);
     _b.set(x, P.shoulderY - P.uarm, 0);
-    b.segment(_a, _b, FRONT).capsule(P.uarm, 0.054 * g + fat, 0.04 * g + fat, { radial: 10, mid: [[0.35, 0.05 * g + fat]] });
+    b.segment(_a, _b, FRONT).capsule(P.uarm, 0.054 * g + fat, 0.04 * g + fat, { radial: 16, mid: [[0.35, 0.05 * g + fat]] });
     if (!sleeveLong) {
       // short tee sleeve
       b.color(topC);
@@ -176,7 +176,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
           { y: len * 0.6, rx: r0 * 0.97, rz: r0 * 0.97 },
           { y: len, rx: r0 * 1.02, rz: r0 * 1.02 },
         ],
-        { radial: 10, capStart: -r0, capEnd: len - 0.004 },
+        { radial: 16, capStart: -r0, capEnd: len - 0.004 },
       );
     }
     // forearm
@@ -184,7 +184,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     sw(sleeveLong ? (hoodie ? SWATCH.matte : SWATCH.rubber) : SWATCH.skin);
     _a.set(x, P.shoulderY - P.uarm, 0);
     _b.set(x, P.shoulderY - P.uarm - P.larm, 0);
-    b.segment(_a, _b, FRONT).capsule(P.larm, 0.04 * g + fat, 0.03 * g + fat * 0.7, { radial: 10, mid: [[0.28, 0.044 * g + fat]] });
+    b.segment(_a, _b, FRONT).capsule(P.larm, 0.04 * g + fat, 0.03 * g + fat * 0.7, { radial: 16, mid: [[0.28, 0.044 * g + fat]] });
     if (sleeveLong) {
       // cuff
       b.color(hoodie ? shade(topC, -0.2) : contrast(suitC, o.bottomLook.accent));
@@ -193,7 +193,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
           { y: P.larm - 0.04, rx: 0.034 * g + fat, rz: 0.034 * g + fat },
           { y: P.larm - 0.004, rx: 0.035 * g + fat, rz: 0.035 * g + fat },
         ],
-        { radial: 10, capStart: P.larm - 0.045, capEnd: P.larm },
+        { radial: 16, capStart: P.larm - 0.045, capEnd: P.larm },
       );
     }
     buildHand(b, L, x, P.shoulderY - P.uarm - P.larm, g, skin);
@@ -209,7 +209,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     sw(wet ? SWATCH.rubber : SWATCH.skin);
     _a.set(x, P.hipY, 0);
     _b.set(x, P.kneeY, 0);
-    b.segment(_a, _b, FRONT).capsule(P.thigh, 0.096 * g + fat, 0.063 * g + fat, { radial: 10, sz: 1.06, mid: [[0.42, 0.088 * g + fat]] });
+    b.segment(_a, _b, FRONT).capsule(P.thigh, 0.096 * g + fat, 0.063 * g + fat, { radial: 16, sz: 1.06, mid: [[0.42, 0.088 * g + fat]] });
     if (!wet) {
       // board-shorts leg: loose tube, open hem
       b.color(0xffffff);
@@ -222,7 +222,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
           { y: len * 0.75, rx: r0 * 0.9, rz: r0 * 0.93 },
           { y: len, rx: r0 * 0.9, rz: r0 * 0.92 },
         ],
-        { radial: 12, wrap: rectUV(ATLAS.legs, 1), vOf: (_r, i, n) => 1 - i / (n - 1), capEnd: len - 0.006 },
+        { radial: 16, wrap: rectUV(ATLAS.legs, 1), vOf: (_r, i, n) => 1 - i / (n - 1), capEnd: len - 0.006 },
       );
     }
     b.bone(L ? B.shinL : B.shinR).color(legC);
@@ -240,7 +240,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
       { y: P.shin, rx: 0.041 * g + fat, rz: 0.043 * g + fat },
       { y: P.shin + 0.026 * g, rx: 0.027 * g, rz: 0.028 * g },
     ];
-    b.loft(calf, { radial: 10, capStart: -(0.062 * g + fat), capEnd: P.shin + 0.038 * g });
+    b.loft(calf, { radial: 16, capStart: -(0.062 * g + fat), capEnd: P.shin + 0.038 * g });
 
     // bare foot (toes peek out of the open-toe boots)
     b.bone(L ? B.footL : B.footR);

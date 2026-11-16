@@ -387,7 +387,7 @@ export interface RiderLook {
 export type GrabId = 'indy' | 'melon' | 'tail' | 'nose' | 'mute' | 'stalefish';
 export type InvertId = 'backroll' | 'frontroll' | 'tantrum' | 'raley';
 export type FlipId = 'shuvit' | 'fsShuvit' | 'kickflip' | 'heelflip' | 'treflip' | 'impossible' | 'bigspin';
-export type RailStance = 'fifty' | 'boardslide' | 'lipslide' | 'nosepress' | 'tailpress';
+export type RailStance = 'fifty' | 'boardslide' | 'lipslide' | 'noseslide' | 'tailslide' | 'nosepress' | 'tailpress';
 
 export type TrickCategory = 'spin' | 'invert' | 'grab' | 'flip' | 'rail' | 'surface' | 'special' | 'bonus';
 

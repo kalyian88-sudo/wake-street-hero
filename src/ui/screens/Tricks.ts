@@ -53,6 +53,7 @@ const SHEET: { title: string; rows: Combo[] }[] = [
     rows: [
       { keys: ['lr'], text: 'ui.controls.balance' },
       { keys: ['trick', 'lr'], text: 'ui.controls.boardslide' },
+      { keys: ['trick', 'ud'], text: 'ui.controls.noseTail' },
       { keys: ['grab', 'ud'], hold: true, text: 'ui.controls.press' },
       { keys: ['jump'], text: 'ui.controls.popOff' },
     ],

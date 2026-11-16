@@ -123,7 +123,7 @@ export const ATLAS = {
 
 /** Plain (white) atlas cells that only differ in roughness — flat-coloured parts point their UVs here. */
 export const SWATCH = { gloss: 0, semi: 1, skin: 2, rubber: 3, cloth: 4, matte: 5, hair: 6, eva: 7 } as const;
-export const SWATCH_ROUGHNESS = [0.24, 0.42, 0.56, 0.7, 0.84, 0.95, 0.5, 0.9];
+export const SWATCH_ROUGHNESS = [0.24, 0.42, 0.44, 0.55, 0.84, 0.95, 0.5, 0.9]; // skin + neoprene read wet
 
 export type AtlasRect = readonly [number, number, number, number];
 

@@ -111,7 +111,9 @@ describe('trick table — integrity', () => {
     }
     expect(input('boneless').en).toBe('On the water: hold FLIP while releasing JUMP');
     expect(input('surface180').en).toBe('On the water: TRICK + ←/→');
-    expect(input('rail.boardslide').en).toBe('On the rail: TRICK + ←');
+    expect(input('rail.boardslide').en).toBe('On the rail: TRICK + ← (again = back to 50-50)');
+    expect(input('rail.noseslide').en).toBe('On the rail: TRICK + ↑');
+    expect(input('rail.tailslide').en).toBe('On the rail: TRICK + ↓');
     expect(input('rail.lipslide').en).toBe('On the rail: TRICK + →');
     expect(input('rail.nosepress').en).toBe('On the rail: hold GRAB (FLIP on the wakeskate) + ↑');
     expect(input('rail.tailpress').en).toBe('On the rail: hold GRAB (FLIP on the wakeskate) + ↓');
@@ -240,7 +242,7 @@ describe('trick table — used by the spots', () => {
       ...(['shuvit', 'kickflip', 'heelflip', 'impossible', 'treflip'] as const).map((id) => ({ board: 'wakeskate' as const, flips: [{ id, count: 1 }] })),
       { board: 'wakeskate', spinDeg: 180, flips: [{ id: 'shuvit', count: 1 }] },
       { board: 'wakeskate', boneless: true },
-      ...(['fifty', 'boardslide', 'lipslide', 'nosepress', 'tailpress'] as const).map((st) => ({ context: 'rail' as const, rail: { obstacleId: 'r', kind: 'rail' as const, stances: [st], distance: 5, pressTime: 0.5 } })),
+      ...(['fifty', 'boardslide', 'lipslide', 'noseslide', 'tailslide', 'nosepress', 'tailpress'] as const).map((st) => ({ context: 'rail' as const, rail: { obstacleId: 'r', kind: 'rail' as const, stances: [st], distance: 5, pressTime: 0.5 } })),
       { context: 'wall', wall: { time: 1 } },
       { context: 'surface', spinDeg: 180 },
     ];

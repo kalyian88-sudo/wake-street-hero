@@ -178,7 +178,7 @@
   "ui.controls.flips": "Flips: neutral Shuvit · ← Kickflip · → Heelflip · ↑ Impossible · ↓ 360 Flip.",
   "ui.controls.catch": "Catch it: press again when the board comes round (JUMP works too). Miss it and the board is gone.",
   "ui.controls.balance": "Balance: keep the marker in the middle of the bar.",
-  "ui.controls.boardslide": "50-50 ⇄ boardslide (to the right it is a lipslide).",
+  "ui.controls.boardslide": "← boardslide, → lipslide. The same direction again — back to a 50-50.",
   "ui.controls.press": "Press: ↑ nose press, ↓ tail press.",
   "ui.controls.popOff": "Pop off — and go straight into an air trick.",
   "ui.controls.handle": "Drop the handle and coast, press again to grab it back.",
@@ -265,5 +265,6 @@
   "ui.dialog.name.winch": "Max",
   "ui.dialog.name.filmer": "Lex",
   "ui.dialog.name.manager": "Nika",
-  "ui.dialog.name.rider": "You"
+  "ui.dialog.name.rider": "You",
+  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide. The same direction again — back to a 50-50."
 }
