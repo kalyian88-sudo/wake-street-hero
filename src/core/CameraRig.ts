@@ -229,10 +229,12 @@ export class CameraRig {
       dist += speedK * 0.9;
       fov += Math.max(0, speedK) * 4;
       if (mode === 'air') {
+        // Rise and pull back — but less than the rider climbs (see focusY), and tilt up after him,
+        // so he moves UP the frame and the water drops away: that is what sells the height.
         const h = Math.max(0, s.air.height);
-        height += Math.min(h * 0.32, 1.7);
+        height += Math.min(h * 0.15, 0.8);
         dist += Math.min(h * 0.5, 2.4);
-        lookAhead -= Math.min(h * 0.5, 2);
+        lookY += Math.min(h * 0.25, 1.4);
       } else if (mode === 'rail') {
         height -= 0.95;
         dist -= 0.5;
@@ -250,7 +252,7 @@ export class CameraRig {
       const trick = clamp01(s.slowMo);
       fov -= 6 * trick;
       dist -= 0.45 * trick;
-      if (mode === 'air') orbit += this.side * 0.24 * trick;
+      if (mode === 'air') orbit += this.side * 0.18 * trick;
       orbitTime = 0.5;
     }
 
@@ -280,8 +282,9 @@ export class CameraRig {
       this.lookAhead = expDamp(this.lookAhead, lookAhead, 3, dt);
       this.lookY = expDamp(this.lookY, lookY, 3, dt);
       this.fov = expDamp(this.fov, fov, 5, dt);
-      // In the air the camera's floor lags behind, so the rider visibly rises in frame.
-      this.focusY = expDamp(this.focusY, s.pos.y, mode === 'air' ? 4.5 : 10, dt);
+      // The camera's own "floor" follows only part of an air.
+      const floor = mode === 'air' ? s.pos.y - Math.max(0, s.air.height) * 0.45 : s.pos.y;
+      this.focusY = expDamp(this.focusY, floor, mode === 'air' ? 6 : 10, dt);
     }
 
     // ── wanted position + look target ──
