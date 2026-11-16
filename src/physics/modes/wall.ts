@@ -126,7 +126,7 @@ export function stepWall(c: SimCore, dt: number): void {
     leaveWall(c, true);
     return;
   }
-  if (run.time >= SIM.wallMaxTime || run.h <= 0.02 || run.u < 0 || run.u > w.len || run.vu < 1.5) leaveWall(c, false);
+  if (run.time >= SIM.wallMaxTime || (run.vh < 0 && run.h <= 0.02) || run.u < 0 || run.u > w.len || run.vu < 1.5) leaveWall(c, false);
 }
 
 function leaveWall(c: SimCore, popped: boolean): void {

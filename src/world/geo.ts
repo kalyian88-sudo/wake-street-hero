@@ -25,6 +25,8 @@ export interface TubeOpts {
   fillet?: number;
   /** Metres of texture V per metre of tube (default 1). */
   vScale?: number;
+  /** U along the path, V around (for textures drawn along U, e.g. rope). */
+  swapUV?: boolean;
   /** Per-point radius multiplier. */
   radiusAt?: (i: number, n: number) => number;
 }
@@ -478,7 +480,8 @@ export class GB {
         const nx = nrm.x * cs + bin.x * sn;
         const ny = nrm.y * cs + bin.y * sn;
         const nz = nrm.z * cs + bin.z * sn;
-        this.v(p[0] + nx * r, p[1] + ny * r, p[2] + nz * r, nx, ny, nz, (k / seg) * circ, along * vScale);
+        if (opts.swapUV) this.v(p[0] + nx * r, p[1] + ny * r, p[2] + nz * r, nx, ny, nz, along * vScale, (k / seg) * circ);
+        else this.v(p[0] + nx * r, p[1] + ny * r, p[2] + nz * r, nx, ny, nz, (k / seg) * circ, along * vScale);
       }
     }
     const row = seg + 1;
@@ -530,14 +533,15 @@ export class GB {
     return this;
   }
   /** Extrude an XY outline (CCW) from z0 to z1: side walls + optional end faces. */
-  prism(src: readonly (readonly [number, number])[], z0: number, z1: number, front = true, back = true, closed = true): this {
+  prism(src: readonly (readonly [number, number])[], z0: number, z1: number, front = true, back = true, closed = true, inward = false): this {
     let area = 0;
     for (let i = 0; i < src.length; i++) {
       const a = src[i];
       const b = src[(i + 1) % src.length];
       area += a[0] * b[1] - b[0] * a[1];
     }
-    const outline = area < 0 && closed ? src.slice().reverse() : src;
+    // CCW outline → walls face outwards; `inward` flips them (walls of a hole)
+    const outline = (area < 0) !== inward && closed ? src.slice().reverse() : src;
     const n = outline.length;
     const last = closed ? n : n - 1;
     for (let i = 0; i < last; i++) {

@@ -12,7 +12,8 @@
  *   line    every listed obstacle used inside ONE unbroken combo. An obstacle is "used" when it was touched
  *           ('sim:takeoff', 'sim:railEnter', 'sim:wallEnter', 'sim:gap', 'sim:surface' with an obstacle id) and the
  *           next trick was then landed and scored ('score:trick'). The chain is wiped by 'score:bank',
- *           'score:lost' and 'sim:bail'. A touch that ends in a no-trick landing is forgotten at the next touch.
+ *           'score:lost' and 'sim:bail'. A touch that ends in a no-trick landing is forgotten at the next touch
+ *           (clearing a gap makes the air count even without a trick).
  *           `goal.winch` restricts the goal to one line.
  *   clip    a trick landed while the rider was inside the filmer zone at any moment between the start of
  *           that trick (takeoff / rail or wall entry) and its landing; minPoints is compared with the better
@@ -212,10 +213,13 @@ export function createRunObjectives(spot: SpotDef, config: RunConfig, doneBefore
         touch(e.obstacleId);
         trickStarts();
       }),
-      bus.on('sim:gap', (e) => touch(e.id)),
-      bus.on('sim:surface', (e) => {
-        if (e.obstacleId) touch(e.obstacleId);
+      bus.on('sim:gap', (e) => {
+        // announced at touchdown, after 'sim:land': it belongs to the air that just ended, not to the next one
+        pendingStale = false;
+        touch(e.id);
       }),
+      // also without an obstacle id: riding away from a no-trick landing drops the stale touch
+      bus.on('sim:surface', (e) => touch(e.obstacleId)),
       bus.on('sim:land', (e) => {
         markZones(e.pos.x, e.pos.z, true);
         if (!e.hadTrick) pendingStale = true;

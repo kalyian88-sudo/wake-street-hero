@@ -331,12 +331,6 @@
   opacity: 1;
   transition: opacity 0.08s;
 }
-.wsh-stick.is-hint {
-  opacity: 0.9;
-}
-.wsh-stick.is-hint .wsh-stick-base {
-  border-color: var(--gold);
-}
 .wsh-stick-base {
   position: absolute;
   inset: 0;

@@ -253,7 +253,7 @@ export function renderKick(sr: number, p: KickParams, rng: Rng): Float32Array {
     phase += (2 * Math.PI * f) / sr;
     const attack = Math.min(1, t / 0.0012);
     let s = Math.sin(phase) * Math.exp(-t / p.ampTau) * attack;
-    s += (rng() * 2 - 1) * Math.exp(-t / 0.0022) * p.click;
+    s += (rng() * 2 - 1) * Math.exp(-t / 0.0022) * Math.min(1, t / 0.0003) * p.click;
     out[i] = Math.tanh(s * p.drive) / norm;
   }
   return normalize(fadeTail(out, sr, 12), 0.95);

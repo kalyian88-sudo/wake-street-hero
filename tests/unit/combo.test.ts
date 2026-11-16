@@ -244,9 +244,25 @@ describe('score keeper — staleness', () => {
     expect(trickKey(a)).toBe(trickKey(sw));
     const events = listen('score:trick');
     keeper.addTrick(a, 'clean', 0);
-    keeper.addTrick(b, 'clean', 1);
-    keeper.addTrick(sw, 'clean', 2);
-    expect(events.map((e) => e.stale)).toEqual([1, 1, 0.7]);
+    keeper.addTrick(sw, 'clean', 1);
+    keeper.addTrick(b, 'clean', 2);
+    expect(events.map((e) => e.stale)).toEqual([1, 0.7, 1]);
+  });
+
+  it('the key is what the trick is made of, not how long / high / where it was done', () => {
+    const grindOf = (distance: number, kind: 'rail' | 'handrail'): ResolvedTrick => resolveTrick(rec({ context: 'rail', rail: { obstacleId: 'r', kind, stances: ['fifty'], distance, pressTime: 0 } }));
+    expect(trickKey(grindOf(3, 'rail'))).toBe('rail.fifty');
+    expect(trickKey(grindOf(12, 'handrail'))).toBe('rail.fifty');
+    expect(trickKey(resolveTrick(rec({ spinDeg: 360, inverts: [{ id: 'backroll', count: 1 }], grabs: [{ id: 'indy', hold: 1 }], height: 4, airTime: 2 })))).toBe('indy|mobe');
+    // a Hoochie Glide is a Hoochie Glide whatever the grab
+    const hoochie = (id: 'indy' | 'tail'): ResolvedTrick => resolveTrick(rec({ inverts: [{ id: 'raley', count: 1 }], grabs: [{ id, hold: 0 }] }));
+    expect(trickKey(hoochie('indy'))).toBe(trickKey(hoochie('tail')));
+    // a wakeskate kickflip off a pop and off a kicker are the same trick
+    const kf = (takeoff: 'pop' | 'kicker'): ResolvedTrick => resolveTrick(rec({ board: 'wakeskate', takeoff, flips: [{ id: 'kickflip', count: 1 }] }));
+    expect(trickKey(kf('pop'))).toBe('kickflip');
+    expect(trickKey(kf('kicker'))).toBe('kickflip');
+    // a hand-made trick without parts falls back to its id
+    expect(trickKey({ id: 'x', ids: ['x', 'y'], name: { ru: 'x', en: 'x' }, points: 1, parts: [], tier: 1 })).toBe('x');
   });
 
   it('a trick stale to ×0.5 or worse keeps the combo alive but adds no elements', () => {

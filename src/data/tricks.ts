@@ -18,9 +18,9 @@
  *                 (любой грэб), flip, takeoff ('pop' | 'kicker' | 'rail' | 'wall' | 'drop' | 'ledge').
  *
  * Чтобы добавить комбинацию — скопируй любую строку из блока «Именные комбинации», дай новый id,
- * названия, очки и requires. Слова для составных названий («Свитч», «через гэп») — в TRICK_WORDS
- * в конце файла. Проценты и надбавки (длинный грэб, свитч, высота, метры на рейле) лежат рядом,
- * в src/tricks/trickTuning.ts.
+ * названия, очки и requires. В конце файла: TRICK_WORDS — слова для составных названий («Свитч»,
+ * «через гэп») и EXTRA_TRICKS — служебные строки, которых нет в списке трюков. Проценты и надбавки
+ * (длинный грэб, свитч, высота, метры на рейле) лежат рядом, в src/tricks/trickTuning.ts.
  */
 import type { L10n, TrickDef } from '../types';
 
@@ -34,7 +34,7 @@ export const TRICKS: TrickDef[] = [
     points: 100,
     difficulty: 1,
     input: { ru: 'В воздухе: ТРЮК + ← или →', en: 'In the air: TRICK + ← or →' },
-    tip: { ru: 'Приедешь в свитче — это нормально. Вернуться можно сёрфейс-180.', en: 'You land switch — that is fine. A surface 180 brings you back.' },
+    tip: { ru: 'Приедешь в свитче — это нормально. Любой трюк из свитча стоит на 20% дороже.', en: 'You land switch — that is fine. Any trick taken off switch pays 20% more.' },
   },
   {
     id: 'spin360',
@@ -64,7 +64,7 @@ export const TRICKS: TrickDef[] = [
     points: 800,
     difficulty: 4,
     input: { ru: 'В воздухе: ТРЮК + ←/→ четыре раза', en: 'In the air: TRICK + ←/→ four times' },
-    tip: { ru: 'Только с кикера. Держи ПРЫЖОК до самого края — улетишь выше.', en: 'Kicker only. Hold JUMP all the way to the lip for extra height.' },
+    tip: { ru: 'Только с кикера. Держи ПРЫЖОК до самого края: выше вылет — до +45% за амплитуду.', en: 'Kicker only. Hold JUMP all the way to the lip: a bigger air pays up to +45% for amplitude.' },
   },
   {
     id: 'spin900',
@@ -226,7 +226,7 @@ export const TRICKS: TrickDef[] = [
     points: 40,
     difficulty: 1,
     input: { ru: 'На воде: держи ПРЫЖОК — заряд, отпусти — поп', en: 'On the water: hold JUMP to load, release to pop' },
-    tip: { ru: 'База всего. Сам по себе комбо не продлевает.', en: 'The base of everything. Does not extend a combo by itself.' },
+    tip: { ru: 'База всего: с олли начинается любой флип. Сам по себе комбо не продлевает.', en: 'The base of everything: every flip starts with an ollie. Does not extend a combo by itself.' },
   },
   {
     id: 'boneless',
@@ -334,7 +334,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 120,
     difficulty: 3,
-    input: { ru: 'На рейле: держи ГРЭБ + ↑', en: 'On the rail: hold GRAB + ↑' },
+    input: { ru: 'На рейле: держи ГРЭБ (на вейкскейте — ФЛИП) + ↑', en: 'On the rail: hold GRAB (FLIP on the wakeskate) + ↑' },
     tip: { ru: 'Пресс добавляет до +50% к очкам рейла, но баланс держать сложнее.', en: 'A press adds up to +50% to the rail score, but balance gets harder.' },
   },
   {
@@ -344,7 +344,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 120,
     difficulty: 3,
-    input: { ru: 'На рейле: держи ГРЭБ + ↓', en: 'On the rail: hold GRAB + ↓' },
+    input: { ru: 'На рейле: держи ГРЭБ (на вейкскейте — ФЛИП) + ↓', en: 'On the rail: hold GRAB (FLIP on the wakeskate) + ↓' },
   },
 
   // ─────────────────────────────── Вода и особые / Surface & special ──
@@ -376,16 +376,6 @@ export const TRICKS: TrickDef[] = [
     difficulty: 3,
     input: { ru: 'Заедь на стену канала под углом. ПРЫЖОК — соскок', en: 'Ride up the canal wall at an angle. JUMP pops you off' },
     tip: { ru: 'Чем дольше едешь по стене, тем больше очков. С соскока можно сделать трюк.', en: 'The longer you stay on the wall the more it pays. You can trick off the pop.' },
-  },
-  {
-    id: 'air',
-    name: { ru: 'Эйр', en: 'Air' },
-    category: 'special',
-    boards: ['wakeboard'],
-    points: 30,
-    difficulty: 1,
-    input: { ru: 'Держи ПРЫЖОК — заряд, отпусти — поп. Держишь на кикере — летишь выше', en: 'Hold JUMP to load, release to pop. Hold it into a kicker lip to go higher' },
-    tip: { ru: 'Просто вылет без трюка. Комбо не продлевает.', en: 'Just air, no trick. Does not extend a combo.' },
   },
 
   // ───────────────── Именные комбинации / Named combinations (вейкборд) ──
@@ -503,17 +493,7 @@ export const TRICKS: TrickDef[] = [
   },
 
   // ───────────────────────────────────────────────── Бонусы / Bonuses ──
-  // У бонусов с points: 0 надбавка считается в процентах — см. src/tricks/trickTuning.ts.
-  {
-    id: 'switch',
-    name: { ru: 'Свитч', en: 'Switch' },
-    category: 'bonus',
-    boards: ['wakeboard', 'wakeskate'],
-    points: 0,
-    difficulty: 2,
-    input: { ru: 'Заходи на трюк в свитче (после 180 или сёрфейс-180)', en: 'Go into the trick riding switch (after a 180 or a surface 180)' },
-    tip: { ru: '+20% к трюку за вылет из свитча.', en: '+20% on the trick for taking off switch.' },
-  },
+  // Надбавки поверх трюка. Очки гэпа задаёт каждый спот сам, поэтому в таблице у него 0.
   {
     id: 'handlePass',
     name: { ru: 'Хендл-пасс', en: 'Handle Pass' },
@@ -522,16 +502,6 @@ export const TRICKS: TrickDef[] = [
     points: 150,
     difficulty: 3,
     input: { ru: 'Вейкборд: спин от 360 — хендл уходит за спину сам', en: 'Wakeboard: spins of 360 and up — the handle goes behind your back by itself' },
-  },
-  {
-    id: 'bigAir',
-    name: { ru: 'Амплитуда', en: 'Big Air' },
-    category: 'bonus',
-    boards: ['wakeboard', 'wakeskate'],
-    points: 0,
-    difficulty: 2,
-    input: { ru: 'Сделай трюк на большой высоте: заряд до конца, кикер, быстрая лебёдка', en: 'Do the trick high up: full load, a kicker, a fast winch' },
-    tip: { ru: 'До +45% к трюку за высоту и время в воздухе.', en: 'Up to +45% on the trick for height and hang time.' },
   },
   {
     id: 'gap',
@@ -587,10 +557,42 @@ export const TRICK_WORDS = {
 } satisfies Record<string, L10n>;
 
 /**
- * Строки «в запасе»: движок знает эти трюки (название и очки нужны, если симуляция их выдаст), но кнопки
- * на них пока не назначены, поэтому в списке трюков их нет. Назначили управление — перенеси строку в TRICKS.
+ * СЛУЖЕБНЫЕ СТРОКИ — в списке трюков не показываются, но названия и очки движку нужны:
+ *   switch, bigAir — процентные надбавки (сами проценты в src/tricks/trickTuning.ts), у них points: 0;
+ *   air            — простой вылет без трюка;
+ *   fsShuvit       — трюк «в запасе»: кнопки на него пока не назначены. Назначили — перенеси строку в TRICKS.
  */
 export const EXTRA_TRICKS: TrickDef[] = [
+  {
+    id: 'switch',
+    name: { ru: 'Свитч', en: 'Switch' },
+    category: 'bonus',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 0,
+    difficulty: 2,
+    input: { ru: 'Заходи на трюк в свитче (после 180 или сёрфейс-180)', en: 'Go into the trick riding switch (after a 180 or a surface 180)' },
+    tip: { ru: '+20% к трюку за вылет из свитча.', en: '+20% on the trick for taking off switch.' },
+  },
+  {
+    id: 'bigAir',
+    name: { ru: 'Амплитуда', en: 'Big Air' },
+    category: 'bonus',
+    boards: ['wakeboard', 'wakeskate'],
+    points: 0,
+    difficulty: 2,
+    input: { ru: 'Сделай трюк на большой высоте: заряд до конца, кикер, быстрая лебёдка', en: 'Do the trick high up: full load, a kicker, a fast winch' },
+    tip: { ru: 'До +45% к трюку за высоту и время в воздухе.', en: 'Up to +45% on the trick for height and hang time.' },
+  },
+  {
+    id: 'air',
+    name: { ru: 'Эйр', en: 'Air' },
+    category: 'special',
+    boards: ['wakeboard'],
+    points: 30,
+    difficulty: 1,
+    input: { ru: 'Держи ПРЫЖОК — заряд, отпусти — поп. Держишь на кикере — летишь выше', en: 'Hold JUMP to load, release to pop. Hold it into a kicker lip to go higher' },
+    tip: { ru: 'Просто вылет без трюка. Комбо не продлевает.', en: 'Just air, no trick. Does not extend a combo.' },
+  },
   {
     id: 'fsShuvit',
     name: { ru: 'FS шоув-ит', en: 'FS Shuvit' },

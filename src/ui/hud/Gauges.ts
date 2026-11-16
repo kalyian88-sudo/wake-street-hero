@@ -47,10 +47,6 @@ export class Gauges {
   ) {
     // full-screen effects sit under every other HUD element
     this.fx = h('div', 'wsh-fx', root);
-    h('div', 'wsh-fx-lines', this.fx);
-    h('div', 'wsh-fx-vig', this.fx);
-    h('div', 'wsh-fx-bar wsh-fx-bar--t', this.fx);
-    h('div', 'wsh-fx-bar wsh-fx-bar--b', this.fx);
     this.glow = h('div', 'wsh-heroglow', root);
 
     this.balance = h('div', 'wsh-balance', root);
@@ -59,17 +55,21 @@ export class Gauges {
     this.marker = h('div', 'wsh-balance-marker', this.balance);
 
     this.speedEl = h('div', 'wsh-speed', root);
-    this.switchEl = h('div', 'wsh-switch', this.speedEl);
-    this.switchText = txt(h('span', 'wsh-x', this.switchEl));
+    this.switchEl = h('div', 'wsh-switch wsh-x', this.speedEl);
+    this.switchText = txt(this.switchEl);
     const row = h('div', 'wsh-speed-row wsh-x', this.speedEl);
     this.speedText = txt(h('span', 'wsh-speed-num', row), '0');
     this.unitText = txt(h('span', 'wsh-speed-unit', row));
-    this.ropeEl = svg(`<path d="M2 3 Q ${ROPE_W / 2} 3 ${ROPE_W - 2} 3"/>`, 'wsh-rope', this.speedEl, `0 0 ${ROPE_W} 14`);
+    this.ropeEl = svg(
+      `<path d="M2 3 Q ${ROPE_W / 2} 3 ${ROPE_W - 2} 3"/><circle cx="2" cy="3" r="2.4"/><circle cx="${ROPE_W - 2}" cy="3" r="2.4"/>`,
+      'wsh-rope',
+      this.speedEl,
+      `0 0 ${ROPE_W} 14`,
+    );
     this.ropePath = this.ropeEl.querySelector('path') as SVGPathElement;
 
     this.coach = h('div', 'wsh-coach', root);
-    const tag = h('div', 'wsh-coach-tag', this.coach);
-    this.coachTag = txt(h('span', 'wsh-x', tag));
+    this.coachTag = txt(h('div', 'wsh-coach-tag wsh-x wsh-x--l', this.coach));
     this.coachText = txt(h('div', 'wsh-coach-text', this.coach));
     this.relabel();
   }

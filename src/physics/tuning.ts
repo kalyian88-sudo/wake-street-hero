@@ -116,11 +116,11 @@ export const SIM = {
   /** Last part of a kicker (1 − lipZone … 1) where releasing JUMP gives the full boost. */
   lipZone: 0.35,
   /** Boost as a fraction of the flat pop speed: perfect release in the lip zone … */
-  lipBoost: 0.52,
+  lipBoost: 0.5,
   /** … JUMP simply held through the lip … */
-  holdBoost: 0.42,
+  holdBoost: 0.38,
   /** … released too early on the ramp. */
-  earlyBoost: 0.3,
+  earlyBoost: 0.22,
 
   // ── rails ──
   /** Rails whose top is at most this far above the surface are hopped onto automatically. */
@@ -143,8 +143,8 @@ export const SIM = {
   /** Rail must be ridden at least this far (m) to score. */
   railMinDistance: 0.8,
   /** Balance: instability 1/s, wobble amplitude 1/s, stick authority 1/s. */
-  balanceInstability: 1.15,
-  balanceWobble: 0.5,
+  balanceInstability: 1.5,
+  balanceWobble: 0.7,
   balanceControl: 2.6,
   /** Extra wobble per m/s above 8 m/s. */
   balanceSpeed: 0.035,
@@ -159,10 +159,10 @@ export const SIM = {
   wallMaxSin: Math.sin(52 * DEG),
   wallContact: 0.14,
   /** Climb speed = base + share of the speed into the wall. */
-  wallClimbBase: 1.6,
+  wallClimbBase: 2.2,
   wallClimbGain: 0.75,
-  wallGravity: 5.2,
-  wallSinkMax: 1.3,
+  wallGravity: 3.4,
+  wallSinkMax: 1.1,
   wallDrag: 0.7,
   wallPopOut: 3.2,
   wallMinScore: 0.25,
@@ -253,8 +253,8 @@ export const BOARD: Record<BoardKind, BoardTuning> = {
   },
   wakeskate: {
     // ≈ 70 % of the wakeboard's height → √0.7 of its speed
-    popMin: 2.6,
-    popMax: 5.1,
+    popMin: 2.55,
+    popMax: 4.95,
     chargeTime: 0.6,
     carveMax: 46 * DEG,
     carveRate: 4.8,

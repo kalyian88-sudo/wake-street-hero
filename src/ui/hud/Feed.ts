@@ -84,14 +84,14 @@ export class Feed {
 
     const center = h('div', 'wsh-center', root);
     this.bailEl = h('div', 'wsh-bail', center);
-    this.bailTitle = txt(h('span', 'wsh-x', h('div', 'wsh-bail-title', this.bailEl)));
+    this.bailTitle = txt(h('div', 'wsh-bail-title wsh-x', this.bailEl));
     this.bailSub = txt(h('div', 'wsh-bail-sub', this.bailEl));
     this.lostEl = h('div', 'wsh-lost', center);
     this.lostText = txt(h('span', 'wsh-x', this.lostEl));
 
     this.flashEl = h('div', 'wsh-heroflash', root);
-    this.flashTitle = txt(h('span', 'wsh-x', h('div', 'wsh-heroflash-title', this.flashEl)));
-    this.flashSub = txt(h('div', 'wsh-heroflash-sub', this.flashEl));
+    this.flashTitle = txt(h('div', 'wsh-heroflash-title wsh-x', this.flashEl));
+    this.flashSub = txt(h('div', 'wsh-heroflash-sub wsh-x', this.flashEl));
 
     this.countEl = h('div', 'wsh-count', root);
     this.countText = txt(h('span', 'wsh-x', this.countEl));
@@ -131,6 +131,9 @@ export class Feed {
       this.liveEls[i].key = '';
     }
     this.liveN = 0;
+    // rail stance / wallride are re-added from the state on the next update while they last
+    this.lastStance = null;
+    this.onWall = false;
   }
 
   /** Add an element to the running line, or update it in place when `key` is already shown. */

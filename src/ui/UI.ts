@@ -60,6 +60,7 @@ export function createUI(game: IGame): IUI {
   let historyArmed = false;
   let pauseShownAt = 0;
   let ducked = false;
+  let replaying = false;
 
   function duck(on: boolean): void {
     if (on === ducked) return;
@@ -237,6 +238,19 @@ export function createUI(game: IGame): IUI {
     quit() {
       g.quitRun();
       returnToMenus();
+    },
+    replay() {
+      if (!nav || !overlays || replaying) return;
+      replaying = true;
+      nav.hide();
+      overlays.showReplay(() => g.stopReplay());
+      void g.playReplay().then(() => {
+        replaying = false;
+        overlays?.hideReplay();
+        // A real game has already brought the results back through 'game:state'; a stub has not.
+        const st = g.state;
+        if (nav && nav.current === 'none' && nav.has('results') && st !== 'run' && st !== 'countdown') nav.go('results', { instant: true });
+      });
     },
     setLang,
   };

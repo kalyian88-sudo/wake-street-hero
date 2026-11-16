@@ -145,7 +145,8 @@ export class Controls {
     this.catchHot = false;
     this.holding = true;
     this.chargeQ = -1;
-    this.grab.el.classList.remove('is-catching', 'is-hot', 'is-caught', 'is-missed');
+    this.grab.el.classList.remove('is-catching', 'is-hot');
+    this.grab.face.classList.remove('is-caught', 'is-missed');
     this.grab.el.classList.toggle('is-flip', board === 'wakeskate');
     this.handle.el.classList.remove('is-released');
     this.jump.el.classList.remove('is-charging', 'is-full');
@@ -163,8 +164,8 @@ export class Controls {
 
   /** 'trick:catch' — flash the FLIP button. */
   onCatch(ok: boolean): void {
-    this.grab.el.classList.remove(ok ? 'is-missed' : 'is-caught');
-    restart(this.grab.el, ok ? 'is-caught' : 'is-missed');
+    this.grab.face.classList.remove(ok ? 'is-missed' : 'is-caught');
+    restart(this.grab.face, ok ? 'is-caught' : 'is-missed');
   }
 
   private setHero(on: boolean): void {

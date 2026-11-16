@@ -88,7 +88,6 @@ export class Game implements IGame, DebugHost {
   private _state: GameState = 'boot';
   private pausedFrom: GameState = 'run';
   private readonly app: HTMLElement;
-  private readonly canvas: HTMLCanvasElement;
   private readonly overlay: DebugOverlay;
   private readonly backdrops: Backdrops;
   private navToken = 0;
@@ -98,13 +97,13 @@ export class Game implements IGame, DebugHost {
   private lookKey: object | null = null;
   private lostBanner: HTMLDivElement | null = null;
   private debugTimeIndex = 0;
+  private stepDrawQueued = false;
   private readonly menuFx: FxParams = { slowMo: 0, hero: 0, bloom: MENU_BLOOM, time: 0 };
   private readonly previewView: WorldView;
   private readonly menuAudio: AudioView = { state: null, timeScale: 1, paused: false };
   private readonly sessionDeps: SessionDeps;
 
   constructor(opts: GameOptions) {
-    this.canvas = opts.canvas;
     this.app = opts.canvas.parentElement ?? document.body;
     this.params = readUrlParams();
     this.debug = this.params.debug;
@@ -270,7 +269,8 @@ export class Game implements IGame, DebugHost {
     this.engine.beginFrame(realDt);
     if (this._state === 'boot') this.setState('menu');
     if (!this.manualClock) this.advance(realDt);
-    this.draw(realDt);
+    // Manual clock (tests): nothing moves between step() calls, so there is nothing new to draw.
+    if (!this.manualClock || this.engine.takeResized()) this.draw(realDt);
     this.overlay.update(realDt);
     const cpu = this.engine.endFrame(raw);
     this.quality.frame(raw, cpu);
@@ -321,14 +321,25 @@ export class Game implements IGame, DebugHost {
     }
   }
 
-  /** Test hook: advance by fixed 1/60 s steps without waiting for real frames, then draw once. */
+  /**
+   * Test hook: advance by fixed 1/60 s steps without waiting for real frames, then draw once.
+   * The draw is coalesced to the end of the current JS task, so a test that steps frame by frame in a
+   * loop does not queue hundreds of renders.
+   */
   stepFrames(seconds: number): void {
     const n = Math.max(1, Math.round(seconds / STEP));
     if (this._state === 'boot') this.setState('menu');
     for (let i = 0; i < n; i++) this.advance(STEP);
-    this.engine.beginFrame(0);
-    this.draw(STEP);
-    this.engine.endFrame(0);
+    if (this.stepDrawQueued) return;
+    this.stepDrawQueued = true;
+    queueMicrotask(() => {
+      this.stepDrawQueued = false;
+      if (this.engine.contextLost) return;
+      this.engine.beginFrame(0);
+      this.draw(STEP);
+      this.overlay.update(1);
+      this.engine.endFrame(0);
+    });
   }
 
   // ─────────────────────────────────────────────────────────── backdrop ──

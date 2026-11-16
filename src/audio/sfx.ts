@@ -23,7 +23,9 @@ export interface SfxOpts {
   variant?: string;
   /** Letter number 1..6 or number of bank blips. */
   step?: number;
-  /** Context time to start at (offline renders); default = now. */
+  /** Start this many seconds from now. */
+  delay?: number;
+  /** Absolute context time to start at (offline renders). Skips the cooldown. */
   at?: number;
 }
 
@@ -87,7 +89,40 @@ const SPECS: Record<SfxName, Spec> = {
  * convenient internal amplitudes; this table (raw peak in dB, measured offline at amount = default)
  * takes the guesswork out of the level. See dev/audio.html → "calibration".
  */
-const RAW_PEAK_DB: Partial<Record<SfxName, number>> = {};
+const RAW_PEAK_DB: Record<SfxName, number> = {
+  'ui.tap': 0.8,
+  'ui.back': -0.2,
+  'ui.buy': 3.5,
+  'ui.star': 5.3,
+  'ui.unlock': 0.6,
+  pop: 1,
+  'land.water': 0.8,
+  'land.hard': 1.8,
+  'splash.big': 2.9,
+  'bail.water': 2.9,
+  'bail.concrete': 0.9,
+  'rail.lock': 5.1,
+  'flip.click': -4.5,
+  'flip.catch': 0.2,
+  letter: 1.9,
+  'combo.bank': -3,
+  'combo.lost': 5,
+  'hero.start': 4.2,
+  'hero.end': -1.7,
+  'crowd.cheer': -5,
+  'crowd.ooh': -8.2,
+  'countdown.tick': 0,
+  'countdown.go': 4,
+  goal: 0.2,
+  'camera.shutter': -0.7,
+  twang: -7.6,
+  whoosh: -13.5,
+  grab: -4.9,
+  handle: -9.1,
+  swish: -6,
+  bonus: 2.6,
+  'hero.ready': 2.5,
+};
 
 export const SFX_IDS = Object.keys(SPECS).filter((k) => !['twang', 'whoosh', 'grab', 'handle', 'swish', 'bonus', 'hero.ready'].includes(k)) as SfxId[];
 export const INTERNAL_SFX: readonly InternalSfx[] = ['twang', 'whoosh', 'grab', 'handle', 'swish', 'bonus', 'hero.ready'];
@@ -95,8 +130,8 @@ export const INTERNAL_SFX: readonly InternalSfx[] = ['twang', 'whoosh', 'grab', 
 export class Sfx {
   private readonly last = new Map<SfxName, number>();
   private letterStep = 0;
-  /** Set by the offline calibration run to bypass RAW_PEAK_DB. */
-  rawLevels = false;
+  /** Offline calibration run: unity voice gain and no random pitch → measures RAW_PEAK_DB. */
+  calibrating = false;
 
   constructor(private readonly core: AudioCore) {}
 
@@ -121,14 +156,15 @@ export class Sfx {
       this.last.set(id, now);
     }
     const a = clamp(o.amount ?? spec.amount, 0, 1);
-    const cal = this.rawLevels ? 1 : dbToGain(spec.db - (RAW_PEAK_DB[id] ?? 0));
+    const cal = this.calibrating ? 1 : dbToGain(spec.db - RAW_PEAK_DB[id]);
     const level = cal * clamp(o.volume ?? 1, 0, 2) * (spec.floor + (1 - spec.floor) * a);
-    const pitch = clamp(o.pitch ?? 1, 0.25, 4) * (1 + (core.rnd() * 2 - 1) * spec.vary);
+    const pitch = clamp(o.pitch ?? 1, 0.25, 4) * (this.calibrating ? 1 : 1 + (core.rnd() * 2 - 1) * spec.vary);
+    const at = o.at ?? (o.delay ? now + o.delay : undefined);
     if (id === 'crowd.cheer') {
-      cheer(core, level, a, pitch, o.at);
+      cheer(core, level, a, pitch, at);
       return;
     }
-    const v = core.voice(spec.bus, level, o.pan ?? 0, spec.priority, pitch, o.at);
+    const v = core.voice(spec.bus, level, o.pan ?? 0, spec.priority, pitch, at);
     if (!v) return;
     let opts = o;
     if (id === 'letter') {

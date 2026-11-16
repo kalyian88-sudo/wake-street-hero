@@ -205,9 +205,11 @@ export class CameraRig {
     let fov = MathUtils.lerp(57, 70, p);
     // The follow spring trails by ~0.09 s (≈0.85 m at winch speed): effective distance ≈ 5.3 / 6.1 m.
     let dist = MathUtils.lerp(4.5, 5.25, p);
-    let height = MathUtils.lerp(2.3, 2.9, p);
+    let height = MathUtils.lerp(2.3, 3.0, p);
     let lookAhead = MathUtils.lerp(5.0, 5.5, p);
-    let lookY = MathUtils.lerp(1.1, 1.0, p);
+    // Portrait aims lower: the rider lands at ~48–68 % of the screen height, clear of the thumb controls,
+    // with the next obstacles between him and the horizon (~35 %).
+    let lookY = MathUtils.lerp(1.1, 0.5, p);
     let orbit = 0;
     let orbitTime = 0.42;
 

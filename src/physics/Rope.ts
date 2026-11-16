@@ -174,6 +174,8 @@ export class Rope {
       this.stuckT = 0;
     } else {
       this.holdBlend = Math.min(1, this.holdBlend + dt / SIM.regrabRamp);
+      // the drum winds first (a little faster through slack), then we see whether the rope is tight
+      this.length -= (this.wasTaut ? reel : reel * SIM.slackReel) * dt;
       if (d >= this.length) {
         const vr = s.vel.x * r.dir.x + s.vel.z * r.dir.z;
         if (!this.wasTaut) {
@@ -190,6 +192,7 @@ export class Rope {
             if (jerk >= SIM.jerkEvent) this.bus.emit('sim:ropeJerk', { jerk });
           }
           this.slackPeak = 0;
+          this.length = d;
         }
         this.wasTaut = true;
         let stretch = d - this.length;
@@ -206,7 +209,6 @@ export class Rope {
         a *= this.holdBlend * gain;
         this.ax = r.dir.x * a;
         this.az = r.dir.z * a;
-        this.length -= reel * dt;
         r.taut = this.pulling;
         r.slack = 0;
         tensionTarget = Math.min(1, a / SIM.tensionRef);
@@ -214,7 +216,6 @@ export class Rope {
         this.wasTaut = false;
         const slack = this.length - d;
         if (slack > this.slackPeak) this.slackPeak = slack;
-        this.length = Math.max(d, this.length - reel * SIM.slackReel * dt);
         r.taut = false;
         r.slack = slack;
         this.stuckT = 0;

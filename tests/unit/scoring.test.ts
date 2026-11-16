@@ -224,6 +224,16 @@ describe('resolveTrick — wakeskate', () => {
     expect(b.points).toBe(pts('bigspin'));
   });
 
+  it('every flip off a plain pop also counts as an ollie (trick list, goals) — not off a kicker or a boneless', () => {
+    expect(sk({ flips: [{ id: 'kickflip', count: 1 }] }).ids).toContain('ollie');
+    expect(sk({ spinDeg: 180 }).ids).toContain('ollie');
+    expect(sk({ takeoff: 'kicker', flips: [{ id: 'kickflip', count: 1 }] }).ids).not.toContain('ollie');
+    expect(sk({ boneless: true, flips: [{ id: 'kickflip', count: 1 }] }).ids).not.toContain('ollie');
+    expect(resolveTrick(rec({ spinDeg: 180 })).ids).not.toContain('ollie');
+    // …without changing the name or the points
+    expect(sk({ flips: [{ id: 'kickflip', count: 1 }] }).points).toBe(pts('kickflip'));
+  });
+
   it('counts: double kickflip, 360 shuvit', () => {
     const d = sk({ flips: [{ id: 'kickflip', count: 2 }] });
     expect(d.name).toEqual({ ru: 'Дабл кикфлип', en: 'Double Kickflip' });
@@ -353,7 +363,7 @@ describe('resolveTrick — rail, wall, surface', () => {
 
   it('50-50: 100 + 40 per metre, distance in the name', () => {
     const r = rail(['fifty'], 6.5);
-    expect(r.name).toEqual({ ru: '50-50 6,5 м', en: '50-50 6.5 m' });
+    expect(r.name).toEqual({ ru: '50-50 6,5\u00A0м', en: '50-50 6.5\u00A0m' });
     expect(r.id).toBe('rail.fifty');
     expect(r.points).toBe(100 + 40 * 6.5);
     expect(r.elements).toBe(1);
@@ -361,13 +371,13 @@ describe('resolveTrick — rail, wall, surface', () => {
 
   it('boardslide: 200 + 60 per metre; long slides drop the decimals', () => {
     const r = rail(['boardslide'], 12.4);
-    expect(r.name).toEqual({ ru: 'Бордслайд 12 м', en: 'Boardslide 12 m' });
+    expect(r.name).toEqual({ ru: 'Бордслайд 12\u00A0м', en: 'Boardslide 12\u00A0m' });
     expect(r.points).toBe(Math.round(200 + 60 * 12.4));
   });
 
   it('stance changes and a spin in', () => {
     const r = rail(['fifty', 'boardslide', 'fifty'], 8, { spinDeg: 180 });
-    expect(r.name).toEqual({ ru: '180 в 50-50 → Бордслайд 8 м', en: '180 to 50-50 → Boardslide 8 m' });
+    expect(r.name).toEqual({ ru: '180 в 50-50 → Бордслайд 8\u00A0м', en: '180 to 50-50 → Boardslide 8\u00A0m' });
     expect(r.id).toBe('rail.boardslide');
     expect(r.ids).toEqual(expect.arrayContaining(['rail.fifty', 'rail.boardslide', 'spin180']));
     expect(r.points).toBe(100 + 100 + 200 + 60 * 8);
@@ -378,7 +388,7 @@ describe('resolveTrick — rail, wall, surface', () => {
     const plain = rail(['fifty'], 5);
     const pressed = rail(['fifty', 'nosepress'], 5, {}, 'rail', 1);
     const core = 100 + pts('rail.nosepress') + 50 * 5;
-    expect(pressed.name.ru).toBe('50-50 → Ноуз-пресс 5 м');
+    expect(pressed.name.ru).toBe('50-50 → Ноуз-пресс 5\u00A0м');
     expect(pressed.points).toBe(Math.round(core * 1.5));
     expect(pressed.points).toBeGreaterThan(plain.points * 1.5);
     const half = rail(['fifty', 'tailpress'], 5, {}, 'rail', 0.5);
@@ -389,7 +399,7 @@ describe('resolveTrick — rail, wall, surface', () => {
     expect(rail(['fifty'], 10, {}, 'handrail').points).toBe(100 + 500);
     expect(rail(['fifty'], 10, {}, 'pipe').points).toBe(100 + 320);
     const sw = rail(['fifty'], 10, { switchTakeoff: true });
-    expect(sw.name.en).toBe('Switch 50-50 10 m');
+    expect(sw.name.en).toBe('Switch 50-50 10\u00A0m');
     expect(sw.points).toBe(Math.round(500 * 1.2));
   });
 

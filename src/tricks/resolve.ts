@@ -41,6 +41,8 @@ interface Work {
 }
 
 const MAX_ELEMENTS = 4;
+/** Keeps a number and its unit on one line ("6,5 м"). */
+const NBSP = '\u00A0';
 
 function comboWeight(req: Requires): number {
   return (
@@ -323,6 +325,9 @@ function resolveAir(rec: TrickRecord): ResolvedTrick {
     return finish('gap', ids, rec.gap.name, parts, 1);
   }
 
+  // every wakeskate trick off a plain pop starts with an ollie — it counts as landed for the trick list / goals
+  if (rec.board === 'wakeskate' && !rec.boneless && (rec.takeoff ?? 'pop') === 'pop') ids.add('ollie');
+
   // 4. bonuses on top of the core
   const parts = core.slice();
   let coreSum = 0;
@@ -425,7 +430,7 @@ function resolveRail(rec: TrickRecord): ResolvedTrick {
   const metres = fmtNumber(distance);
   core.push({
     id: 'rail.distance',
-    name: { ru: `${W.distance.ru} ${metres.ru} ${W.metres.ru}`, en: `${W.distance.en} ${metres.en} ${W.metres.en}` },
+    name: { ru: `${W.distance.ru} ${metres.ru}${NBSP}${W.metres.ru}`, en: `${W.distance.en} ${metres.en}${NBSP}${W.metres.en}` },
     points: distance * perMetre * (kinds[r?.kind ?? 'rail'] ?? 1),
   });
 
@@ -442,8 +447,8 @@ function resolveRail(rec: TrickRecord): ResolvedTrick {
 
   const name = joinNames([...prefix, joinNames(stanceNames, ` ${W.then.en} `)]);
   if (distance >= 0.5) {
-    name.ru += ` ${metres.ru} ${W.metres.ru}`;
-    name.en += ` ${metres.en} ${W.metres.en}`;
+    name.ru += ` ${metres.ru}${NBSP}${W.metres.ru}`;
+    name.en += ` ${metres.en}${NBSP}${W.metres.en}`;
   }
   return finish(headline, ids, name, parts, Math.min(2, stances.length) + (spun ? 1 : 0));
 }

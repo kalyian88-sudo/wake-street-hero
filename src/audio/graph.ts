@@ -70,7 +70,11 @@ export class AudioCore {
   private ducked = false;
   private musicCutoff = 18000;
 
-  constructor(ctx: BaseAudioContext, rnd: () => number = Math.random) {
+  /**
+   * @param rnd     random source (seeded in offline renders so measurements are repeatable)
+   * @param bypass  calibration only: skip compressor + clipper and run both volume sliders at unity
+   */
+  constructor(ctx: BaseAudioContext, rnd: () => number = Math.random, bypass = false) {
     this.ctx = ctx;
     this.sr = ctx.sampleRate;
     this.rnd = rnd;
@@ -92,10 +96,12 @@ export class AudioCore {
     const clip = ctx.createWaveShaper();
     clip.curve = makeSoftClipCurve(2) as Float32Array<ArrayBuffer>;
     this.output = gain(1);
-    this.master.connect(comp).connect(clipIn).connect(clip).connect(this.output).connect(ctx.destination);
+    if (bypass) this.master.connect(this.output);
+    else this.master.connect(comp).connect(clipIn).connect(clip).connect(this.output);
+    this.output.connect(ctx.destination);
 
-    this.sfxGain = gain(volumeCurve(0.9) * MIX.sfx);
-    this.musicGain = gain(volumeCurve(0.6) * MIX.music);
+    this.sfxGain = gain(bypass ? 1 : volumeCurve(0.9) * MIX.sfx);
+    this.musicGain = gain(bypass ? 1 : volumeCurve(0.6) * MIX.music);
     this.sfxGain.connect(this.master);
     this.musicGain.connect(this.master);
 

@@ -105,6 +105,8 @@ class Input implements IInput {
   private keyY = 0;
   private lastPoll = now();
 
+  /** A trusted user gesture was seen (browsers block vibrate() before the first one). */
+  private gesture = false;
   private savedStyle: string[] | null = null;
   private savedPointerEvents: string | null = null;
   private savedOverscroll: [string, string] | null = null;
@@ -143,6 +145,8 @@ class Input implements IInput {
     surface.addEventListener('selectstart', this.onSurfaceGuard);
     surface.addEventListener('dragstart', this.onSurfaceGuard);
 
+    window.addEventListener('pointerdown', this.onGestureSeen, { capture: true, passive: true });
+    window.addEventListener('touchend', this.onGestureSeen, { capture: true, passive: true });
     window.addEventListener('pointermove', this.onPointerMove, { passive: true });
     window.addEventListener('pointerup', this.onPointerUp);
     window.addEventListener('pointercancel', this.onPointerUp);
@@ -171,6 +175,8 @@ class Input implements IInput {
     surface.removeEventListener('selectstart', this.onSurfaceGuard);
     surface.removeEventListener('dragstart', this.onSurfaceGuard);
 
+    window.removeEventListener('pointerdown', this.onGestureSeen, { capture: true });
+    window.removeEventListener('touchend', this.onGestureSeen, { capture: true });
     window.removeEventListener('pointermove', this.onPointerMove);
     window.removeEventListener('pointerup', this.onPointerUp);
     window.removeEventListener('pointercancel', this.onPointerUp);
@@ -430,6 +436,10 @@ class Input implements IInput {
     if (this.enabled && (e.ctrlKey || e.metaKey) && e.cancelable) e.preventDefault();
   };
 
+  private readonly onGestureSeen = (e: Event): void => {
+    if (e.isTrusted) this.gesture = true;
+  };
+
   private readonly onBlur = (): void => {
     this.releaseAll(false);
   };
@@ -446,6 +456,7 @@ class Input implements IInput {
     if (!action) return;
     e.preventDefault();
     if (e.repeat) return;
+    if (e.isTrusted) this.gesture = true;
     this.touch = false;
     if (action.kind === 'dir') this.dirCount[action.index]++;
     else {
@@ -551,6 +562,9 @@ class Input implements IInput {
 
   private rawVibrate(pattern: number | number[]): void {
     if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
+    // Chrome logs a console error for vibrate() before the first user gesture — stay silent until then.
+    const activation = navigator.userActivation;
+    if (activation ? !activation.hasBeenActive : !this.gesture) return;
     try {
       navigator.vibrate(pattern);
     } catch {

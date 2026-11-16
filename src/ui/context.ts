@@ -149,6 +149,8 @@ export interface UICtx {
   /** Run control from the pause / results screens (also hides the menus right away). */
   resume(): void;
   restart(): void;
+  /** Play the best-trick replay with the skip bar, then come back to the results. */
+  replay(): void;
   /** Abort / leave the run and land on the city screen. */
   quit(): void;
   /** Switch language everywhere (i18n, save, bus, game settings). */

@@ -211,13 +211,9 @@ class Water implements IWater {
     this.profile = profile;
     const waves = this.waveTexture();
     this.uniforms.tWaves.value = waves;
-    if (prev.waterDetail !== profile.waterDetail) {
-      this.material.defines.WATER_DETAIL = profile.waterDetail;
-      this.material.needsUpdate = true;
-      this.lightingVersion = -1;
-    }
+    if (prev.waterDetail !== profile.waterDetail) this.lightingVersion = -1; // re-evaluates the shader detail
     this.wake.setDetail(profile.waterDetail, waves);
-    this.uniforms.uShadowRange.value = profile.shadowRange;
+    this.syncLighting();
   }
 
   dispose(): void {
@@ -250,9 +246,10 @@ class Water implements IWater {
     (u.uSkyHorizon.value as Color).copy(l.horizon);
     u.uSunSpec.value = l.sunSpecular;
     u.tSky.value = l.skyCube;
-    if (this.profile.waterDetail >= 1 && !l.skyCube && this.material.defines.WATER_DETAIL !== 0) {
-      // no sky cube available (foreign / stub environment): use the analytic sky
-      this.material.defines.WATER_DETAIL = 0;
+    // no sky cube available (foreign / stub environment) → analytic sky, whatever the profile says
+    const detail = l.skyCube ? this.profile.waterDetail : 0;
+    if (this.material.defines.WATER_DETAIL !== detail) {
+      this.material.defines.WATER_DETAIL = detail;
       this.material.needsUpdate = true;
     }
 

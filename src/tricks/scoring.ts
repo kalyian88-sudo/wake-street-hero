@@ -11,8 +11,8 @@
  *    Fillers (`elements: 0` — plain air / ollie) only add their points: no multiplier, no window restart.
  *  - Window runs out → pot × multiplier is BANKED into the total. A bail burns the pot.
  *  - STALENESS: the same trick again scores ×0.7, ×0.5, ×0.35, then ×0.2. "Same trick" = the same set of
- *    non-bonus table ids, so "360 Indy" and "360 Melon" are different, a switch / gap / higher version is not.
- *    Every other trick landed restores one step.
+ *    elements (trickKey), so "360 Indy" and "360 Melon" are different tricks while a switch / gap / higher /
+ *    longer version of one is not. Every other trick landed restores one step.
  *  - LANDING: perfect ×1.2, clean ×1, sketchy ×0.5.
  *  - HERO: clean / perfect landings fill the meter (more for higher tiers, ×1.5 for a trick not done yet in this
  *    run, less when stale, nothing for sketchy); a bail drains it. Full → 'hero:ready'; activateHero() gives
@@ -57,10 +57,16 @@ function freshState(): ScoreState {
   };
 }
 
-/** Staleness / variety key: the sorted set of non-bonus table ids. */
+/**
+ * Staleness / variety key: what the trick is MADE of — the table rows among its parts that are not bonuses
+ * (so "Mobe Indy" = indy|mobe; distance, height, switch, gap… do not make it a different trick).
+ */
 export function trickKey(trick: ResolvedTrick): string {
   const core: string[] = [];
-  for (const id of trick.ids) if (getTrick(id)?.category !== 'bonus') core.push(id);
+  for (const part of trick.parts) {
+    const def = getTrick(part.id);
+    if (def && def.category !== 'bonus' && !core.includes(part.id)) core.push(part.id);
+  }
   return core.length ? core.sort().join('|') : trick.id;
 }
 

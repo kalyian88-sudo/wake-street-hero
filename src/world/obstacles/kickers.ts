@@ -59,7 +59,7 @@ function surface(g: GB, p: Profile, x0: number, x1: number, lift = 0, apron = tr
   const rows = SEG + (apron ? 1 : 0);
   for (let i = 0; i < rows; i++) {
     const a = base + i * 2;
-    g.quad4(a, a + 1, a + 3, a + 2);
+    g.quad4(a, a + 2, a + 3, a + 1);
   }
 }
 
@@ -68,8 +68,9 @@ function sideWall(g: GB, p: Profile, x: number, side: number, yBottom: number, d
   for (let i = 0; i < SEG; i++) {
     const a: P3 = [x + side * flare, yBottom, p.z[i]];
     const c: P3 = [x + side * flare, yBottom, p.z[i + 1]];
+    if (p.y[i + 1] - drop <= yBottom + 1e-3) continue;
     const d: P3 = [x, p.y[i + 1] - drop, p.z[i + 1]];
-    const e: P3 = [x, p.y[i] - drop, p.z[i]];
+    const e: P3 = [x, Math.max(yBottom, p.y[i] - drop), p.z[i]];
     if (side > 0) g.quad(c, a, e, d);
     else g.quad(a, c, d, e);
   }

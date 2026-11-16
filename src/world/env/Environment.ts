@@ -307,9 +307,9 @@ class Environment implements IEnvironment {
       out.setRGB(cr / 16, cg / 16, cb / 16);
       return true;
     };
-    const zen = new Color();
-    const hor = new Color();
-    const sample = new Color();
+    const zen = new Color(0, 0, 0);
+    const hor = new Color(0, 0, 0);
+    const sample = new Color(0, 0, 0);
     let ok = read(_v.set(0, 1, 0), zen);
     let n = 0;
     const sunAz = Math.atan2(this.sunDirection.x, this.sunDirection.z);

@@ -325,9 +325,8 @@ void main() {
 	al = al * ( 1.0 - crest ) + crest;
 	rgb = rgb * ( 1.0 - foam ) + foamCol * foam;
 	al = al * ( 1.0 - foam ) + foam;
-	al *= life;
-	if ( al < 0.003 ) discard;
-	gl_FragColor = vec4( rgb / max( al / life, 0.0001 ), al );
+	if ( al * life < 0.003 ) discard;
+	gl_FragColor = vec4( rgb / al, al * life );
 
 	#include <tonemapping_fragment>
 	#include <colorspace_fragment>

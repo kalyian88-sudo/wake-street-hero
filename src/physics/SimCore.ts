@@ -139,6 +139,9 @@ export class SimCore {
   groundId = '';
   groundRamp = false;
   rampVy = 0;
+  /** Pop saved on a kicker for the lip (m/s) and the charge it came from. */
+  rampBoost = 0;
+  rampPower = 0;
   climbVy = 0;
   stallT = 0;
   contactT = 9;
@@ -289,6 +292,8 @@ export class SimCore {
     this.groundId = smp.id;
     this.groundRamp = false;
     this.rampVy = 0;
+    this.rampBoost = 0;
+    this.rampPower = 0;
     this.climbVy = 0;
     this.stallT = 0;
     this.contactT = 9;
@@ -342,6 +347,7 @@ export class SimCore {
     this.contactT += dt;
     if (this.world.obstruct(x0, z0, nx, nz, yRef, stepUp, hit)) {
       const vn = v.x * hit.nx + v.z * hit.nz;
+      // vn ≥ 0 can only mean the board is already inside the solid and on its way out: let it
       if (vn < 0) {
         const sp = Math.hypot(v.x, v.z);
         const sinA = sp > 1e-6 ? -vn / sp : 0;
@@ -364,19 +370,18 @@ export class SimCore {
           v.z *= k;
         }
         this.contactT = 0;
-      }
-      nx = x0 + v.x * dt;
-      nz = z0 + v.z * dt;
-      if (this.world.obstruct(x0, z0, nx, nz, yRef, stepUp, hit)) {
-        // corner, or already inside something: do not go deeper, creep out along the face normal
-        const vn2 = v.x * hit.nx + v.z * hit.nz;
-        if (vn2 < 0) {
-          v.x -= vn2 * hit.nx;
-          v.z -= vn2 * hit.nz;
+        nx = x0 + v.x * dt;
+        nz = z0 + v.z * dt;
+        if (this.world.obstruct(x0, z0, nx, nz, yRef, stepUp, hit)) {
+          // corner, or pressed into something: do not go deeper, creep out along the face normal
+          const vn2 = v.x * hit.nx + v.z * hit.nz;
+          if (vn2 < 0) {
+            v.x -= vn2 * hit.nx;
+            v.z -= vn2 * hit.nz;
+          }
+          nx = x0 + hit.nx * 0.8 * dt;
+          nz = z0 + hit.nz * 0.8 * dt;
         }
-        nx = x0 + hit.nx * 0.8 * dt;
-        nz = z0 + hit.nz * 0.8 * dt;
-        this.contactT = 0;
       }
     }
     s.pos.x = nx;

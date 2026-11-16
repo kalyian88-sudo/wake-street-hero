@@ -14,6 +14,8 @@ import type { NavDir, Screen } from './screen';
 export interface Entry {
   id: ScreenId;
   params: Params;
+  /** The menus were hidden (a run was on) when this entry was pushed — popping it hides them again. */
+  overHidden?: boolean;
 }
 
 const EASE_OUT = 'cubic-bezier(.2,.8,.2,1)';
@@ -77,7 +79,7 @@ export class Nav {
       this.present(wasTop ? 'fade' : 'back');
       return;
     }
-    this.stack.push({ id, params });
+    this.stack.push({ id, params, overHidden: this.hidden && this.stack.length > 0 });
     this.present('forward');
   }
 
@@ -94,9 +96,15 @@ export class Nav {
   back(): boolean {
     if (this.hidden) return false;
     if (this.visible?.onBack()) return true;
+    return this.pop();
+  }
+
+  /** Pop the top entry without asking the screen. */
+  pop(): boolean {
     if (this.stack.length <= 1) return false;
-    this.stack.pop();
-    this.present('back');
+    const gone = this.stack.pop();
+    if (gone?.overHidden) this.hide();
+    else this.present('back');
     return true;
   }
 

@@ -4,7 +4,11 @@
  */
 import { CITIES } from '../data/cities';
 import { getGear } from '../data/gear';
+import { SPOTS } from '../data/spots';
 import type { CityDef, EquippedGear, GearCategory, GearItem, L10n, SaveData, SpotDef } from '../types';
+
+const cityOf = (city: CityDef | string): CityDef | undefined => (typeof city === 'string' ? CITIES.find((c) => c.id === city) : city);
+const spotOf = (spot: SpotDef | string): SpotDef | undefined => (typeof spot === 'string' ? SPOTS.find((s) => s.id === spot) : spot);
 
 // ──────────────────────────────────────────────────────────────── Stars ──
 
@@ -17,12 +21,13 @@ export function spotStars(save: SaveData, spotId: string): number {
   return n;
 }
 
-/** Stars earned on all spots of a city. */
-export function cityStars(save: SaveData, cityId: string): number {
-  const city = CITIES.find((c) => c.id === cityId);
-  if (!city) return 0;
+/** Stars earned on all spots of a city (the ones it lists plus any spot that names it as its city). */
+export function cityStars(save: SaveData, city: CityDef | string): number {
+  const def = cityOf(city);
+  if (!def) return 0;
   let n = 0;
-  for (const spotId of city.spots) n += spotStars(save, spotId);
+  for (const spotId of def.spots) n += spotStars(save, spotId);
+  for (const spot of SPOTS) if (spot.cityId === def.id && !def.spots.includes(spot.id)) n += spotStars(save, spot.id);
   return n;
 }
 
@@ -33,21 +38,24 @@ export function totalStars(save: SaveData): number {
   return n;
 }
 
-export function isCityUnlocked(save: SaveData, city: CityDef): boolean {
-  return totalStars(save) >= city.unlockStars;
+/** Accepts the city definition or its id. Unknown city → locked. */
+export function isCityUnlocked(save: SaveData, city: CityDef | string): boolean {
+  const def = cityOf(city);
+  return !!def && totalStars(save) >= def.unlockStars;
 }
 
-/** A spot is open when its city is open and the player has the stars the spot itself asks for. */
-export function isSpotUnlocked(save: SaveData, spot: SpotDef): boolean {
-  const stars = totalStars(save);
-  const city = CITIES.find((c) => c.id === spot.cityId);
-  return stars >= spot.unlockStars && (!city || stars >= city.unlockStars);
+/** A spot is open when its city is open and the player has the stars the spot itself asks for. Accepts the def or its id. */
+export function isSpotUnlocked(save: SaveData, spot: SpotDef | string): boolean {
+  const def = spotOf(spot);
+  return !!def && starsToUnlockSpot(save, def) === 0;
 }
 
 /** Stars still missing to open a spot (0 when open). */
-export function starsToUnlockSpot(save: SaveData, spot: SpotDef): number {
-  const city = CITIES.find((c) => c.id === spot.cityId);
-  return Math.max(0, Math.max(spot.unlockStars, city?.unlockStars ?? 0) - totalStars(save));
+export function starsToUnlockSpot(save: SaveData, spot: SpotDef | string): number {
+  const def = spotOf(spot);
+  if (!def) return Infinity;
+  const city = CITIES.find((c) => c.id === def.cityId);
+  return Math.max(0, Math.max(def.unlockStars, city?.unlockStars ?? 0) - totalStars(save));
 }
 
 // ───────────────────────────────────────────────────────── Rider levels ──
@@ -82,10 +90,12 @@ export interface LevelInfo {
   title: L10n;
   /** Rep at which this level started. */
   current: number;
-  /** Rep needed for the next level, or null at the top. */
-  next: number | null;
+  /** Rep needed for the next level (= `current` at the top level). */
+  next: number;
   /** 0..1 towards the next level (1 at the top). */
   progress: number;
+  /** Top level reached. */
+  max: boolean;
 }
 
 export function levelForRep(rep: number): LevelInfo {
@@ -98,8 +108,9 @@ export function levelForRep(rep: number): LevelInfo {
     level: idx + 1,
     title: cur.title,
     current: cur.rep,
-    next: nxt ? nxt.rep : null,
+    next: nxt ? nxt.rep : cur.rep,
     progress: nxt ? Math.min(1, (r - cur.rep) / (nxt.rep - cur.rep)) : 1,
+    max: !nxt,
   };
 }
 

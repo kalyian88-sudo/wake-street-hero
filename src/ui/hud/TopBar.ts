@@ -12,7 +12,7 @@ const RING_C = 2 * Math.PI * RING_R;
 const RING_STEPS = 240;
 const COMBO_STEPS = 200;
 /** Seconds the score waits for the "bank fly" chip to arrive before it rolls up. */
-const BANK_HOLD = 0.72;
+const BANK_HOLD = 0.95;
 
 export class TopBar {
   readonly pauseEl: HTMLElement;
@@ -64,8 +64,8 @@ export class TopBar {
     const scoreRow = h('div', 'wsh-score', tl);
     this.scoreEl = h('div', 'wsh-score-num wsh-x wsh-x--l', scoreRow);
     this.scoreText = txt(this.scoreEl, '0');
-    this.heroTag = h('div', 'wsh-herotag', scoreRow);
-    this.heroTagText = txt(h('span', 'wsh-x', this.heroTag));
+    this.heroTag = h('div', 'wsh-herotag wsh-x wsh-x--l', scoreRow);
+    this.heroTagText = txt(this.heroTag);
 
     this.combo = h('div', 'wsh-combo', tl);
     const row = h('div', 'wsh-combo-row wsh-x wsh-x--l', this.combo);
@@ -112,6 +112,11 @@ export class TopBar {
   relabel(): void {
     this.heroTagText.data = this.ctx.t('hud.hero.x2');
     this.ringLabel.data = this.ctx.t('hud.hero.label');
+  }
+
+  /** Screen rect of the score figure (target of the bank fly). Layout read — call from layout() only. */
+  scoreAnchor(): DOMRect {
+    return this.scoreEl.getBoundingClientRect();
   }
 
   /** Called on show / resize. */

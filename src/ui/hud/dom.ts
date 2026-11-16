@@ -43,22 +43,28 @@ export function fmtInt(n: number): string {
 }
 
 /**
- * (Re)start the CSS animation that class `cls` puts on `el` — without forcing a layout.
- * Animations restarted this way must use `animation-fill-mode: both`.
+ * (Re)start the CSS animation that class `cls` puts on `el` itself — without forcing a layout.
+ * One-shot classes are removed again on `animationend` (see ONE_SHOT in Hud.ts), so the usual path is
+ * simply "add the class"; an animation that is still running (or held by `fill-mode: both`) is rewound.
  */
 export function restart(el: Element, cls: string): void {
   if (!el.classList.contains(cls)) {
     el.classList.add(cls);
     return;
   }
-  if (typeof el.getAnimations === 'function') {
+  let rewound = false;
+  if (typeof el.getAnimations === 'function' && typeof CSSAnimation !== 'undefined') {
     const anims = el.getAnimations();
     for (let i = 0; i < anims.length; i++) {
-      anims[i].cancel();
-      anims[i].play();
+      const a = anims[i];
+      if (a instanceof CSSAnimation) {
+        a.cancel();
+        a.play();
+        rewound = true;
+      }
     }
-    if (anims.length > 0) return;
   }
+  if (rewound) return;
   el.classList.remove(cls);
   void (el as HTMLElement).offsetWidth;
   el.classList.add(cls);

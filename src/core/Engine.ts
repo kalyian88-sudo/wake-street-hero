@@ -42,6 +42,7 @@ export class Engine {
   private readonly vignette: HTMLDivElement;
   private vignetteShown = -1;
   private sizeDirty = true;
+  private resized = true;
   private sizePoll = 0;
   private frameStart = 0;
   private fpsDt = 1 / 60;
@@ -152,7 +153,15 @@ export class Engine {
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(w, h, false);
     this.post.setSize(w, h, dpr);
+    this.resized = true;
     this.onResize?.(w, h);
+  }
+
+  /** True once after the drawing buffer was resized (a resize clears the canvas → it must be redrawn). */
+  takeResized(): boolean {
+    const r = this.resized;
+    this.resized = false;
+    return r;
   }
 
   get aspect(): number {

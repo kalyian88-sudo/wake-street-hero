@@ -82,11 +82,21 @@ export function stepGround(c: SimCore, dt: number): void {
   } else c.groundHold = 0;
   s.crouch = c.charge;
   if (inp.jump.released) {
-    if (c.jumpArmed) {
-      pop(c, false);
+    if (c.jumpArmed && c.groundRamp) {
+      // on a kicker the pop is saved for the lip: released in the lip zone = full boost, earlier = weak
+      const t = c.world.rampProgress(c.groundId, s.pos.x, s.pos.z);
+      const boost = popSpeed(tune, c.charge) * (t >= 1 - SIM.lipZone ? SIM.lipBoost : SIM.earlyBoost);
+      if (boost > c.rampBoost) {
+        c.rampBoost = boost;
+        c.rampPower = c.charge;
+      }
+    } else if (c.jumpArmed) {
+      pop(c);
       return;
     }
     c.charge = 0;
+    c.jumpArmed = false;
+    s.crouch = 0;
   }
 
   // ── surface 180 ──
@@ -139,6 +149,7 @@ export function stepGround(c: SimCore, dt: number): void {
       c.climbVy += ((s.pos.y - prevY) / dt - c.climbVy) * damp(18, dt);
     }
     v.y = c.rampVy;
+    if (!smp.ramp) c.rampBoost = 0;
     if (smp.kind !== s.surface || smp.id !== c.groundId) c.enterGround(smp);
     else {
       s.surfaceY = smp.y;
@@ -174,27 +185,16 @@ export function stepGround(c: SimCore, dt: number): void {
   s.lean += (leanTarget - s.lean) * damp(9, dt);
 }
 
-/** JUMP released on a surface. */
-function pop(c: SimCore, auto: boolean): void {
+/** JUMP released on flat water / ground / a ledge top. */
+function pop(c: SimCore): void {
   const s = c.state;
   const v = s.vel;
   const power = c.charge;
   const speed = Math.hypot(v.x, v.z);
-  const base = popSpeed(c.tune, power) * c.mods.pop;
-  const boneless = s.board === 'wakeskate' && c.inp.grab.down && !c.groundRamp;
-  let vy: number;
-  let kind: 'pop' | 'kicker' | 'ledge' = 'pop';
-  if (c.groundRamp) {
-    kind = 'kicker';
-    const t = c.world.rampProgress(c.groundId, s.pos.x, s.pos.z);
-    const share = auto ? SIM.holdBoost : t >= 1 - SIM.lipZone ? SIM.lipBoost : SIM.earlyBoost;
-    // a faster run-up turns the same pop into more lift
-    vy = c.rampVy + base * share * (0.55 + 0.45 * Math.min(1.4, speed / 9.5));
-  } else {
-    // you cannot ollie from a standstill
-    vy = base * (0.4 + 0.6 * Math.min(1, speed / 4)) * (boneless ? c.tune.bonelessBoost : 1);
-    if (c.obstacleKind(c.groundId) === 'ledge') kind = 'ledge';
-  }
+  const boneless = s.board === 'wakeskate' && c.inp.grab.down;
+  // you cannot ollie from a standstill
+  const vy = popSpeed(c.tune, power) * c.mods.pop * (0.4 + 0.6 * Math.min(1, speed / 4)) * (boneless ? c.tune.bonelessBoost : 1);
+  const kind = c.obstacleKind(c.groundId) === 'ledge' ? 'ledge' : 'pop';
   c.bus.emit('sim:pop', { power, pos: c.p3(), surface: s.surface as SurfaceKind });
   s.boardYaw = wrapPi(c.boardDir + (s.switch ? PI : 0) + spinOffset(c));
   c.takeoff(kind, c.obstacleOf(c.groundId), vy, boneless);
@@ -208,19 +208,25 @@ function spinOffset(c: SimCore): number {
 /** The ground dropped away under the board: kicker lip, ledge end, quay edge, top of the stairs. */
 function launch(c: SimCore): void {
   const s = c.state;
-  if (c.groundRamp && c.inp.jump.down && c.jumpArmed && c.charge > 0.05) {
-    // JUMP held through the lip: the charge goes off by itself
-    pop(c, true);
-    return;
-  }
+  const v = s.vel;
   const role = c.obstacleKind(c.groundId);
   let vy = 0;
   let kind: 'kicker' | 'ledge' | 'drop' = 'drop';
   if (c.groundRamp) {
     kind = 'kicker';
-    vy = c.rampVy;
+    let boost = c.rampBoost;
+    let power = c.rampPower;
+    if (boost <= 0 && c.inp.jump.down && c.jumpArmed && c.charge > 0.05) {
+      // JUMP held through the lip: the charge goes off by itself, a little less cleanly
+      boost = popSpeed(c.tune, c.charge) * SIM.holdBoost;
+      power = c.charge;
+    }
+    // a faster run-up turns the same pop into more lift
+    vy = c.rampVy + boost * c.mods.pop * (0.55 + 0.45 * Math.min(1.4, Math.hypot(v.x, v.z) / 9.5));
+    if (boost > 0) c.bus.emit('sim:pop', { power, pos: c.p3(), surface: s.surface as SurfaceKind });
   } else if (role === 'ledge') kind = 'ledge';
   else if (role === 'stairs') vy = Math.max(0, Math.min(3.5, c.climbVy * 0.8));
+  c.rampBoost = 0;
   s.boardYaw = wrapPi(c.boardDir + (s.switch ? PI : 0) + spinOffset(c));
   c.takeoff(kind, c.obstacleOf(c.groundId), vy, false);
 }

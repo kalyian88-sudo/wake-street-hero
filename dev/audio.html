@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>WHY NOT · audio sandbox</title>
+    <style>
+      :root {
+        --red: #e30613;
+        --bg: #101114;
+        --card: #1c1d21;
+        --line: #2c2e35;
+        --grey: #8b8f9a;
+        --ok: #37d67a;
+        --warn: #ffb020;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: #fff;
+        font: 13px/1.35 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+      #app {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 12px 12px 48px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .mark {
+        font: italic 900 22px/1 'Arial Narrow', 'Helvetica Neue', Impact, sans-serif;
+        letter-spacing: 0.02em;
+        transform: skewX(-6deg);
+        white-space: nowrap;
+      }
+      .mark b {
+        color: var(--red);
+      }
+      .sub {
+        color: var(--grey);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+      .card > h2 {
+        margin: 0 0 8px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--grey);
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .card > h2 span {
+        color: #fff;
+        font-weight: 600;
+        letter-spacing: 0;
+        text-transform: none;
+        font-variant-numeric: tabular-nums;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+        gap: 6px;
+      }
+      button {
+        font: inherit;
+        color: #fff;
+        background: #26282e;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 9px 8px;
+        min-height: 38px;
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: transform 0.06s, background 0.12s;
+      }
+      button:active {
+        transform: scale(0.96);
+        background: #33363e;
+      }
+      button.primary {
+        background: var(--red);
+        border-color: var(--red);
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+      button.on {
+        border-color: var(--red);
+        box-shadow: inset 0 0 0 1px var(--red);
+      }
+      button.ghost {
+        color: var(--grey);
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 92px 1fr 46px;
+        align-items: center;
+        gap: 8px;
+        min-height: 30px;
+      }
+      .row label {
+        color: var(--grey);
+      }
+      .row output {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      input[type='range'] {
+        width: 100%;
+        accent-color: var(--red);
+        height: 26px;
+      }
+      select {
+        font: inherit;
+        color: #fff;
+        background: #26282e;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 6px;
+        width: 100%;
+      }
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      @media (min-width: 700px) {
+        .cols {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 9px;
+        border-radius: 99px;
+        background: #26282e;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--grey);
+      }
+      .dot.run {
+        background: var(--ok);
+        box-shadow: 0 0 8px var(--ok);
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        border-radius: 8px;
+        background: #0a0b0d;
+      }
+      .meter {
+        height: 10px;
+        border-radius: 5px;
+        background: #0a0b0d;
+        overflow: hidden;
+        position: relative;
+        margin-top: 6px;
+      }
+      .meter i {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 0;
+        background: linear-gradient(90deg, #37d67a 0 62%, #ffb020 80%, #e30613 96%);
+        background-size: 1000px 100%;
+      }
+      .meter b {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #fff;
+        left: 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+        font-size: 12px;
+      }
+      th {
+        text-align: left;
+        color: var(--grey);
+        font-weight: 600;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 4px 6px;
+      }
+      td {
+        padding: 5px 6px;
+        border-top: 1px solid var(--line);
+      }
+      td.num,
+      th.num {
+        text-align: right;
+      }
+      tr.grp td {
+        color: var(--grey);
+        font-weight: 800;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding-top: 12px;
+        border-top: 0;
+      }
+      tr.bad td {
+        color: #ff8a8f;
+      }
+      tr[data-name] {
+        cursor: pointer;
+      }
+      .ok {
+        color: var(--ok);
+      }
+      .bad {
+        color: #ff5c63;
+      }
+      .muted {
+        color: var(--grey);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+      .actions > * {
+        flex: 1 1 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/dev/audio.ts"></script>
+  </body>
+</html>

@@ -34,6 +34,8 @@ export interface LoftOpts {
   uvFn?: (local: Vector3, out: [number, number]) => void;
   /** Per-vertex colour override from the LOCAL position. */
   colorFn?: (local: Vector3, ringIndex: number, out: Color) => void;
+  /** Free-form deformation of every LOCAL grid point (applied before normals are computed). */
+  warp?: (p: Vector3, ringIndex: number) => void;
 }
 
 const _v = new Vector3();
@@ -153,9 +155,11 @@ export class MeshBuilder {
         // start at −X and run towards +Z so wrapped text reads left→right from outside
         const phi = Math.PI - (j / radial) * Math.PI * 2;
         const o = (i * radial + j) * 3;
-        grid[o] = (r.ox ?? 0) + r.rx * spow(Math.cos(phi), e);
-        grid[o + 1] = r.y;
-        grid[o + 2] = (r.oz ?? 0) + r.rz * spow(Math.sin(phi), e);
+        _v.set((r.ox ?? 0) + r.rx * spow(Math.cos(phi), e), r.y, (r.oz ?? 0) + r.rz * spow(Math.sin(phi), e));
+        if (opts.warp) opts.warp(_v, i);
+        grid[o] = _v.x;
+        grid[o + 1] = _v.y;
+        grid[o + 2] = _v.z;
       }
     }
     const P = (i: number, j: number, out: Vector3): Vector3 => {
@@ -207,7 +211,13 @@ export class MeshBuilder {
     const cap = (ringIndex: number, tipY: number, start: boolean): void => {
       const r = rings[ringIndex];
       _v.set(r.ox ?? 0, tipY, r.oz ?? 0);
-      _n.set(0, start ? -1 : 1, 0);
+      if (opts.warp) opts.warp(_v, ringIndex);
+      // tip normal: away from the neighbouring ring's centroid
+      _n.set(0, 0, 0);
+      for (let j = 0; j < radial; j++) _n.add(P(ringIndex, j, _a));
+      _n.multiplyScalar(-1 / radial).add(_v);
+      if (_n.lengthSq() < 1e-10) _n.set(0, start ? -1 : 1, 0);
+      _n.normalize();
       let u = this.uvConst[0];
       let vv = this.uvConst[1];
       if (opts.uvFn) {
