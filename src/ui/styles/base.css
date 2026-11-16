@@ -1,0 +1,553 @@
+/* WHY NOT: Wake Street Hero — menu UI. Tokens, root layers, typography, shared atoms. */
+
+.wn-ui {
+  --red: #e30613;
+  --red-hi: #ff3a45;
+  --red-lo: #a8040e;
+  --ink: #0a0b0d;
+  --darker: #101114;
+  --dark: #1c1d21;
+  --raise: #25272d;
+  --raise-2: #31343c;
+  --grey: #3a3c43;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-2: rgba(255, 255, 255, 0.18);
+  --text: #fff;
+  --text-2: rgba(255, 255, 255, 0.74);
+  --text-3: rgba(255, 255, 255, 0.5);
+  --gold: #ffc531;
+  --good: #2fd27a;
+  --bad: #ff4b55;
+  --panel: rgba(18, 19, 23, 0.94);
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 20px;
+  --pad: 16px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  /* Bold condensed italic from whatever the system ships (iOS / macOS, Android, Windows, Linux). */
+  --font-head: 'HelveticaNeue-CondensedBlack', 'Helvetica Neue', 'Roboto Condensed', 'sans-serif-condensed', 'Arial Narrow', 'Bahnschrift', 'Liberation Sans Narrow',
+    'Inter Display', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Inter', Arial, sans-serif;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--text);
+  font: 400 15px/1.4 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout style;
+}
+
+.wn-ui *,
+.wn-ui *::before,
+.wn-ui *::after {
+  box-sizing: border-box;
+}
+
+.wn-ui button,
+.wn-ui a,
+.wn-ui input {
+  pointer-events: auto;
+  font: inherit;
+  color: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wn-ui button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+.wn-ui button:disabled {
+  cursor: default;
+}
+
+.wn-ui :focus {
+  outline: none;
+}
+
+.wn-ui :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.wn-ui h1,
+.wn-ui h2,
+.wn-ui h3,
+.wn-ui p {
+  margin: 0;
+}
+
+.wn-ui [hidden] {
+  display: none !important;
+}
+
+/* ── layers ── */
+.wn-screens,
+.wn-modals,
+.wn-toasts,
+.wn-replay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.wn-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sat) var(--sar) var(--sab) var(--sal);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.wn-screen.is-leaving,
+.wn-screen.is-leaving * {
+  pointer-events: none !important;
+}
+
+/* Soft dark vignette so text stays readable on any 3D frame behind. */
+.wn-scrim::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 11, 13, 0.86) 0%, rgba(10, 11, 13, 0.36) 22%, rgba(10, 11, 13, 0.1) 46%, rgba(10, 11, 13, 0.5) 72%, rgba(10, 11, 13, 0.94) 100%);
+}
+
+.wn-scrim--solid::before {
+  background: linear-gradient(180deg, rgba(12, 13, 16, 0.97), rgba(12, 13, 16, 0.93));
+}
+
+.wn-panel {
+  pointer-events: auto;
+}
+
+.wn-scroll {
+  pointer-events: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.wn-scroll::-webkit-scrollbar,
+.wn-tabs::-webkit-scrollbar,
+.wn-hscroll::-webkit-scrollbar {
+  display: none;
+}
+
+.wn-hscroll {
+  pointer-events: auto;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior: contain;
+  touch-action: pan-x;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+/* ── typography ── */
+.wn-hd,
+.wn-head__title,
+.wn-modal__title,
+.wn-btn,
+.wn-kicker,
+.wn-caption,
+.wn-tag,
+.wn-seg__item,
+.wn-tabs__item {
+  font-family: var(--font-head);
+  font-style: italic;
+  font-stretch: 75%;
+  text-transform: uppercase;
+}
+
+.wn-hd {
+  font-weight: 900;
+  line-height: 0.96;
+  letter-spacing: 0.005em;
+}
+
+.wn-kicker {
+  font-weight: 800;
+  font-size: 12px;
+  line-height: 1.1;
+  letter-spacing: 0.16em;
+  color: var(--red-hi);
+}
+
+.wn-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  color: var(--text-3);
+}
+
+.wn-caption > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wn-caption > span:first-child::before {
+  content: '';
+  width: 14px;
+  height: 3px;
+  background: var(--red);
+  transform: skewX(-24deg);
+}
+
+.wn-muted {
+  color: var(--text-2);
+}
+
+.wn-ico {
+  display: inline-flex;
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
+
+.wn-ico svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── wordmark ── */
+.wn-wm {
+  line-height: 0;
+  filter: drop-shadow(0 6px 22px rgba(0, 0, 0, 0.45));
+}
+
+.wn-wm svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: 'Avenir Next Condensed', 'HelveticaNeue-CondensedBlack', 'Helvetica Neue', 'Roboto Condensed', 'sans-serif-condensed', 'Arial Narrow', 'Inter Display', 'Inter',
+    'Arial Black', Impact, system-ui, sans-serif;
+  font-stretch: 75%;
+}
+
+.wn-wm__a {
+  fill: #fff;
+}
+
+.wn-wm__b {
+  fill: var(--red);
+}
+
+/* ── entrance choreography: children marked .wn-rise slide up one after another on a fresh screen ── */
+@keyframes wn-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.is-fresh .wn-rise {
+  animation: wn-rise 0.46s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 45ms + 60ms);
+}
+
+@keyframes wn-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes wn-shake {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translate3d(-6px, 0, 0);
+  }
+  45% {
+    transform: translate3d(5px, 0, 0);
+  }
+  70% {
+    transform: translate3d(-3px, 0, 0);
+  }
+}
+
+.is-shake {
+  animation: wn-shake 0.34s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wn-ui *,
+  .wn-ui *::before,
+  .wn-ui *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── header ── */
+.wn-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 8px var(--pad);
+  flex: none;
+}
+
+.wn-head__titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.wn-head__title {
+  font-weight: 900;
+  font-size: 30px;
+  line-height: 0.98;
+  letter-spacing: 0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 4px;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
+}
+
+.wn-head__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+/* ── toasts ── */
+.wn-toasts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: calc(var(--sat) + 12px) 16px 0;
+  z-index: 30;
+}
+
+.wn-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(440px, 100%);
+  padding: 11px 16px 11px 12px;
+  border-radius: 12px;
+  background: rgba(28, 29, 33, 0.97);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 0 1px var(--line-2);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.wn-toast .wn-ico {
+  font-size: 13px;
+  width: 24px;
+  height: 24px;
+  padding: 5.5px;
+  border-radius: 50%;
+  background: var(--grey);
+}
+
+.wn-toast--good .wn-ico {
+  background: var(--good);
+  color: #062414;
+}
+
+.wn-toast--bad .wn-ico {
+  background: var(--red);
+}
+
+/* ── modal: bottom sheet on phones, centred card on wide screens ── */
+.wn-modals {
+  z-index: 20;
+}
+
+.wn-modal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.wn-modal.is-leaving {
+  pointer-events: none;
+}
+
+.wn-modal__dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 7, 9, 0.72);
+}
+
+.wn-modal__card {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 92%;
+  overflow-y: auto;
+  padding: 10px 20px calc(var(--sab) + 20px);
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(180deg, #25272d, #1a1b1f);
+  box-shadow: 0 -18px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.wn-modal__grip {
+  width: 40px;
+  height: 4px;
+  margin: 0 auto 16px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.wn-modal__icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(227, 6, 19, 0.16);
+  color: var(--red-hi);
+  font-size: 28px;
+  transform: skewX(-8deg);
+}
+
+.wn-modal__title {
+  font-weight: 900;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.wn-modal__text {
+  margin-top: 10px;
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+.wn-modal__body {
+  margin-top: 16px;
+  text-align: left;
+}
+
+.wn-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 0 6px;
+}
+
+@media (min-width: 620px) and (min-height: 480px) {
+  .wn-modal {
+    align-items: center;
+  }
+  .wn-modal__card {
+    max-width: 440px;
+    padding: 28px 28px 26px;
+    border-radius: 24px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  .wn-modal__grip {
+    display: none;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .wn-modal {
+    align-items: center;
+  }
+  .wn-modal__card {
+    max-width: 520px;
+    padding: 18px 24px;
+    border-radius: 20px;
+  }
+  .wn-modal__grip,
+  .wn-modal__icon {
+    display: none;
+  }
+  .wn-modal__actions {
+    flex-direction: row-reverse;
+    margin-top: 16px;
+  }
+}
+
+/* ── replay bar ── */
+.wn-replay {
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: calc(var(--sat) + 16px) calc(var(--sar) + 16px) calc(var(--sab) + 20px) calc(var(--sal) + 16px);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0, transparent 14%, transparent 84%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.wn-replay__tag {
+  position: absolute;
+  top: calc(var(--sat) + 16px);
+  left: calc(var(--sal) + 16px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: italic 900 16px/1 var(--font-head);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.wn-replay__tag i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: wn-pulse 1s ease-in-out infinite;
+}
+
+.wn-replay__skip {
+  margin-left: auto;
+}
