@@ -1,0 +1,23 @@
+{
+  "core.webgl.unsupported": "Нужен WebGL 2. Обнови браузер или открой игру на другом устройстве.",
+  "core.webgl.lost": "Графика перезапускается…",
+  "core.load.failed": "Спот не загрузился. Попробуй ещё раз.",
+  "core.quality.auto": "Авто",
+  "core.quality.low": "Низкое",
+  "core.quality.medium": "Среднее",
+  "core.quality.high": "Высокое",
+  "core.debug.fps": "FPS",
+  "core.debug.frame": "кадр",
+  "core.debug.calls": "вызовы",
+  "core.debug.tris": "треуг.",
+  "core.debug.quality": "графика",
+  "core.debug.rider": "райдер",
+  "core.debug.speed": "м/с",
+  "core.debug.hitboxes": "Хитбоксы",
+  "core.debug.freecam": "Своб. камера",
+  "core.debug.cycleQuality": "Графика",
+  "core.debug.time": "Время",
+  "core.debug.unlock": "Открыть всё",
+  "core.debug.restart": "Заново",
+  "core.debug.unlocked": "Всё открыто, держи 99 999 монет"
+}

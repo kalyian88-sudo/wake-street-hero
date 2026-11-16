@@ -1,0 +1,23 @@
+{
+  "core.webgl.unsupported": "WebGL 2 is required. Update your browser or try another device.",
+  "core.webgl.lost": "Graphics restarting…",
+  "core.load.failed": "The spot failed to load. Give it another go.",
+  "core.quality.auto": "Auto",
+  "core.quality.low": "Low",
+  "core.quality.medium": "Medium",
+  "core.quality.high": "High",
+  "core.debug.fps": "FPS",
+  "core.debug.frame": "frame",
+  "core.debug.calls": "calls",
+  "core.debug.tris": "tris",
+  "core.debug.quality": "gfx",
+  "core.debug.rider": "rider",
+  "core.debug.speed": "m/s",
+  "core.debug.hitboxes": "Hitboxes",
+  "core.debug.freecam": "Free cam",
+  "core.debug.cycleQuality": "Quality",
+  "core.debug.time": "Time",
+  "core.debug.unlock": "Unlock all",
+  "core.debug.restart": "Restart",
+  "core.debug.unlocked": "Everything unlocked, here's 99,999 coins"
+}
