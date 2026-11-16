@@ -39,8 +39,6 @@ export class Engine {
   private readonly clearColor = new Color();
   private readonly idleScene = new Scene();
   private readonly idleCamera = new PerspectiveCamera();
-  private readonly vignette: HTMLDivElement;
-  private vignetteShown = -1;
   private sizeDirty = true;
   private resized = true;
   private sizePoll = 0;
@@ -84,13 +82,6 @@ export class Engine {
     this.post = new PostFx(r);
     this.stats = { fps: 60, frameMs: 0, drawCalls: 0, triangles: 0, quality: profile.level, dpr: 1 };
 
-    // Cheap slow-motion vignette for the no-post path (compositor-only opacity changes).
-    this.vignette = document.createElement('div');
-    this.vignette.style.cssText =
-      'position:absolute;inset:0;pointer-events:none;opacity:0;will-change:opacity;display:none;' +
-      'background:radial-gradient(ellipse at center,rgba(0,0,0,0) 42%,rgba(0,0,0,0.6) 100%)';
-    canvas.insertAdjacentElement('afterend', this.vignette);
-
     canvas.addEventListener('webglcontextlost', this.handleLost, false);
     canvas.addEventListener('webglcontextrestored', this.handleRestored, false);
     window.addEventListener('resize', this.markDirty);
@@ -103,7 +94,6 @@ export class Engine {
 
     this.applyRendererProfile();
     this.post.setProfile(profile, this.idleScene, this.idleCamera);
-    this.vignette.style.display = profile.post ? 'none' : 'block';
     this.syncSize();
   }
 
@@ -126,8 +116,6 @@ export class Engine {
     this.post.setProfile(profile, this.idleScene, this.idleCamera);
     this.sizeDirty = true;
     this.syncSize();
-    this.vignette.style.display = profile.post ? 'none' : 'block';
-    this.vignetteShown = -1;
   }
 
   /** Re-read the canvas CSS size and resize the drawing buffer + composer when needed. */
@@ -181,17 +169,15 @@ export class Engine {
     this.renderer.info.reset();
   }
 
-  /** Render a scene to the canvas through the post chain (or directly when the profile has no post). */
+  /**
+   * Render a scene to the canvas through the post chain, or directly when the profile has no post
+   * (Low: the slow-motion cue is then only the HUD's own vignette).
+   */
   render(scene: Scene, camera: Camera, fx: FxParams, realDt: number): void {
     if (this.contextLost) return;
     if (!this.post.render(scene, camera, fx, realDt)) {
       this.renderer.setRenderTarget(null);
       this.renderer.render(scene, camera);
-      const v = Math.round(Math.max(fx.slowMo, fx.hero * 0.5) * 50) / 50;
-      if (v !== this.vignetteShown) {
-        this.vignetteShown = v;
-        this.vignette.style.opacity = String(v);
-      }
     }
   }
 
@@ -202,10 +188,6 @@ export class Engine {
     this.renderer.setRenderTarget(null);
     this.renderer.setClearColor(this.clearColor, 1);
     this.renderer.clear(true, true, false);
-    if (this.vignetteShown !== 0) {
-      this.vignetteShown = 0;
-      this.vignette.style.opacity = '0';
-    }
   }
 
   /** End of a frame: update FrameStats. `rawDt` = unclamped seconds since the previous frame. */
@@ -289,7 +271,6 @@ export class Engine {
     window.removeEventListener('orientationchange', this.markDirty);
     window.visualViewport?.removeEventListener('resize', this.markDirty);
     this.resizeObserver?.disconnect();
-    this.vignette.remove();
     this.post.dispose();
     this.renderer.dispose();
   }

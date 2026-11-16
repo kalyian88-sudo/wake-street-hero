@@ -8,7 +8,7 @@
 .wsh-feed {
   position: absolute;
   left: 50%;
-  top: 27.5%;
+  top: 30%;
   width: 0;
   height: 0;
   display: flex;
@@ -23,7 +23,7 @@
   justify-content: center;
   align-content: flex-start;
   width: max-content;
-  max-width: 96vw;
+  max-width: calc(96vw / var(--sq));
   height: max-content;
   font-size: 25px;
   line-height: 29px;
@@ -82,14 +82,9 @@
   visibility: visible;
 }
 .wsh-pop.s1 {
-  opacity: 0.6;
+  opacity: 0.62;
   visibility: visible;
-  transform: translate3d(0, -66px, 0) scale(0.68);
-}
-.wsh-pop.s2 {
-  opacity: 0.28;
-  visibility: visible;
-  transform: translate3d(0, -106px, 0) scale(0.54);
+  transform: translate3d(0, -84px, 0) scale(0.66);
 }
 .wsh-pop.is-out {
   opacity: 0;
@@ -101,13 +96,16 @@
 .wsh-pop.s0.is-out {
   transform: translate3d(0, -14px, 0);
 }
+.wsh-pop.s1.is-out {
+  transform: translate3d(0, -100px, 0) scale(0.6);
+}
 .wsh-pop-in {
   flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: max-content;
-  max-width: 94vw;
+  max-width: calc(92vw / var(--sq));
   transform-origin: 50% 100%;
 }
 .wsh-pop-in.is-in {
@@ -203,11 +201,11 @@
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
 }
 .wsh-pop.t4 .wsh-pop-name {
-  font-size: 34px;
+  font-size: 29px;
 }
 .wsh-pop.t5 .wsh-pop-name {
   position: relative;
-  font-size: 40px;
+  font-size: 33px;
 }
 /* shine sweep across the plate of a top-tier trick (clipped by the plate's clip-path) */
 .wsh-pop.t5 .wsh-pop-name::after {
@@ -250,7 +248,7 @@
 }
 .wsh-pop.is-stale.t4 .wsh-pop-name,
 .wsh-pop.is-stale.t5 .wsh-pop-name {
-  font-size: 30px;
+  font-size: 28px;
   text-shadow: var(--shadow);
 }
 .wsh-pop.is-stale .wsh-pop-pts {
@@ -499,7 +497,7 @@
   animation: wsh-count 0.95s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
 .wsh-count.is-go {
-  font-size: 66px;
+  font-size: 52px;
 }
 .wsh-count.is-go > span {
   padding: 14px 34px 8px 30px;
@@ -653,15 +651,14 @@
 /* ══════════════════════════════════════════════════ landscape phones ══ */
 @media (orientation: landscape) and (max-height: 540px) {
   .wsh-feed {
-    top: 33%;
+    top: 34%;
   }
   .wsh-live {
     font-size: 23px;
     line-height: 26px;
   }
   /* no room for a history above the newest pop */
-  .wsh-pop.s1,
-  .wsh-pop.s2 {
+  .wsh-pop.s1 {
     opacity: 0;
   }
   .wsh-center {
@@ -675,7 +672,7 @@
     font-size: 136px;
   }
   .wsh-count.is-go {
-    font-size: 62px;
+    font-size: 58px;
   }
   /* toasts move to the left column under the combo */
   .wsh-toasts {

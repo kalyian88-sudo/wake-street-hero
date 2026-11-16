@@ -21,12 +21,17 @@ function toByte(v: number): number {
 /** Pure generator (headless, unit-tested). */
 export function generateWaveData(size: number): Uint8Array {
   const n = size;
-  const kc = n * 0.19;
+  // Height spectrum: slopes peak around `kp` cycles per tile and roll off smoothly (flowing crests,
+  // not sandpaper), plus a faint high band so the glitter has something to sparkle on.
+  const kp = 6;
+  const kc = n * 0.17;
   const wind = 0.5;
   const h = spectralNoise(n, 0x51a7e, (kx, ky, k) => {
-    const band = Math.exp(-((k / kc) ** 2)) * (1 - Math.exp(-((k / 5) ** 2)));
+    const q = k / kp;
+    const main = (q ** 1.5 / (1 + q ** 3.3)) / k;
+    const fine = 0.022 * k ** -1.15;
     const c = Math.cos(Math.atan2(ky, kx) - wind);
-    return k ** -1.75 * band * (0.45 + 0.55 * c * c);
+    return (main * (0.3 + 0.7 * c * c) + fine) * Math.exp(-((k / kc) ** 2));
   });
   const mask = n - 1;
   const sx = new Float32Array(n * n);
@@ -65,7 +70,7 @@ export function generateWaveData(size: number): Uint8Array {
 /** Pure generator (headless). */
 export function generateCloudData(size: number): Uint8Array {
   const n = size;
-  const dens = spectralNoise(n, 0xc10d, (_kx, _ky, k) => (k < n * 0.25 ? k ** -2.1 * (1 - Math.exp(-((k / 1.6) ** 2))) : 0));
+  const dens = spectralNoise(n, 0xc10d, (_kx, _ky, k) => (k < n * 0.3 ? k ** -1.75 * (1 - Math.exp(-((k / 2.2) ** 2))) : 0));
   const soft = blurWrap(dens, n, Math.max(1, n >> 6));
   const detail = spectralNoise(n, 0xc10e, (_kx, _ky, k) => (k > 5 && k < n * 0.4 ? k ** -1.4 : 0));
   const mask = n - 1;

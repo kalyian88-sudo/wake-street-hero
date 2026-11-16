@@ -41,7 +41,7 @@ export class TopBar {
   private shown = 0;
   private shownInt = -1;
   private hold = 0;
-  private long = false;
+  private sizeClass = 0;
   private comboOn = false;
   private comboPts = -1;
   private comboMult = -1;
@@ -64,9 +64,6 @@ export class TopBar {
     const scoreRow = h('div', 'wsh-score', tl);
     this.scoreEl = h('div', 'wsh-score-num wsh-x wsh-x--l', scoreRow);
     this.scoreText = txt(this.scoreEl, '0');
-    this.heroTag = h('div', 'wsh-herotag wsh-x wsh-x--l', scoreRow);
-    this.heroTagText = txt(this.heroTag);
-
     this.combo = h('div', 'wsh-combo', tl);
     const row = h('div', 'wsh-combo-row wsh-x wsh-x--l', this.combo);
     this.comboPtsText = txt(h('span', 'wsh-combo-pts', row), '0');
@@ -74,6 +71,8 @@ export class TopBar {
     this.comboMultText = txt(this.comboMultEl, '×1');
     this.comboBar = h('div', 'wsh-combo-bar', this.combo);
     this.comboFill = h('i', '', this.comboBar);
+    this.heroTag = h('div', 'wsh-herotag wsh-x wsh-x--l', tl);
+    this.heroTagText = txt(this.heroTag);
 
     // ── top-centre: letters + progress
     this.mid = h('div', 'wsh-mid', root);
@@ -201,10 +200,11 @@ export class TopBar {
     if (si !== this.shownInt) {
       this.shownInt = si;
       this.scoreText.data = fmtInt(si);
-      const long = si >= 1000000;
-      if (long !== this.long) {
-        this.long = long;
-        this.scoreEl.classList.toggle('is-long', long);
+      const size = si >= 1000000 ? 2 : si >= 100000 ? 1 : 0;
+      if (size !== this.sizeClass) {
+        this.sizeClass = size;
+        this.scoreEl.classList.toggle('is-long', size === 1);
+        this.scoreEl.classList.toggle('is-xlong', size === 2);
       }
     }
 

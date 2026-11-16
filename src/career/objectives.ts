@@ -119,7 +119,7 @@ export function createRunObjectives(spot: SpotDef, config: RunConfig, doneBefore
       lineHits[i] = 0;
       if (achieved[i]) continue;
       setProgress(i, 0);
-      bus.emit('line:progress', { chain: [], total: goal.obstacles.length });
+      bus.emit('line:progress', { chain: [], total: new Set(goal.obstacles).size });
     }
   }
 

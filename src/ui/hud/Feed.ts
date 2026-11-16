@@ -10,7 +10,7 @@ import { fmtInt, h, restart, txt, type HudCtx } from './dom';
 const LIVE_MAX = 6;
 const POP_COUNT = 4;
 const POP_TTL = 2.7;
-const POP_MAX_SLOT = 2;
+const POP_MAX_SLOT = 1;
 
 interface LiveEl {
   el: HTMLElement;
@@ -188,6 +188,8 @@ export class Feed {
       else {
         p.slot++;
         if (p.slot > POP_MAX_SLOT) {
+          // pushed off the top: fade where it is
+          p.slot = POP_MAX_SLOT;
           p.ttl = 0;
           p.el.className = p.base + ' s' + p.slot + ' is-out';
           free = free ?? p;

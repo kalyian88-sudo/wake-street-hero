@@ -5,22 +5,19 @@ import { cityStars, citySpots, isSpotUnlocked, spotStars, totalStars } from '../
 import { sfx } from '../components/basic';
 import { CityMap } from '../components/citymap';
 import { header, starCount, stars, tag } from '../components/game';
+import { makePin, measurePins, placePin, type MapPin } from '../components/pins';
 import type { UICtx } from '../context';
 import { cx, fmt, h, hex, type Child } from '../dom';
 import { icon } from '../icons';
 import { Screen, type NavDir } from '../screen';
-
-interface Pin {
-  spot: SpotDef;
-  el: HTMLButtonElement;
-}
 
 /** City map: the spots of one city (3D map backdrop when available, drawn map otherwise) + spot list. */
 export class CityScreen extends Screen {
   private city: CityDef | null = null;
   private map: CityMap | null = null;
   private stage: HTMLElement | null = null;
-  private pins: Pin[] = [];
+  private pins: MapPin[] = [];
+  private spots: SpotDef[] = [];
   private raf = 0;
   private readonly tmp = { x: 0, y: 0, visible: false };
 
@@ -50,6 +47,7 @@ export class CityScreen extends Screen {
 
   override onResize(): void {
     this.map?.draw();
+    measurePins(this.pins);
   }
 
   /** Canvas tap resolved by the 3D backdrop. */
@@ -58,7 +56,7 @@ export class CityScreen extends Screen {
   }
 
   private open(spotId: string): void {
-    const spot = this.pins.find((p) => p.spot.id === spotId)?.spot;
+    const spot = this.spots.find((x) => x.id === spotId);
     if (!spot) return;
     const { save, nav, toast } = this.ctx;
     if (!isSpotUnlocked(save.data, spot)) {
@@ -84,34 +82,27 @@ export class CityScreen extends Screen {
     if (!stage || this.pins.length === 0) return;
     const rect = stage.getBoundingClientRect();
     for (const p of this.pins) {
-      let x = -999;
-      let y = -999;
-      let visible = false;
-      const m = g.projectMarker('spot', p.spot.id);
+      const m = g.projectMarker('spot', p.id);
       if (m) {
         if (!session.backdrop3D) {
           session.backdrop3D = true;
-          this.el.classList.add('is-3d');
+          this.el.querySelector('.wn-city')?.classList.add('is-3d');
         }
-        x = m.x;
-        y = m.y;
-        visible = m.visible;
-      } else if (!session.backdrop3D && this.map?.project(p.spot.id, this.tmp)) {
-        x = this.tmp.x;
-        y = this.tmp.y;
-        visible = this.tmp.visible;
-      }
-      const s = p.el.style;
-      s.transform = `translate3d(${(x - rect.left).toFixed(1)}px,${(y - rect.top).toFixed(1)}px,0)`;
-      s.opacity = visible ? '1' : '0';
-      s.pointerEvents = visible ? 'auto' : 'none';
-      const side = x > rect.left + rect.width * 0.6 ? 'l' : 'r';
-      if (p.el.dataset.side !== side) p.el.dataset.side = side;
+        p.x = m.x;
+        p.y = m.y;
+        p.visible = m.visible;
+      } else if (!session.backdrop3D && this.map?.project(p.id, this.tmp)) {
+        p.x = this.tmp.x;
+        p.y = this.tmp.y;
+        p.visible = this.tmp.visible;
+      } else p.visible = false;
+      placePin(p, rect);
     }
   };
 
   protected override afterRender(): void {
     this.map?.draw();
+    measurePins(this.pins);
   }
 
   private spotCard(spot: SpotDef, index: number): HTMLElement {
@@ -160,15 +151,19 @@ export class CityScreen extends Screen {
       city.color,
       spots.map((s) => ({ id: s.id, x: s.mapPos[0], y: s.mapPos[1], open: isSpotUnlocked(data, s) })),
     );
+    this.spots = spots;
     this.pins = spots.map((spot, i) => {
       const unlocked = isSpotUnlocked(data, spot);
-      const el = h(
-        'button',
-        { type: 'button', class: cx('wn-pin wn-pin--spot', !unlocked && 'is-locked'), style: `--c:${hex(city.color)}`, 'aria-label': l(spot.name), onclick: () => this.open(spot.id) },
-        h('span', { class: 'wn-pin__dot' }, unlocked ? h('b', null, String(i + 1)) : icon('lock')),
-        h('span', { class: 'wn-pin__label' }, h('b', null, l(spot.name)), unlocked ? stars(spotStars(data, spot.id), 5, { flags: data.spots[spot.id]?.goals }) : h('span', { class: 'wn-pin__need' }, icon('star'), String(spot.unlockStars))),
-      );
-      return { spot, el };
+      return makePin({
+        id: spot.id,
+        color: city.color,
+        locked: !unlocked,
+        name: l(spot.name),
+        dot: h('b', null, String(i + 1)),
+        sub: unlocked ? stars(spotStars(data, spot.id), 5, { flags: data.spots[spot.id]?.goals }) : h('span', { class: 'wn-pin__need' }, icon('star'), String(spot.unlockStars)),
+        always: true,
+        onClick: () => this.open(spot.id),
+      });
     });
     this.stage = h('div', { class: 'wn-city__stage' }, this.map.el, h('div', { class: 'wn-hub__pins' }, this.pins.map((p) => p.el)));
 

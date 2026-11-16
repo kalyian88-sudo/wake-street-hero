@@ -85,7 +85,7 @@ export class RoutePlan {
       for (let g = 0; g < world.gaps.length; g++) {
         for (let d = 1; d < flight; d += 0.5) {
           if (world.inGap(g, lipX + ax * d, lipZ + az * d)) {
-            value = 6;
+            value = 8;
             break;
           }
         }

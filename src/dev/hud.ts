@@ -515,7 +515,7 @@ let lastFrame = input.poll();
 let last = performance.now();
 
 function frame(now: number): void {
-  const realDt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+  const realDt = Math.min(0.25, Math.max(0, (now - last) / 1000));
   last = now;
   lastFrame = input.poll();
   if (lastFrame.pausePressed) auto = !auto;

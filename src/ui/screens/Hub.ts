@@ -5,19 +5,11 @@ import { cityStars, citySpots, isCityUnlocked, totalStars } from '../career';
 import { sfx } from '../components/basic';
 import { coins, levelBadge, starCount, tag } from '../components/game';
 import { DotGlobe } from '../components/globe';
+import { makePin, measurePins, placePin, type MapPin } from '../components/pins';
 import type { UICtx } from '../context';
 import { cx, h, hex, type Child } from '../dom';
 import { icon, type IconName } from '../icons';
 import { Screen, type NavDir } from '../screen';
-
-interface Pin {
-  city: CityDef;
-  el: HTMLButtonElement;
-  x: number;
-  y: number;
-  visible: boolean;
-  side: 'l' | 'r';
-}
 
 /** World hub: the globe (3D backdrop when the game provides one, dotted canvas globe otherwise) + city cards. */
 export class HubScreen extends Screen {
@@ -25,7 +17,7 @@ export class HubScreen extends Screen {
   private globe: DotGlobe | null = null;
   private stage: HTMLElement | null = null;
   private carousel: HTMLElement | null = null;
-  private pins: Pin[] = [];
+  private pins: MapPin[] = [];
   private raf = 0;
   private lastTime = 0;
   private scrollTimer = 0;
@@ -53,6 +45,7 @@ export class HubScreen extends Screen {
 
   override onResize(): void {
     this.globe?.resize();
+    measurePins(this.pins);
   }
 
   /** Canvas tap resolved by the 3D backdrop (see UI.ts). */
@@ -104,7 +97,7 @@ export class HubScreen extends Screen {
       card.classList.toggle('is-focus', on);
       if (on && scroll) card.scrollIntoView({ block: 'nearest', inline: 'center', behavior: this.el.classList.contains('is-fresh') ? 'auto' : 'smooth' });
     }
-    for (const p of this.pins) p.el.classList.toggle('is-focus', p.city.id === this.focusId);
+    for (const p of this.pins) p.el.classList.toggle('is-focus', p.id === this.focusId);
   }
 
   /** After the carousel settles, the card nearest to its centre becomes the focused city. */
@@ -142,7 +135,7 @@ export class HubScreen extends Screen {
     // The real 3D backdrop announces itself by answering projectMarker().
     let any3D = false;
     for (const p of this.pins) {
-      const m = g.projectMarker('city', p.city.id);
+      const m = g.projectMarker('city', p.id);
       if (m) {
         any3D = true;
         p.x = m.x;
@@ -152,45 +145,25 @@ export class HubScreen extends Screen {
     }
     if (any3D && !session.backdrop3D) {
       session.backdrop3D = true;
-      this.el.classList.add('is-3d');
+      this.el.querySelector('.wn-hub')?.classList.add('is-3d');
     }
     if (!session.backdrop3D && this.globe) {
       this.globe.frame(dt, now / 1000);
       for (const p of this.pins) {
-        if (this.globe.project(p.city.id, this.tmp)) {
+        if (this.globe.project(p.id, this.tmp)) {
           p.x = this.tmp.x;
           p.y = this.tmp.y;
           p.visible = this.tmp.visible;
         }
       }
     }
-
     const rect = stage.getBoundingClientRect();
-    const midX = rect.left + rect.width / 2;
-    for (const p of this.pins) {
-      p.side = p.x > midX + rect.width * 0.12 ? 'l' : 'r';
-    }
-    // Two neighbours pointing the same way would overlap: the western one flips left.
-    for (const a of this.pins) {
-      for (const b of this.pins) {
-        if (a === b || !a.visible || !b.visible) continue;
-        if (Math.abs(a.x - b.x) < 130 && Math.abs(a.y - b.y) < 40 && a.x <= b.x) {
-          a.side = 'l';
-          b.side = 'r';
-        }
-      }
-    }
-    for (const p of this.pins) {
-      const s = p.el.style;
-      s.transform = `translate3d(${(p.x - rect.left).toFixed(1)}px,${(p.y - rect.top).toFixed(1)}px,0)`;
-      s.opacity = p.visible ? '1' : '0';
-      s.pointerEvents = p.visible ? 'auto' : 'none';
-      if (p.el.dataset.side !== p.side) p.el.dataset.side = p.side;
-    }
+    for (const p of this.pins) placePin(p, rect);
   };
 
   protected override afterRender(): void {
     this.globe?.resize();
+    measurePins(this.pins);
     this.syncFocus(false);
   }
 
@@ -277,13 +250,15 @@ export class HubScreen extends Screen {
     this.pins = CITIES.map((city) => {
       const unlocked = isCityUnlocked(data, city);
       const { earned, total } = cityStars(data, city);
-      const el = h(
-        'button',
-        { type: 'button', class: cx('wn-pin', !unlocked && 'is-locked'), style: `--c:${hex(city.color)}`, 'aria-label': l(city.name), onclick: () => this.open(city.id) },
-        h('span', { class: 'wn-pin__dot' }, unlocked ? null : icon('lock')),
-        h('span', { class: 'wn-pin__label' }, h('b', null, l(city.name)), unlocked ? (total > 0 ? starCount(earned, total) : null) : h('span', { class: 'wn-pin__need' }, icon('star'), String(city.unlockStars))),
-      );
-      return { city, el, x: -999, y: -999, visible: false, side: 'r' as const };
+      return makePin({
+        id: city.id,
+        color: city.color,
+        locked: !unlocked,
+        name: l(city.name),
+        mini: unlocked ? (total > 0 ? `${earned}/${total}` : null) : [icon('star'), String(city.unlockStars)],
+        sub: h('span', { class: 'wn-pin__sub' }, l(city.country)),
+        onClick: () => this.open(city.id),
+      });
     });
     this.stage = h('div', { class: 'wn-hub__stage' }, this.globe.el, h('div', { class: 'wn-hub__pins' }, this.pins.map((p) => p.el)));
 

@@ -120,19 +120,20 @@ function makeView(w: number, h: number): View {
   const sz = b.max[1] - b.min[1];
   const pad = 10;
   if (h >= w) {
-    // portrait: +Z up, rider's left (+X) on screen left
-    const scale = Math.min((h - pad * 2) / sz, (w * 0.5) / sx);
+    // portrait: HUD on top, below it the map (+Z up, rider's left on screen left) and the height profile
+    const top = 172;
+    const scale = Math.min((h - top - pad) / sz, (w * 0.46) / sx);
     const mapW = sx * scale;
     const y0 = h - pad;
-    const px = pad + mapW + 14;
-    const pw = Math.min(w - px - pad, 150);
-    const py = pw / 5.2;
+    const px = pad + mapW + 12;
+    const pw = Math.max(60, w - px - pad);
+    const py = pw / 5.4;
     return {
       scale,
       map: (x, z) => [pad + (b.max[0] - x) * scale, y0 - (z - b.min[1]) * scale],
       prof: (z, y) => [px + (y + 0.4) * py, y0 - (z - b.min[1]) * scale],
       profRect: [px, y0 - sz * scale, pw, sz * scale],
-      hud: [px + 4, pad + 150],
+      hud: [pad + 2, 20],
     };
   }
   // landscape: +Z to the right, rider's left (+X) up
@@ -195,6 +196,7 @@ function draw(): void {
   }
 
   // colliders: map + profile
+  let lastLabel = '';
   for (const sh of shapes) {
     const closed = sh.kind !== 'line';
     const col = hex(sh.color);
@@ -223,6 +225,13 @@ function draw(): void {
       ctx.strokeStyle = col;
       ctx.lineWidth = sh.kind === 'line' ? 2 : 1;
       ctx.stroke();
+      if (sh.label && sh.label !== lastLabel) {
+        // name it once, next to its first point on the height profile
+        lastLabel = sh.label;
+        const [lx, ly] = v.prof(sh.points[2], Math.max(sh.points[1], 0));
+        ctx.fillStyle = '#7d8696';
+        ctx.fillText(sh.label, Math.min(lx + 6, rx + rw - sh.label.length * 5.4 - 2), ly + (h >= w ? -3 : 12));
+      }
     }
   }
 
@@ -294,17 +303,16 @@ function drawHud(v: View, w: number, h: number): void {
   const s = sim.state;
   const sc = sim.score.state;
   const portrait = h >= w;
-  let x = portrait ? v.profRect[0] + v.profRect[2] + 8 : v.hud[0];
-  let y = portrait ? 18 : v.hud[1];
-  if (portrait && x > w - 60) x = v.profRect[0] + 4;
+  let x = v.hud[0];
+  let y = v.hud[1];
   ctx.font = '11px ui-monospace, monospace';
   const line = (text: string, color = '#c9d1dc'): void => {
     ctx.fillStyle = color;
     ctx.fillText(text, x, y);
     y += 14;
   };
-  const colW = portrait ? 0 : 210;
-  line(`${winchId} · ${board} · ${power}${auto ? ' · AUTO' : ''}`, '#fff');
+  const colW = portrait ? 196 : 230;
+  line(`${winchId} · ${board} · ${power}${auto ? ' · A' : ''}`, '#fff');
   line(`t ${s.time.toFixed(1)}s  ${s.mode}`, MODE_COLOR[s.mode]);
   line(`v ${s.speed.toFixed(1)} m/s  y ${s.pos.y.toFixed(2)}`);
   line(`rope ${s.rope.taut ? 'TAUT' : s.rope.holding ? 'slack' : 'released'} ${(s.rope.tension * 100).toFixed(0)}%`);
@@ -323,13 +331,12 @@ function drawHud(v: View, w: number, h: number): void {
   line(`score ${Math.round(sc.total)}  +${Math.round(sc.comboPoints)}×${sc.comboMult}`, '#ffe14d');
   line(`falls ${sc.falls}  hero ${(sc.hero.meter * 100).toFixed(0)}%${sc.hero.active ? ' ON' : ''}`);
   if (auto && bot.targetId) line(`→ ${bot.targetId}`, '#7ad957');
-  if (!portrait) {
-    x += colW;
-    y = v.hud[1];
-  } else y += 6;
+  x += colW;
+  y = v.hud[1];
+  const maxChars = Math.max(12, Math.floor((w - x - 6) / 6.7));
   for (const t of ticker) {
-    ctx.globalAlpha = Math.max(0.35, 1 - (s.time - t.t) / 8);
-    line(t.text.length > 34 && portrait ? `${t.text.slice(0, 33)}…` : t.text, t.color);
+    ctx.globalAlpha = Math.max(0.4, 1 - (s.time - t.t) / 8);
+    line(t.text.length > maxChars ? `${t.text.slice(0, maxChars - 1)}…` : t.text, t.color);
   }
   ctx.globalAlpha = 1;
 }
