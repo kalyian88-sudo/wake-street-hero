@@ -1,4 +1,4 @@
-import type { ScreenId } from '../types';
+import type { SaveData, ScreenId } from '../types';
 import type { Params, UICtx } from './context';
 import { h, mount, type Child } from './dom';
 
@@ -52,8 +52,25 @@ export abstract class Screen {
   onEnter(_dir: NavDir): void {}
   /** Screen is leaving (exit transition starts). Stop loops / timers here. */
   onExit(): void {}
+  /** Set by mutate(): the next 'save:changed' was caused by this screen's own controls. */
+  protected quiet = false;
+
+  /** Save a change made with this screen's own controls WITHOUT rebuilding it (sliders keep their drag). */
+  protected mutate(fn: (d: SaveData) => void): void {
+    this.quiet = true;
+    this.ctx.save.update(fn);
+  }
+
+  /** Cheap update after an own change (labels, previews). */
+  protected patch(): void {}
+
   /** Save data changed. */
   onSave(): void {
+    if (this.quiet) {
+      this.quiet = false;
+      this.patch();
+      return;
+    }
     this.render();
   }
   /** Language changed. */

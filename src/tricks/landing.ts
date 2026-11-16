@@ -25,8 +25,8 @@ export const LANDING_RULES = {
   statSpread: 0.3,
   /** Extra forgiveness while HERO mode is on. */
   heroRelax: 1.12,
-  /** Still grabbing: above this impact (m/s) it is a bail, below it a sketchy landing. */
-  grabBailImpact: 6.5,
+  /** Still grabbing: above this impact (m/s) it is a bail, below it a sketchy landing (a full flat pop lands at ≈ 6.5, a kicker air at 9+). */
+  grabBailImpact: 8,
   /** Wakeskate catch quality 0..1: below = sketchy; 'perfect' needs catchPerfect or better. */
   catchSketchy: 0.4,
   catchPerfect: 0.75,

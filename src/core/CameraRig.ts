@@ -203,7 +203,8 @@ export class CameraRig {
 
     // ── shot targets ──
     let fov = MathUtils.lerp(57, 70, p);
-    let dist = MathUtils.lerp(5.0, 5.9, p);
+    // The follow spring trails by ~0.09 s (≈0.85 m at winch speed): effective distance ≈ 5.3 / 6.1 m.
+    let dist = MathUtils.lerp(4.5, 5.25, p);
     let height = MathUtils.lerp(2.3, 2.9, p);
     let lookAhead = MathUtils.lerp(5.0, 5.5, p);
     let lookY = MathUtils.lerp(1.1, 1.0, p);

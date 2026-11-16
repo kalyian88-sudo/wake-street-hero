@@ -13,10 +13,7 @@ export class SplashScreen extends Screen {
   override readonly kind = 'overlay' as const;
   private leaving = false;
 
-  constructor(
-    ctx: UICtx,
-    private readonly setLang: (lang: Lang) => void,
-  ) {
+  constructor(ctx: UICtx) {
     super(ctx, 'splash');
   }
 
@@ -42,7 +39,7 @@ export class SplashScreen extends Screen {
         { value: 'en', label: 'EN' },
       ],
       i18n.lang,
-      (v) => this.setLang(v),
+      (v) => this.ctx.setLang(v),
       'wn-seg--quiet wn-splash__lang',
     );
     // Language switch must not start the game.

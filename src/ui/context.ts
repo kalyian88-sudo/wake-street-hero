@@ -4,7 +4,7 @@
  * undefined — so the UI never calls the game directly, only through `SafeGame`.
  */
 import type { EventBus } from '../core/events';
-import type { BoardKind, GameState, IGame, ISaveStore, MenuBackdrop, RunConfig, RunResult, ScreenId, SfxId } from '../types';
+import type { BoardKind, GameState, IGame, ISaveStore, Lang, MenuBackdrop, RunConfig, RunResult, ScreenId, SfxId } from '../types';
 import type { Nav } from './nav';
 import type { ModalOptions } from './overlays';
 
@@ -146,4 +146,11 @@ export interface UICtx {
   confirm(opts: { title: string; text?: string; ok: string; cancel?: string; danger?: boolean }): Promise<boolean>;
   go(screen: ScreenId, params?: Params): void;
   back(): void;
+  /** Run control from the pause / results screens (also hides the menus right away). */
+  resume(): void;
+  restart(): void;
+  /** Abort / leave the run and land on the city screen. */
+  quit(): void;
+  /** Switch language everywhere (i18n, save, bus, game settings). */
+  setLang(lang: Lang): void;
 }

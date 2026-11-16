@@ -21,7 +21,8 @@
  *   Special   flat (untextured matte, vertex colour only) · neon (unlit, HDR: vertex colour × intensity → bloom) ·
  *             brand (WHY NOT decal atlas, see BRAND_UV) · signs (glyph sign atlas, SIGN_UV) ·
  *             facade (windows / doors atlas, FACADE_UV) · graffiti {seed, piece} (transparent wall piece) ·
- *             scrapes (grind wear decal) · waterFilm (thin running water) · rope
+ *             scrapes (grind wear decal) · paint (flat markings on top of surfaces, polygon-offset) ·
+ *             waterFilm (thin running water) · rope
  *
  * OPTS (all optional): color, emissive, emissiveIntensity, roughness, metalness, opacity, transparent,
  *   side: 'double' | 'front' | 'back', repeat: [metresU, metresV] (override the tile size),
@@ -245,6 +246,13 @@ export class MaterialLibrary {
     if (key === 'scrapes') {
       const tex = this.canvasTex('scrapes', () => drawScrapes(31), true);
       const m = new MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false, roughness: 0.4, metalness: 0.2, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3, vertexColors: true });
+      m.userData.cast = false;
+      return m;
+    }
+    if (key === 'paint') {
+      // flat painted markings lying on other surfaces (lines, stencils)
+      const m = new MeshStandardMaterial({ vertexColors: true, roughness: 0.6, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+      if (side !== undefined) m.side = side;
       m.userData.cast = false;
       return m;
     }

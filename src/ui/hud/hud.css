@@ -1,0 +1,887 @@
+/*
+ * WHY NOT: Wake Street Hero — in-run HUD.
+ * Portrait phone is the reference layout; landscape phones and desktop are handled at the bottom.
+ * Everything animates with transform / opacity only. The whole overlay is pointer-transparent:
+ * the Input module hit-tests the button rectangles itself.
+ */
+.wsh-hud {
+  --red: #e30613;
+  --red-hot: #ff3344;
+  --dark: #1c1d21;
+  --ink: #101114;
+  --gold: #ffc531;
+  --amber: #ff9a2e;
+  --ok: #3ee08f;
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  /* synthetic condensing — set to < 1 by Hud.ts only when the system has no condensed font */
+  --sq: 1;
+  /* cluster scale for tablets / desktop */
+  --big: 1;
+  --shadow: 0 0 1px rgba(0, 0, 0, 0.6), 0 2px 3px rgba(0, 0, 0, 0.45), 0 3px 14px rgba(0, 0, 0, 0.4);
+  --font: 'HelveticaNeue-CondensedBold', 'Helvetica Neue Condensed', 'Arial Narrow', 'Roboto Condensed', 'sans-serif-condensed', Impact, 'Inter', 'Segoe UI', system-ui,
+    sans-serif;
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Inter', 'Helvetica Neue', Arial, sans-serif;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  contain: layout style paint;
+  color: #fff;
+  font-family: var(--font);
+  font-weight: 800;
+  font-style: italic;
+  font-synthesis: style;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  text-transform: uppercase;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s,
+    visibility 0s 0.25s;
+}
+.wsh-hud.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.25s;
+}
+.wsh-hud,
+.wsh-hud * {
+  pointer-events: none;
+  box-sizing: border-box;
+}
+.wsh-hud.is-squeeze {
+  --sq: 0.84;
+}
+
+/* legibility scrims: soft dark fades behind the top strip and the controls */
+.wsh-hud::before,
+.wsh-hud::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+.wsh-hud::before {
+  top: 0;
+  height: calc(118px + var(--sat));
+  background: linear-gradient(rgba(8, 10, 16, 0.5), rgba(8, 10, 16, 0.22) 48%, rgba(8, 10, 16, 0));
+}
+.wsh-hud::after {
+  bottom: 0;
+  height: calc(250px + var(--sab));
+  background: linear-gradient(rgba(8, 10, 16, 0), rgba(8, 10, 16, 0.16) 45%, rgba(8, 10, 16, 0.42));
+}
+
+/* condensed display text: real condensed fonts need nothing, the fallback is squeezed horizontally */
+.wsh-x {
+  display: inline-block;
+  scale: var(--sq) 1;
+  transform-origin: 50% 50%;
+}
+.wsh-x--l {
+  transform-origin: 0 50%;
+}
+
+/* key cap legend (keyboard mode only) */
+.wsh-key {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  transform: translateX(-50%);
+  display: none;
+  padding: 3px 6px 2px;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+  font: 700 10px/1 var(--font-ui);
+  font-style: normal;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.wsh-hud.is-keys .wsh-key {
+  display: block;
+}
+
+/* ───────────────────────────────────────────────── top-left: score + combo ── */
+.wsh-tl {
+  position: absolute;
+  left: calc(14px + var(--sal));
+  top: calc(10px + var(--sat));
+  transform-origin: 0 0;
+  scale: var(--big);
+}
+.wsh-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+}
+.wsh-score::before {
+  content: '';
+  flex: none;
+  width: 5px;
+  height: 27px;
+  border-radius: 1px;
+  background: var(--red);
+  box-shadow: 0 0 12px rgba(227, 6, 19, 0.7);
+  transform: skewX(-14deg);
+}
+.wsh-score-num {
+  font-size: 37px;
+  line-height: 38px;
+  letter-spacing: -0.01em;
+  word-spacing: -0.08em;
+  white-space: nowrap;
+  text-shadow: var(--shadow);
+}
+.wsh-score-num.is-long {
+  font-size: 29px;
+}
+.wsh-score-num.is-bump {
+  animation: wsh-bump 0.42s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+@keyframes wsh-bump {
+  0% {
+    transform: scale(1);
+  }
+  28% {
+    transform: scale(1.24);
+    color: var(--gold);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.wsh-herotag {
+  flex: none;
+  margin-left: -2px;
+  padding: 5px 11px 4px 10px;
+  background: var(--red);
+  clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+}
+.wsh-herotag.is-on {
+  visibility: visible;
+  animation: wsh-pulse-soft 0.5s ease-in-out infinite alternate;
+}
+@keyframes wsh-pulse-soft {
+  from {
+    opacity: 0.78;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.wsh-combo {
+  margin: 4px 0 0 13px;
+  opacity: 0;
+  transform: translate3d(0, -6px, 0);
+  transition:
+    opacity 0.16s,
+    transform 0.16s;
+}
+.wsh-combo.is-on {
+  opacity: 1;
+  transform: none;
+}
+.wsh-combo-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 21px;
+  line-height: 24px;
+  word-spacing: -0.08em;
+  white-space: nowrap;
+  text-shadow: var(--shadow);
+}
+.wsh-combo-mult {
+  padding: 0 9px 0 8px;
+  background: var(--red);
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  font-size: 17px;
+  line-height: 23px;
+  text-shadow: none;
+}
+.wsh-combo-mult.is-bump {
+  animation: wsh-multbump 0.32s cubic-bezier(0.2, 1.7, 0.4, 1) both;
+}
+@keyframes wsh-multbump {
+  0% {
+    transform: scale(1.9) rotate(-8deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+.wsh-combo-bar {
+  width: 98px;
+  height: 4px;
+  margin-top: 5px;
+  border-radius: 1px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.24);
+  transform: skewX(-24deg);
+}
+.wsh-combo-bar > i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  transform-origin: 0 50%;
+}
+.wsh-combo.is-low .wsh-combo-bar > i {
+  background: var(--red-hot);
+}
+.wsh-combo.is-bank {
+  animation: wsh-combo-bank 0.45s ease-in both;
+}
+@keyframes wsh-combo-bank {
+  0% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -22px, 0) scale(0.8);
+  }
+}
+.wsh-combo.is-lost {
+  animation: wsh-combo-lost 0.95s ease-in both;
+}
+.wsh-combo.is-lost .wsh-combo-row {
+  color: var(--red-hot);
+  text-decoration: line-through;
+}
+@keyframes wsh-combo-lost {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  8% {
+    transform: translate3d(-5px, 0, 0);
+  }
+  16% {
+    transform: translate3d(5px, 0, 0);
+  }
+  24% {
+    transform: translate3d(-3px, 0, 0);
+  }
+  32%,
+  55% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0) rotate(5deg);
+  }
+}
+
+/* ─────────────────────────────────── top-centre: W-H-Y-N-O-T + line progress ── */
+.wsh-mid {
+  position: absolute;
+  left: 50%;
+  top: calc(15px + var(--sat));
+  width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  transform-origin: 50% 0;
+  scale: var(--big);
+}
+.wsh-letters {
+  flex: none;
+  display: flex;
+  gap: 2px;
+}
+.wsh-mid.no-letters .wsh-letters {
+  display: none;
+}
+.wsh-letter {
+  position: relative;
+  width: 20px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 1px;
+  font-size: 19px;
+  color: rgba(255, 255, 255, 0.46);
+}
+.wsh-letter::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(16, 17, 20, 0.46);
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+.wsh-letter > span {
+  position: relative;
+}
+.wsh-letter:nth-child(4) {
+  margin-left: 6px;
+}
+.wsh-letter.is-on {
+  color: #fff;
+}
+.wsh-letter.is-on::before {
+  background: var(--red);
+}
+.wsh-letter.is-pop {
+  z-index: 1;
+  animation: wsh-letter-pop 0.6s cubic-bezier(0.2, 1.7, 0.4, 1) both;
+}
+@keyframes wsh-letter-pop {
+  0% {
+    opacity: 0;
+    transform: scale(3) rotate(-10deg);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(0.86);
+  }
+  100% {
+    transform: none;
+  }
+}
+.wsh-letters.is-all .wsh-letter {
+  animation: wsh-letter-wave 0.9s ease-in-out both;
+}
+.wsh-letters.is-all .wsh-letter:nth-child(2) {
+  animation-delay: 0.06s;
+}
+.wsh-letters.is-all .wsh-letter:nth-child(3) {
+  animation-delay: 0.12s;
+}
+.wsh-letters.is-all .wsh-letter:nth-child(4) {
+  animation-delay: 0.18s;
+}
+.wsh-letters.is-all .wsh-letter:nth-child(5) {
+  animation-delay: 0.24s;
+}
+.wsh-letters.is-all .wsh-letter:nth-child(6) {
+  animation-delay: 0.3s;
+}
+@keyframes wsh-letter-wave {
+  0%,
+  100% {
+    transform: none;
+  }
+  35% {
+    transform: translate3d(0, -7px, 0) scale(1.15);
+  }
+}
+
+.wsh-prog {
+  flex: none;
+  position: relative;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.wsh-prog-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background: #fff;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+}
+.wsh-prog-dot {
+  position: absolute;
+  left: -6px;
+  top: -4px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: var(--red);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+}
+/* the winch flag at the end of the line */
+.wsh-prog-end {
+  position: absolute;
+  right: -2px;
+  top: -10px;
+  width: 2px;
+  height: 16px;
+  border-radius: 1px;
+  background: #fff;
+}
+.wsh-prog-end::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0;
+  border: 4px solid transparent;
+  border-left: 8px solid var(--red);
+  border-right: 0;
+}
+
+/* ───────────────────────────────────────── top-right: pause + HERO meter ── */
+.wsh-tr {
+  position: absolute;
+  right: calc(12px + var(--sar));
+  top: calc(9px + var(--sat));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transform-origin: 100% 0;
+  scale: var(--big);
+}
+.wsh-pause {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  background: rgba(16, 17, 20, 0.36);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition:
+    transform 0.07s,
+    background-color 0.1s;
+}
+.wsh-pause > i {
+  width: 4px;
+  height: 14px;
+  border-radius: 1px;
+  background: #fff;
+  transform: skewX(-8deg);
+}
+.wsh-pause.is-down {
+  transform: scale(0.9);
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
+.wsh-ring {
+  position: relative;
+  width: 46px;
+  height: 46px;
+}
+.wsh-ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+}
+.wsh-ring-track {
+  fill: rgba(16, 17, 20, 0.42);
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 4;
+  transition: fill 0.2s;
+}
+.wsh-ring-arc {
+  fill: none;
+  stroke: var(--red-hot);
+  stroke-width: 4;
+  transition: stroke 0.2s;
+}
+.wsh-ring-bolt {
+  position: absolute;
+  left: 13px;
+  top: 13px;
+  width: 20px;
+  height: 20px;
+  fill: rgba(255, 255, 255, 0.6);
+  transition: fill 0.2s;
+}
+.wsh-ring-secs {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding-right: 2px;
+  font-size: 23px;
+}
+.wsh-ring-label {
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  top: 100%;
+  margin-top: 4px;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.78);
+  text-shadow: var(--shadow);
+}
+.wsh-ring.is-ready {
+  animation: wsh-ring-pulse 0.55s ease-in-out infinite alternate;
+}
+.wsh-ring.is-ready .wsh-ring-track,
+.wsh-ring.is-active .wsh-ring-track {
+  fill: var(--red);
+}
+.wsh-ring.is-ready .wsh-ring-arc,
+.wsh-ring.is-active .wsh-ring-arc {
+  stroke: #fff;
+}
+.wsh-ring.is-ready .wsh-ring-bolt {
+  fill: #fff;
+}
+.wsh-ring.is-active .wsh-ring-bolt {
+  display: none;
+}
+.wsh-ring.is-active .wsh-ring-secs {
+  display: flex;
+}
+.wsh-ring.is-ready .wsh-ring-label,
+.wsh-ring.is-active .wsh-ring-label {
+  color: #fff;
+}
+@keyframes wsh-ring-pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.13);
+  }
+}
+
+/* ─────────────────────────────── slow-motion look + HERO edge glow (full screen) ── */
+/* one layer: letterbox fades (top / bottom), generated speed-line texture, radial vignette */
+.wsh-fx {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  background-image:
+    linear-gradient(rgba(2, 4, 10, 0.78), rgba(2, 4, 10, 0)), linear-gradient(rgba(2, 4, 10, 0), rgba(2, 4, 10, 0.78)), var(--streaks, none),
+    radial-gradient(ellipse 78% 64% at 50% 52%, rgba(4, 8, 18, 0) 44%, rgba(4, 8, 18, 0.34) 74%, rgba(2, 4, 10, 0.8) 100%);
+  background-size:
+    100% 12%,
+    100% 12%,
+    100% 100%,
+    100% 100%;
+  background-position:
+    top,
+    bottom,
+    center,
+    center;
+  background-repeat: no-repeat;
+  will-change: opacity;
+}
+.wsh-fx.is-on {
+  visibility: visible;
+}
+.wsh-heroglow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  background: radial-gradient(ellipse 82% 72% at 50% 50%, rgba(227, 6, 19, 0) 52%, rgba(227, 6, 19, 0.3) 84%, rgba(227, 6, 19, 0.62) 100%);
+  box-shadow: inset 0 0 0 3px rgba(255, 40, 52, 0.9);
+  transition:
+    opacity 0.4s,
+    visibility 0s 0.4s;
+}
+.wsh-heroglow.is-on {
+  visibility: visible;
+  transition: none;
+  animation: wsh-glow 0.9s ease-in-out infinite alternate;
+}
+@keyframes wsh-glow {
+  from {
+    opacity: 0.62;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ─────────────────────────────────────────────────────── rail balance bar ── */
+.wsh-balance {
+  position: absolute;
+  left: 50%;
+  top: 61%;
+  width: 216px;
+  height: 28px;
+  margin-left: -108px;
+  opacity: 0;
+  transform: translate3d(0, 8px, 0) scale(0.9);
+  scale: var(--big);
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+.wsh-balance.is-on {
+  opacity: 1;
+  transform: none;
+}
+.wsh-balance-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 9px;
+  height: 10px;
+  border-radius: 5px;
+  border: 1.5px solid rgba(255, 255, 255, 0.78);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 30, 44, 0.98) 0%,
+    rgba(227, 6, 19, 0.7) 13%,
+    rgba(16, 17, 20, 0.55) 32%,
+    rgba(16, 17, 20, 0.55) 68%,
+    rgba(227, 6, 19, 0.7) 87%,
+    rgba(255, 30, 44, 0.98) 100%
+  );
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+.wsh-balance-mid {
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  bottom: -5px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.6);
+}
+.wsh-balance-marker {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 8px;
+  height: 28px;
+  margin-left: -4px;
+  border-radius: 3px;
+  background: #fff;
+  box-shadow:
+    0 0 10px rgba(255, 255, 255, 0.85),
+    0 2px 5px rgba(0, 0, 0, 0.55);
+  will-change: transform;
+}
+.wsh-balance.is-warn .wsh-balance-marker {
+  background: var(--gold);
+  box-shadow:
+    0 0 10px rgba(255, 197, 49, 0.9),
+    0 2px 5px rgba(0, 0, 0, 0.55);
+}
+.wsh-balance.is-danger .wsh-balance-track {
+  border-color: #fff;
+  animation: wsh-shake 0.11s linear infinite;
+}
+@keyframes wsh-shake {
+  0%,
+  100% {
+    transform: translate3d(-1.5px, 0, 0);
+  }
+  50% {
+    transform: translate3d(1.5px, 0, 0);
+  }
+}
+
+/* ─────────────────────────────────────────────── speed readout + rope line ── */
+.wsh-speed {
+  position: absolute;
+  left: 50%;
+  bottom: calc(10px + var(--sab));
+  width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transform-origin: 50% 100%;
+  scale: var(--big);
+}
+.wsh-speed > * {
+  flex: none;
+}
+.wsh-speed-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+  text-shadow: var(--shadow);
+}
+.wsh-speed-num {
+  min-width: 1.25em;
+  text-align: right;
+  font-size: 21px;
+}
+.wsh-speed-unit {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+.wsh-switch {
+  padding: 3px 8px 2px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(16, 17, 20, 0.6);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.wsh-switch.is-on {
+  opacity: 1;
+}
+.wsh-rope {
+  width: 64px;
+  height: 14px;
+  overflow: visible;
+}
+.wsh-rope path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke 0.15s;
+}
+.wsh-rope circle {
+  fill: #fff;
+}
+.wsh-rope.is-hot path {
+  stroke: var(--red-hot);
+}
+.wsh-rope.is-slack path {
+  stroke: var(--gold);
+}
+.wsh-rope.is-off path {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-dasharray: 3 4;
+}
+
+/* ───────────────────────────────────────────────────────── tutorial coach ── */
+.wsh-coach {
+  position: absolute;
+  left: calc(14px + var(--sal));
+  right: calc(100px + var(--sar));
+  bottom: calc(248px + var(--sab));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  opacity: 0;
+  visibility: hidden;
+}
+.wsh-coach.is-on {
+  visibility: visible;
+  animation: wsh-coach-in 0.38s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes wsh-coach-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-16px, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.wsh-coach-tag {
+  padding: 5px 13px 4px 9px;
+  background: var(--red);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+.wsh-coach-text {
+  max-width: 320px;
+  padding: 9px 13px 10px 11px;
+  border-left: 3px solid var(--red);
+  border-radius: 0 10px 10px 10px;
+  background: rgba(16, 17, 20, 0.84);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  font: 600 15px/1.3 var(--font-ui);
+  font-style: normal;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ══════════════════════════════════════════════════ landscape phones ══ */
+@media (orientation: landscape) and (max-height: 540px) {
+  .wsh-hud::before {
+    height: calc(84px + var(--sat));
+  }
+  .wsh-hud::after {
+    height: calc(150px + var(--sab));
+  }
+  .wsh-tl {
+    top: calc(8px + var(--sat));
+  }
+  .wsh-mid {
+    top: calc(12px + var(--sat));
+  }
+  .wsh-tr {
+    flex-direction: row-reverse;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .wsh-balance {
+    top: 73%;
+  }
+  .wsh-coach {
+    left: 28%;
+    right: 36%;
+    bottom: calc(54px + var(--sab));
+    align-items: center;
+  }
+  .wsh-coach-text {
+    border-radius: 10px;
+    border-left: 0;
+    border-top: 3px solid var(--red);
+    text-align: center;
+  }
+  .wsh-coach-tag {
+    clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+    padding-left: 13px;
+  }
+}
+
+/* ══════════════════════════════════════════════════ tablets / desktop ══ */
+@media (min-width: 900px) and (min-height: 600px) {
+  .wsh-hud {
+    --big: 1.25;
+  }
+  .wsh-coach {
+    left: 50%;
+    right: auto;
+    width: 0;
+    bottom: calc(96px + var(--sab));
+    align-items: center;
+  }
+  .wsh-coach > * {
+    flex: none;
+  }
+  .wsh-coach-text {
+    width: max-content;
+    font-size: 18px;
+    max-width: 520px;
+  }
+}
+@media (min-width: 1500px) and (min-height: 850px) {
+  .wsh-hud {
+    --big: 1.5;
+  }
+}

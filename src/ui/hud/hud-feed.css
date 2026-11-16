@@ -1,0 +1,690 @@
+/*
+ * HUD centre column: live trick ticker, resolved trick pops, bank fly, bail message, HERO flash,
+ * countdown and toasts. Centring is done with zero-width flex boxes (never translate(-50%)) so the
+ * `.wsh-x` squeeze and the pop animations cannot push anything off-centre.
+ */
+
+/* ───────────────────────────────────────────── live ticker + trick pops ── */
+.wsh-feed {
+  position: absolute;
+  left: 50%;
+  top: 27.5%;
+  width: 0;
+  height: 0;
+  display: flex;
+  justify-content: center;
+  transform-origin: 50% 0;
+  scale: var(--big);
+}
+.wsh-live {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  width: max-content;
+  max-width: 96vw;
+  height: max-content;
+  font-size: 25px;
+  line-height: 29px;
+  text-shadow: var(--shadow);
+}
+.wsh-live-el {
+  display: none;
+  white-space: nowrap;
+}
+.wsh-live-el.is-on {
+  display: block;
+}
+.wsh-live-el.is-on + .wsh-live-el.is-on::before {
+  content: '+';
+  margin: 0 0.3em;
+  color: var(--red-hot);
+}
+.wsh-live-el.is-in {
+  animation: wsh-live-in 0.26s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes wsh-live-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(1.5);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* pops stack upwards from just above the live line: s0 = newest */
+.wsh-pops {
+  position: absolute;
+  left: 0;
+  bottom: 10px;
+  width: 0;
+  height: 0;
+}
+.wsh-pop {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform-origin: 50% 100%;
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1),
+    opacity 0.28s;
+}
+.wsh-pop.s0 {
+  opacity: 1;
+  visibility: visible;
+}
+.wsh-pop.s1 {
+  opacity: 0.6;
+  visibility: visible;
+  transform: translate3d(0, -66px, 0) scale(0.68);
+}
+.wsh-pop.s2 {
+  opacity: 0.28;
+  visibility: visible;
+  transform: translate3d(0, -106px, 0) scale(0.54);
+}
+.wsh-pop.is-out {
+  opacity: 0;
+  transition:
+    opacity 0.4s,
+    transform 0.4s,
+    visibility 0s 0.4s;
+}
+.wsh-pop.s0.is-out {
+  transform: translate3d(0, -14px, 0);
+}
+.wsh-pop-in {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: max-content;
+  max-width: 94vw;
+  transform-origin: 50% 100%;
+}
+.wsh-pop-in.is-in {
+  animation: wsh-pop-in 0.36s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+@keyframes wsh-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(2);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+.wsh-pop-name {
+  font-size: 25px;
+  line-height: 1.04;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow: var(--shadow);
+}
+.wsh-pop-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+.wsh-pop-pts {
+  font-size: 18px;
+  word-spacing: -0.08em;
+  text-shadow: var(--shadow);
+}
+.wsh-pop-tag {
+  padding: 4px 9px 2px 8px;
+  background: #fff;
+  color: var(--ink);
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+.wsh-pop.q-none .wsh-pop-tag {
+  display: none;
+}
+.wsh-pop.q-perfect .wsh-pop-tag {
+  background: var(--gold);
+  color: #241a00;
+}
+.wsh-pop.q-sketchy .wsh-pop-tag {
+  background: var(--amber);
+  color: #2a1200;
+}
+.wsh-pop-stale {
+  display: none;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #c3c7cf;
+  text-shadow: var(--shadow);
+}
+.wsh-pop.is-stale .wsh-pop-stale {
+  display: block;
+}
+
+/* tiers: 0 = bonus line, 1–2 plain, 3 accent, 4–5 brand plate */
+.wsh-pop.t0 .wsh-pop-name {
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.92);
+}
+.wsh-pop.t0 .wsh-pop-pts {
+  font-size: 15px;
+  color: var(--gold);
+}
+.wsh-pop.t1 .wsh-pop-name {
+  font-size: 23px;
+}
+.wsh-pop.t2 .wsh-pop-name {
+  font-size: 27px;
+}
+.wsh-pop.t3 .wsh-pop-name {
+  font-size: 32px;
+  padding-bottom: 4px;
+  background: linear-gradient(var(--red), var(--red)) 50% 100% / 64% 4px no-repeat;
+}
+.wsh-pop.t4 .wsh-pop-name,
+.wsh-pop.t5 .wsh-pop-name {
+  padding: 7px 22px 4px 20px;
+  background: var(--red);
+  clip-path: polygon(11px 0, 100% 0, calc(100% - 11px) 100%, 0 100%);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+}
+.wsh-pop.t4 .wsh-pop-name {
+  font-size: 34px;
+}
+.wsh-pop.t5 .wsh-pop-name {
+  position: relative;
+  font-size: 40px;
+}
+/* shine sweep across the plate of a top-tier trick (clipped by the plate's clip-path) */
+.wsh-pop.t5 .wsh-pop-name::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 36%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0));
+  animation: wsh-shine 0.9s ease-in-out 0.3s 2 both;
+}
+@keyframes wsh-shine {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(430%, 0, 0);
+  }
+}
+.wsh-pop.t3 .wsh-pop-pts {
+  font-size: 20px;
+}
+.wsh-pop.t4 .wsh-pop-pts {
+  font-size: 22px;
+  color: var(--gold);
+}
+.wsh-pop.t5 .wsh-pop-pts {
+  font-size: 25px;
+  color: var(--gold);
+}
+.wsh-pop.is-stale .wsh-pop-name {
+  color: #b9bdc6;
+  background: none;
+  clip-path: none;
+  padding: 0;
+}
+.wsh-pop.is-stale .wsh-pop-name::after {
+  display: none;
+}
+.wsh-pop.is-stale.t4 .wsh-pop-name,
+.wsh-pop.is-stale.t5 .wsh-pop-name {
+  font-size: 30px;
+  text-shadow: var(--shadow);
+}
+.wsh-pop.is-stale .wsh-pop-pts {
+  color: #b9bdc6;
+}
+
+/* ──────────────────────────────────────────── banked amount flies to the score ── */
+.wsh-bankfly {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+}
+.wsh-bankfly > div {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+.wsh-bankfly-label {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  text-shadow: var(--shadow);
+}
+.wsh-bankfly-num {
+  font-size: 46px;
+  word-spacing: -0.08em;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.35),
+    0 0 22px rgba(255, 197, 49, 0.65),
+    0 3px 14px rgba(0, 0, 0, 0.45);
+}
+.wsh-bankfly.is-fly {
+  visibility: visible;
+  animation: wsh-bankfly 1.05s cubic-bezier(0.55, 0, 0.3, 1) both;
+}
+@keyframes wsh-bankfly {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--bx), var(--by), 0) scale(0.5);
+  }
+  13% {
+    opacity: 1;
+    transform: translate3d(var(--bx), var(--by), 0) scale(1.2);
+  }
+  22%,
+  50% {
+    opacity: 1;
+    transform: translate3d(var(--bx), var(--by), 0) scale(1);
+  }
+  94% {
+    opacity: 0.95;
+    transform: translate3d(var(--sx), var(--sy), 0) scale(0.42);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--sx), var(--sy), 0) scale(0.36);
+  }
+}
+
+/* ───────────────────────────────────────────────── bail + burnt combo ── */
+.wsh-center {
+  position: absolute;
+  left: 50%;
+  top: 39%;
+  width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  scale: var(--big);
+}
+.wsh-bail {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  width: max-content;
+  max-width: 94vw;
+  opacity: 0;
+  visibility: hidden;
+}
+.wsh-bail.is-show {
+  visibility: visible;
+  animation: wsh-bail 2.4s both;
+}
+@keyframes wsh-bail {
+  0% {
+    opacity: 0;
+    transform: scale(1.8) rotate(-7deg);
+  }
+  6% {
+    opacity: 1;
+    transform: scale(0.95) rotate(-3deg);
+  }
+  10% {
+    transform: scale(1.03) rotate(-3deg);
+  }
+  13%,
+  84% {
+    opacity: 1;
+    transform: scale(1) rotate(-3deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0) scale(0.96) rotate(-3deg);
+  }
+}
+.wsh-bail-title {
+  padding: 10px 24px 6px 22px;
+  background: var(--red);
+  clip-path: polygon(13px 0, 100% 0, calc(100% - 13px) 100%, 0 100%);
+  font-size: 35px;
+  white-space: nowrap;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+}
+.wsh-bail-sub {
+  padding: 0 12px;
+  font: 600 15px/1.25 var(--font-ui);
+  font-style: italic;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: center;
+  text-shadow: var(--shadow);
+}
+.wsh-lost {
+  flex: none;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: #ffc2c6;
+  text-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+}
+.wsh-lost.is-show {
+  visibility: visible;
+  animation: wsh-lost 2.2s 0.15s both;
+}
+@keyframes wsh-lost {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+  }
+  10%,
+  80% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+}
+
+/* ───────────────────────────────────────────────────────── HERO flash ── */
+.wsh-heroflash {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  opacity: 0;
+  visibility: hidden;
+  scale: var(--big);
+}
+.wsh-heroflash > * {
+  flex: none;
+}
+.wsh-heroflash.is-show {
+  visibility: visible;
+  animation: wsh-heroflash 1.7s both;
+}
+@keyframes wsh-heroflash {
+  0% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+  10% {
+    opacity: 1;
+    transform: scale(0.96);
+  }
+  16%,
+  78% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+.wsh-heroflash-title {
+  padding: 11px 26px 7px 24px;
+  background: #fff;
+  color: var(--red);
+  clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+  font-size: 40px;
+  white-space: nowrap;
+}
+.wsh-heroflash-sub {
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  text-shadow: var(--shadow);
+}
+
+/* ─────────────────────────────────────────────────────────── countdown ── */
+.wsh-count {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: 0;
+  height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 168px;
+  opacity: 0;
+  visibility: hidden;
+  scale: var(--big);
+}
+.wsh-count > span {
+  flex: none;
+  padding: 0 0.12em 0 0.06em;
+  white-space: nowrap;
+  text-shadow:
+    7px 7px 0 var(--red),
+    0 12px 44px rgba(0, 0, 0, 0.5);
+}
+.wsh-count.is-show {
+  visibility: visible;
+  animation: wsh-count 0.95s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.wsh-count.is-go {
+  font-size: 66px;
+}
+.wsh-count.is-go > span {
+  padding: 14px 34px 8px 30px;
+  background: var(--red);
+  clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%);
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.22);
+}
+@keyframes wsh-count {
+  0% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+  16% {
+    opacity: 1;
+    transform: scale(0.93);
+  }
+  26%,
+  72% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────── toasts ── */
+.wsh-toasts {
+  position: absolute;
+  left: 50%;
+  top: calc(66px + var(--sat));
+  width: 0;
+  height: 0;
+  transform-origin: 50% 0;
+  scale: var(--big);
+}
+.wsh-toast {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    transform 0.26s cubic-bezier(0.2, 0.9, 0.3, 1),
+    opacity 0.26s;
+}
+.wsh-toast.s0 {
+  opacity: 1;
+  visibility: visible;
+}
+.wsh-toast.s1 {
+  opacity: 0.92;
+  visibility: visible;
+  transform: translate3d(0, 46px, 0) scale(0.94);
+}
+.wsh-toast.s2 {
+  opacity: 0.6;
+  visibility: visible;
+  transform: translate3d(0, 88px, 0) scale(0.88);
+}
+.wsh-toast.is-out {
+  opacity: 0;
+  transition:
+    opacity 0.3s,
+    transform 0.3s,
+    visibility 0s 0.3s;
+}
+.wsh-toast.s0.is-out {
+  transform: translate3d(0, -12px, 0);
+}
+.wsh-toast-in {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 94vw;
+  padding: 6px 15px 6px 7px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(16, 17, 20, 0.84);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+.wsh-toast-in.is-in {
+  animation: wsh-toast-in 0.42s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes wsh-toast-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -18px, 0) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+.wsh-toast-icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+}
+.wsh-toast-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+.wsh-toast.k-goal .wsh-toast-icon,
+.wsh-toast.k-letters .wsh-toast-icon {
+  background: var(--gold);
+  color: #241a00;
+}
+.wsh-toast-title {
+  font-size: 15px;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+}
+.wsh-hud.is-squeeze .wsh-toast-title {
+  letter-spacing: -0.02em;
+}
+.wsh-toast-sub {
+  margin-top: 2px;
+  font: 600 11px/1.2 var(--font-ui);
+  font-style: normal;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.74);
+}
+.wsh-toast.no-sub .wsh-toast-sub {
+  display: none;
+}
+.wsh-toast-val {
+  margin-left: 3px;
+  font-size: 18px;
+  word-spacing: -0.08em;
+  color: var(--gold);
+}
+.wsh-toast.no-val .wsh-toast-val {
+  display: none;
+}
+
+/* ══════════════════════════════════════════════════ landscape phones ══ */
+@media (orientation: landscape) and (max-height: 540px) {
+  .wsh-feed {
+    top: 33%;
+  }
+  .wsh-live {
+    font-size: 23px;
+    line-height: 26px;
+  }
+  /* no room for a history above the newest pop */
+  .wsh-pop.s1,
+  .wsh-pop.s2 {
+    opacity: 0;
+  }
+  .wsh-center {
+    top: 40%;
+  }
+  .wsh-heroflash {
+    top: 40%;
+  }
+  .wsh-count {
+    top: 46%;
+    font-size: 136px;
+  }
+  .wsh-count.is-go {
+    font-size: 62px;
+  }
+  /* toasts move to the left column under the combo */
+  .wsh-toasts {
+    left: calc(14px + var(--sal));
+    top: calc(96px + var(--sat));
+    transform-origin: 0 0;
+  }
+  .wsh-toast {
+    justify-content: flex-start;
+    transform-origin: 0 0;
+  }
+}

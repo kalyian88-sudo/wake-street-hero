@@ -18,10 +18,11 @@
  *                 (любой грэб), flip, takeoff ('pop' | 'kicker' | 'rail' | 'wall' | 'drop' | 'ledge').
  *
  * Чтобы добавить комбинацию — скопируй любую строку из блока «Именные комбинации», дай новый id,
- * названия, очки и requires. Проценты и надбавки (длинный грэб, свитч, высота, метры на рейле)
- * лежат ниже в TRICK_TUNING, слова для составных названий — в TRICK_WORDS.
+ * названия, очки и requires. Слова для составных названий («Свитч», «через гэп») — в TRICK_WORDS
+ * в конце файла. Проценты и надбавки (длинный грэб, свитч, высота, метры на рейле) лежат рядом,
+ * в src/tricks/trickTuning.ts.
  */
-import type { L10n, RailStance, TrickDef } from '../types';
+import type { L10n, TrickDef } from '../types';
 
 export const TRICKS: TrickDef[] = [
   // ───────────────────────────────────────────────── Вращения / Spins ──
@@ -246,15 +247,6 @@ export const TRICKS: TrickDef[] = [
     difficulty: 2,
     input: { ru: 'В воздухе: ФЛИП, стик в центре. Потом поймай доску: ФЛИП или ПРЫЖОК ещё раз', en: 'In the air: FLIP, stick neutral. Then catch the board: FLIP or JUMP again' },
     tip: { ru: 'Лови, когда доска довернулась под ноги. Не поймал — доска улетела.', en: 'Catch when the board comes round under your feet. Miss it and the board is gone.' },
-  },
-  {
-    id: 'fsShuvit',
-    name: { ru: 'FS шоув-ит', en: 'FS Shuvit' },
-    category: 'flip',
-    boards: ['wakeskate'],
-    points: 220,
-    difficulty: 2,
-    input: { ru: 'В воздухе из свитча: ФЛИП, стик в центре. Потом поймай доску', en: 'In the air from switch: FLIP, stick neutral. Then catch the board' },
   },
   {
     id: 'kickflip',
@@ -511,7 +503,7 @@ export const TRICKS: TrickDef[] = [
   },
 
   // ───────────────────────────────────────────────── Бонусы / Bonuses ──
-  // У бонусов с points: 0 надбавка считается в процентах — см. TRICK_TUNING ниже.
+  // У бонусов с points: 0 надбавка считается в процентах — см. src/tricks/trickTuning.ts.
   {
     id: 'switch',
     name: { ru: 'Свитч', en: 'Switch' },
@@ -594,54 +586,25 @@ export const TRICK_WORDS = {
   wallTime: { ru: 'Время на стене', en: 'Wall Time' },
 } satisfies Record<string, L10n>;
 
-/** Надбавки и проценты. Меняй числа — логика подхватит. */
-export const TRICK_TUNING = {
-  /** Длинный грэб: до +60% к очкам грэба, если держать grabHoldFull секунд. */
-  grabHoldBonus: 0.6,
-  grabHoldFull: 1.0,
-  /** Множитель очков инверта за количество оборотов: 1, дабл, трипл (если для дабла нет своей строки в таблице). */
-  invertCount: [1, 2.6, 4.5],
-  /** То же для флипов вейкскейта (дабл-кикфлип и т.п.). */
-  flipCount: [1, 2.2, 3.6],
-  /** Надбавка за связку разных элементов в одном вылете: 2 элемента +10%, 3 — +25%, 4 и больше — +40%. */
-  stack: [0, 0, 0.1, 0.25, 0.4],
-  /** Вылет из свитча / приземление в свитч. */
-  switchTakeoff: 0.2,
-  switchLanding: 0.1,
-  /** Амплитуда: от heightFrom до heightFull метров набегает до +30%, за время в воздухе — ещё до +15%. */
-  heightFrom: 1.5,
-  heightFull: 4.5,
-  heightBonus: 0.3,
-  airTimeFrom: 0.9,
-  airTimeFull: 2.2,
-  airTimeBonus: 0.15,
-  /** Каждые 180° сверх самого большого спина в таблице. */
-  spinExtraPer180: 800,
-  /** Простой вылет без трюка: очки за метр высоты и потолок. */
-  airPerMetre: 30,
-  airMax: 150,
-  /** Рейлы: очки за метр в каждой стойке. */
-  railPerMetre: { fifty: 40, boardslide: 60, lipslide: 60, nosepress: 50, tailpress: 50 } satisfies Record<RailStance, number>,
-  /** Тип фигуры: перила сложнее, толстая труба проще. */
-  railKind: { rail: 1, ledge: 0.9, pipe: 0.8, handrail: 1.25 },
-  /** Пресс: до +50% к очкам рейла, если держать pressFull секунд. */
-  pressBonus: 0.5,
-  pressFull: 1.0,
-  /** Валлрайд: очки за секунду на стене (не дольше wallMaxTime). */
-  wallPerSecond: 250,
-  wallMaxTime: 3,
-  /** Пороги очков для «уровня» трюка 2, 3, 4, 5 (размер всплывающей надписи, реакция зрителей, повтор). */
-  tiers: [250, 600, 1100, 1900],
-};
-
 /**
- * Флипы, которые складываются в один: кикфлип + шоув-ит за один вылет считается как 360 флип.
- * `into` — id строки таблицы.
+ * Строки «в запасе»: движок знает эти трюки (название и очки нужны, если симуляция их выдаст), но кнопки
+ * на них пока не назначены, поэтому в списке трюков их нет. Назначили управление — перенеси строку в TRICKS.
  */
-export const FLIP_MERGES: { parts: [string, string]; into: string }[] = [{ parts: ['kickflip', 'shuvit'], into: 'treflip' }];
+export const EXTRA_TRICKS: TrickDef[] = [
+  {
+    id: 'fsShuvit',
+    name: { ru: 'FS шоув-ит', en: 'FS Shuvit' },
+    category: 'flip',
+    boards: ['wakeskate'],
+    points: 220,
+    difficulty: 2,
+    input: { ru: 'В воздухе: ФЛИП — доска на 180 в обратную сторону. Потом поймай доску', en: 'In the air: FLIP — the board turns 180 the other way. Then catch the board' },
+  },
+];
 
-const BY_ID = new Map<string, TrickDef>(TRICKS.map((t) => [t.id, t]));
+const BY_ID = new Map<string, TrickDef>([...EXTRA_TRICKS, ...TRICKS].map((t) => [t.id, t]));
 
+/** Row by id (also finds the EXTRA_TRICKS rows). */
 export function getTrick(id: string): TrickDef | undefined {
-  return BY_ID.get(id) ?? TRICKS.find((t) => t.id === id);
+  return BY_ID.get(id);
 }

@@ -1,6 +1,6 @@
 /**
  * resolveTrick — turns a raw TrickRecord from the sim into a name (RU + EN), table ids and base points.
- * Pure and headless. All numbers and words come from src/data/tricks.ts.
+ * Pure and headless. Names, words and base points come from src/data/tricks.ts, bonuses from ./trickTuning.ts.
  *
  * NAMING
  *  - air:     [Switch] [FS/BS] <spin> <invert> <flip> <shifty> <grab(s)> [over the Gap]
@@ -19,7 +19,8 @@
  * goals match against it. `id` is the headline (most specific) one. `elements` = how much the combo
  * multiplier grows (0 for a plain air / ollie).
  */
-import { FLIP_MERGES, TRICKS, TRICK_TUNING as T, TRICK_WORDS as W, getTrick } from '../data/tricks';
+import { TRICKS, TRICK_WORDS as W, getTrick } from '../data/tricks';
+import { FLIP_MERGES, TRICK_TUNING as T } from './trickTuning';
 import type { GrabId, InvertId, L10n, RailStance, ResolvedTrick, TrickDef, TrickPart, TrickRecord } from '../types';
 
 type Requires = NonNullable<TrickDef['requires']>;
@@ -334,7 +335,7 @@ function resolveAir(rec: TrickRecord): ResolvedTrick {
   }
   if (rec.switchLanding) parts.push({ id: 'switchLanding', name: W.switchLanding, points: coreSum * T.switchLanding });
   const amp = T.heightBonus * ramp(rec.height, T.heightFrom, T.heightFull) + T.airTimeBonus * ramp(rec.airTime, T.airTimeFrom, T.airTimeFull);
-  if (amp >= 0.02) {
+  if (amp >= T.bigAirMin) {
     parts.push({ id: 'bigAir', name: row('bigAir').name, points: coreSum * amp });
     ids.add('bigAir');
   }
