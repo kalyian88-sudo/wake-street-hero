@@ -1069,3 +1069,131 @@
 .wn-hub__endless-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .wn-hub__endless-text b { font-size: 20px; letter-spacing: 0.02em; text-transform: uppercase; font-style: italic; }
 .wn-hub__endless-text small { font: 600 12px/1.25 system-ui, sans-serif; opacity: 0.9; }
+
+/* ── 3D key-art splash: the riders are the 3D backdrop, the DOM only adds type ── */
+.wn-splash.wn-splash--3d {
+  background: transparent;
+}
+.wn-splash--3d .wn-splash__glow {
+  background:
+    linear-gradient(180deg, rgba(8, 9, 12, 0.55) 0%, rgba(8, 9, 12, 0) 18%, rgba(8, 9, 12, 0) 52%, rgba(8, 9, 12, 0.72) 74%, rgba(8, 9, 12, 0.94) 100%);
+}
+.wn-splash__top {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.wn-splash--3d .wn-splash__logo {
+  width: min(34vw, 30vh, 170px);
+}
+.wn-splash--3d .wn-splash__kicker {
+  margin: 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.78);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+.wn-splash__hero {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0.84;
+  font-family: var(--font-head);
+  font-style: italic;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: #fff;
+  transform: skewX(-6deg);
+}
+.wn-splash__hero span {
+  display: block;
+  position: relative;
+  text-shadow: 0 6px 0 rgba(0, 0, 0, 0.35), 0 18px 40px rgba(0, 0, 0, 0.7);
+  animation: wn-hero-in 0.7s cubic-bezier(0.15, 0.9, 0.2, 1.1) both;
+}
+.wn-splash__w1 {
+  font-size: clamp(54px, 20vw, 132px);
+  animation-delay: 0.1s !important;
+}
+.wn-splash__w2 {
+  font-size: clamp(46px, 17vw, 112px);
+  color: transparent;
+  -webkit-text-stroke: 2px #fff;
+  text-shadow: none !important;
+  animation-delay: 0.22s !important;
+}
+.wn-splash__w3 {
+  font-size: clamp(62px, 23vw, 152px);
+  background: linear-gradient(180deg, #ff3b3b 0%, var(--red) 55%, #9a0410 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 8px 22px rgba(227, 6, 19, 0.45));
+  text-shadow: none !important;
+  animation-delay: 0.34s !important;
+}
+.wn-splash--3d .wn-splash__mark {
+  position: absolute;
+  right: -0.32em;
+  top: -0.22em;
+  width: 0.42em;
+  transform: rotate(14deg);
+}
+.wn-splash--3d .wn-splash__tagline {
+  margin-top: 16px;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+.wn-splash--3d .wn-splash__cta {
+  margin-top: 8px;
+  padding: 18px 0 22px;
+}
+@keyframes wn-hero-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-60px, 0, 0) skewX(-18deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wn-splash__hero span { animation: none; }
+}
+@media (min-aspect-ratio: 1/1) {
+  .wn-splash.wn-splash--3d {
+    align-items: flex-start;
+    padding-left: calc(var(--sal) + 6vw);
+  }
+  .wn-splash--3d .wn-splash__glow {
+    background: linear-gradient(90deg, rgba(8, 9, 12, 0.88) 0%, rgba(8, 9, 12, 0.55) 34%, rgba(8, 9, 12, 0) 58%);
+  }
+  .wn-splash--3d .wn-splash__top,
+  .wn-splash--3d .wn-splash__brand,
+  .wn-splash--3d .wn-splash__cta {
+    align-items: flex-start;
+    text-align: left;
+    max-width: 44vw;
+  }
+  .wn-splash--3d .wn-splash__brand { margin-top: auto; }
+  .wn-splash--3d .wn-splash__hero { align-items: flex-start; }
+  .wn-splash--3d .wn-splash__w1 { font-size: clamp(54px, 9vw, 150px); }
+  .wn-splash--3d .wn-splash__w2 { font-size: clamp(46px, 7.6vw, 128px); }
+  .wn-splash--3d .wn-splash__w3 { font-size: clamp(62px, 10.4vw, 172px); }
+}
+/* logo sits right above the title so the riders own the top of the screen */
+.wn-splash--3d .wn-splash__top {
+  flex-direction: row;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.wn-splash--3d .wn-splash__top .wn-splash__logo {
+  width: clamp(58px, 17vw, 96px);
+}
+@media (max-aspect-ratio: 1/1) {
+  .wn-splash--3d .wn-splash__kicker { display: none; }
+}

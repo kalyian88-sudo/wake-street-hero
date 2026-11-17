@@ -44,14 +44,10 @@ export class SplashScreen extends Screen {
     // Language switch must not start the game.
     lang.el.addEventListener('click', (ev) => ev.stopPropagation());
 
-    const row = 'WHY NOT · WAKE STREET HERO · ';
-    const marquee = h('div', { class: 'wn-splash__marquee', 'aria-hidden': 'true' });
-    for (let i = 0; i < 9; i++) marquee.appendChild(h('span', { style: `--r:${i}` }, row.repeat(4)));
-
     return h(
       'div',
       {
-        class: 'wn-splash wn-panel',
+        class: 'wn-splash wn-splash--3d wn-panel',
         role: 'button',
         tabindex: '0',
         'aria-label': t('ui.splash.tap'),
@@ -60,18 +56,39 @@ export class SplashScreen extends Screen {
           if (ev.key === 'Enter' || ev.key === ' ') this.start();
         },
       },
-      h('div', { class: 'wn-splash__bg', 'aria-hidden': 'true' }, marquee, h('div', { class: 'wn-splash__slash' }), h('div', { class: 'wn-splash__glow' })),
+      h('div', { class: 'wn-splash__bg', 'aria-hidden': 'true' }, h('div', { class: 'wn-splash__glow' })),
       h(
         'div',
         { class: 'wn-splash__brand' },
-        h('div', { class: 'wn-splash__kicker wn-kicker' }, t('ui.splash.kicker')),
         h(
           'div',
-          { class: 'wn-splash__logos' },
-          h('img', { class: 'wn-splash__logo', src: brandImageUrl('whynot'), alt: 'WHY NOT', draggable: 'false' }),
-          h('img', { class: 'wn-splash__mark', src: brandImageUrl('mark'), alt: '', 'aria-hidden': 'true', draggable: 'false' }),
+          { class: 'wn-splash__top' },
+          h('img', {
+            class: 'wn-splash__logo',
+            src: brandImageUrl('whynot'),
+            alt: 'WHY NOT',
+            draggable: 'false',
+          }),
+          h('div', { class: 'wn-splash__kicker wn-kicker' }, t('ui.splash.kicker')),
         ),
-        h('div', { class: 'wn-splash__title' }, h('i'), h('span', { class: 'wn-hd' }, 'Wake Street Hero'), h('i')),
+        h(
+          'h1',
+          { class: 'wn-splash__hero', 'aria-label': 'Wake Street Hero' },
+          h('span', { class: 'wn-splash__w1' }, 'WAKE'),
+          h('span', { class: 'wn-splash__w2' }, 'STREET'),
+          h(
+            'span',
+            { class: 'wn-splash__w3' },
+            h('img', {
+              class: 'wn-splash__mark',
+              src: brandImageUrl('mark'),
+              alt: '',
+              'aria-hidden': 'true',
+              draggable: 'false',
+            }),
+            'HERO',
+          ),
+        ),
         h('p', { class: 'wn-splash__tagline' }, t('ui.splash.tagline')),
       ),
       h('div', { class: 'wn-splash__cta' }, h('span', { class: 'wn-splash__ring' }), h('span', { class: 'wn-hd' }, t('ui.splash.tap'))),
