@@ -340,7 +340,7 @@ function skylineMiami(def: PropDef, ctx: PropContext): void {
     const hue = pick(rng, [[0x5aa8c8, 0x8ecbe0], [0x4a90b8, 0x7ab8d4], [0x6ab0b8, 0x9ad0d4], [0xd8eaf4, 0xb0cfe0], [0x3c7aa0, 0x6aa8c8]]);
     const bands = Math.max(4, Math.round(h / 4));
     for (let b = 0; b < bands; b++) {
-      glass.color(hue[b & 1], 0.85 + (b / bands) * 0.3).boxB(x, (h * b) / bands, z, w, h / bands, d, b === bands - 1 ? '' : 'yY');
+      glass.color(hue[b & 1], 0.62 + (b / bands) * 0.25).boxB(x, (h * b) / bands, z, w, h / bands, d, b === bands - 1 ? '' : 'yY');
     }
     if (i % 4 === 1) {
       glass.color(0xe8f0f4).boxB(x, h, z, w * 0.5, 7, d * 0.5);
