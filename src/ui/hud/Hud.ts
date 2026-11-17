@@ -137,14 +137,14 @@ class Hud implements IHud {
     const goal = spot.goals.find((g) => g.type === 'trick');
     if (goal && goal.type === 'trick' && this.runCount % 2 === 1) {
       const def = getTrick(goal.trickId);
-      if (def) text = `${l(def.name)}: ${l(def.input)}`;
+      if (def) text = `${l(def.name)} — ${l(def.input)}`;
     }
     if (!text) {
       const n = 12;
       const i = ((this.runCount * 7 + Math.floor(Math.random() * n)) % n) + 1;
       text = t(`hud.tip.${i}`);
     }
-    this.tipText = `${t('hud.tip.title')} · ${text}`;
+    this.tipText = text;
     this.tipLeft = 7;
     this.setHint(this.tipText);
   }
