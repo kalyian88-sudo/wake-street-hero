@@ -24,6 +24,7 @@
  *
  * To add v4: bump SAVE_VERSION in src/config.ts, add `3: v3ToV4` to MIGRATIONS and extend sanitize().
  */
+import { LANG_IDS } from '../i18n/langs';
 import { DEFAULT_APPEARANCE, DEFAULT_SETTINGS, HAIR_COLORS, SAVE_VERSION, SKIN_TONES, STARTER_GEAR } from '../config';
 import type { EquippedGear, L10n, RiderAppearance, SaveData, Settings, SpotProgress } from '../types';
 
@@ -210,7 +211,7 @@ function sanitizeSettings(raw: unknown): Settings {
   const s = dict(raw);
   const d = DEFAULT_SETTINGS;
   return {
-    lang: oneOf(s.lang, ['ru', 'en', 'auto'] as const, d.lang),
+    lang: oneOf(s.lang, [...LANG_IDS, 'auto'] as const, d.lang),
     quality: oneOf(s.quality, ['auto', 'low', 'medium', 'high'] as const, d.quality),
     musicVolume: num(s.musicVolume, d.musicVolume, 0, 1),
     sfxVolume: num(s.sfxVolume, d.sfxVolume, 0, 1),

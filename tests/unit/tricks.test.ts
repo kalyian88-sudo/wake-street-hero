@@ -242,7 +242,7 @@ describe('trick table — used by the spots', () => {
       ...(['shuvit', 'kickflip', 'heelflip', 'impossible', 'treflip'] as const).map((id) => ({ board: 'wakeskate' as const, flips: [{ id, count: 1 }] })),
       { board: 'wakeskate', spinDeg: 180, flips: [{ id: 'shuvit', count: 1 }] },
       { board: 'wakeskate', boneless: true },
-      ...(['fifty', 'boardslide', 'lipslide', 'noseslide', 'tailslide', 'nosepress', 'tailpress'] as const).map((st) => ({ context: 'rail' as const, rail: { obstacleId: 'r', kind: 'rail' as const, stances: [st], distance: 5, pressTime: 0.5 } })),
+      ...(['fifty', 'boardslide', 'lipslide', 'noseslide', 'tailslide', 'noseblunt', 'tailblunt', 'nosepress', 'tailpress'] as const).map((st) => ({ context: 'rail' as const, rail: { obstacleId: 'r', kind: 'rail' as const, stances: [st], distance: 5, pressTime: 0.5 } })),
       { context: 'wall', wall: { time: 1 } },
       { context: 'surface', spinDeg: 180 },
     ];

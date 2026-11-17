@@ -11,10 +11,30 @@
  * emitting 'lang:changed' on the event bus.
  */
 import type { II18n, L10n, Lang } from '../types';
+import { applyDataTranslations } from './dataText';
+import dataDe from './data/de.json';
+import dataEs from './data/es.json';
+import dataFr from './data/fr.json';
+import dataIt from './data/it.json';
+import dataJa from './data/ja.json';
+import dataPl from './data/pl.json';
+import dataPt from './data/pt.json';
+import dataTh from './data/th.json';
+import deDict from './de.json';
 import enDict from './en.json';
+import esDict from './es.json';
+import frDict from './fr.json';
+import itDict from './it.json';
+import jaDict from './ja.json';
+import { isLang } from './langs';
+import plDict from './pl.json';
+import ptDict from './pt.json';
 import ruDict from './ru.json';
+import thDict from './th.json';
 
 const RU_LIKE = ['ru', 'uk', 'be', 'kk'];
+type Dict = Record<string, string>;
+const DATA: Partial<Record<Lang, Dict>> = { fr: dataFr, de: dataDe, pl: dataPl, pt: dataPt, es: dataEs, it: dataIt, th: dataTh, ja: dataJa };
 
 /**
  * Language of the device: 'ru' for Russian and the neighbouring languages whose speakers read Russian
@@ -25,7 +45,7 @@ export function detectLang(): Lang {
     const search = (globalThis as { location?: { search?: string } }).location?.search;
     if (search) {
       const forced = new URLSearchParams(search).get('lang');
-      if (forced === 'ru' || forced === 'en') return forced;
+      if (isLang(forced)) return forced;
     }
   } catch {
     /* no URL available */
@@ -37,10 +57,15 @@ export function detectLang(): Lang {
     tag = '';
   }
   const primary = tag.toLowerCase().split(/[-_]/)[0];
-  return RU_LIKE.includes(primary) ? 'ru' : 'en';
+  if (RU_LIKE.includes(primary)) return 'ru';
+  if (primary === 'gl' || primary === 'ca') return 'es';
+  return isLang(primary) ? primary : 'en';
 }
 
-/** Index of the plural form for `n`: ru → 0 one, 1 few, 2 many; en → 0 one, 1 other. */
+/**
+ * Index of the plural form for `n`. Forms in a value are ordered like CLDR categories:
+ * ru / pl → one|few|many, most others → one|other, th / ja → a single form.
+ */
 export function pluralIndex(lang: Lang, n: number): number {
   const abs = Math.abs(n);
   if (lang === 'ru') {
@@ -51,6 +76,15 @@ export function pluralIndex(lang: Lang, n: number): number {
     if (d10 >= 2 && d10 <= 4 && (d100 < 12 || d100 > 14)) return 1;
     return 2;
   }
+  if (lang === 'pl') {
+    if (!Number.isInteger(abs)) return 1;
+    if (abs === 1) return 0;
+    const d10 = abs % 10;
+    const d100 = abs % 100;
+    return d10 >= 2 && d10 <= 4 && (d100 < 12 || d100 > 14) ? 1 : 2;
+  }
+  if (lang === 'th' || lang === 'ja') return 0;
+  if (lang === 'fr' || lang === 'pt') return abs < 2 ? 0 : 1;
   return abs === 1 ? 0 : 1;
 }
 
@@ -74,10 +108,31 @@ function interpolate(template: string, params: Record<string, string | number>):
 
 class I18n implements II18n {
   private current: Lang = detectLang();
-  private readonly dicts: Record<Lang, Record<string, string>> = {
-    ru: { ...(ruDict as Record<string, string>) },
-    en: { ...(enDict as Record<string, string>) },
+  private readonly dicts: Record<Lang, Dict> = {
+    ru: { ...(ruDict as Dict) },
+    en: { ...(enDict as Dict) },
+    fr: { ...(frDict as Dict) },
+    de: { ...(deDict as Dict) },
+    pl: { ...(plDict as Dict) },
+    pt: { ...(ptDict as Dict) },
+    es: { ...(esDict as Dict) },
+    it: { ...(itDict as Dict) },
+    th: { ...(thDict as Dict) },
+    ja: { ...(jaDict as Dict) },
   };
+  private readonly dataApplied = new Set<Lang>();
+
+  constructor() {
+    this.loadData(this.current);
+  }
+
+  /** Fill the data texts (tricks, gear, spots…) of a language the first time it is used. */
+  private loadData(lang: Lang): void {
+    if (this.dataApplied.has(lang)) return;
+    this.dataApplied.add(lang);
+    const d = DATA[lang];
+    if (d) applyDataTranslations(lang, d);
+  }
   private readonly listeners = new Set<(lang: Lang) => void>();
   private readonly warned = new Set<string>();
 
@@ -86,8 +141,9 @@ class I18n implements II18n {
   }
 
   setLang(lang: Lang): void {
-    if (lang !== 'ru' && lang !== 'en') return;
+    if (!isLang(lang)) return;
     if (lang === this.current) return;
+    this.loadData(lang);
     this.current = lang;
     try {
       if (typeof document !== 'undefined') document.documentElement.lang = lang;
@@ -106,8 +162,8 @@ class I18n implements II18n {
   t(key: string, params?: Record<string, string | number>): string {
     let template = this.dicts[this.current][key];
     if (template === undefined) {
-      // Untranslated in the current language: better the other language than a raw key.
-      template = this.dicts[this.current === 'ru' ? 'en' : 'ru'][key];
+      // Untranslated in the current language: English, then Russian, before a raw key.
+      template = this.dicts.en[key] ?? this.dicts.ru[key];
       if (isDev() && !this.warned.has(`${this.current}:${key}`)) {
         this.warned.add(`${this.current}:${key}`);
         console.warn(`[i18n] missing "${key}" for "${this.current}"`);
@@ -129,7 +185,7 @@ class I18n implements II18n {
 
   /** True when the key exists in the current language (or the fallback one). */
   has(key: string): boolean {
-    return key in this.dicts.ru || key in this.dicts.en;
+    return key in this.dicts[this.current] || key in this.dicts.en || key in this.dicts.ru;
   }
 
   onChange(cb: (lang: Lang) => void): () => void {
@@ -140,8 +196,10 @@ class I18n implements II18n {
   }
 
   extend(lang: Lang, dict: Record<string, string>): void {
-    if (lang !== 'ru' && lang !== 'en') return;
-    Object.assign(this.dicts[lang], dict);
+    if (!isLang(lang)) return;
+    // Module strings never overwrite a translation already shipped in the main file of the language.
+    const target = this.dicts[lang];
+    for (const k in dict) if (!(k in target) || lang === 'ru' || lang === 'en') target[k] = dict[k];
   }
 }
 

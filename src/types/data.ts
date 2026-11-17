@@ -11,11 +11,20 @@
  *  - Colours in data are 0xRRGGBB numbers.
  */
 
-export type Lang = 'ru' | 'en';
-/** Localised text used in data files. */
+/** Interface languages. Russian and English are written in the data files; the others come from src/i18n/<lang>.json + src/i18n/data/<lang>.json. */
+export type Lang = 'ru' | 'en' | 'fr' | 'de' | 'pl' | 'pt' | 'es' | 'it' | 'th' | 'ja';
+/** Localised text used in data files (ru + en required; other languages are filled in at start-up). */
 export interface L10n {
   ru: string;
   en: string;
+  fr?: string;
+  de?: string;
+  pl?: string;
+  pt?: string;
+  es?: string;
+  it?: string;
+  th?: string;
+  ja?: string;
 }
 
 export type BoardKind = 'wakeboard' | 'wakeskate';
@@ -387,7 +396,7 @@ export interface RiderLook {
 export type GrabId = 'indy' | 'melon' | 'tail' | 'nose' | 'mute' | 'stalefish';
 export type InvertId = 'backroll' | 'frontroll' | 'tantrum' | 'raley';
 export type FlipId = 'shuvit' | 'fsShuvit' | 'kickflip' | 'heelflip' | 'treflip' | 'impossible' | 'bigspin';
-export type RailStance = 'fifty' | 'boardslide' | 'lipslide' | 'noseslide' | 'tailslide' | 'nosepress' | 'tailpress';
+export type RailStance = 'fifty' | 'boardslide' | 'lipslide' | 'noseslide' | 'tailslide' | 'noseblunt' | 'tailblunt' | 'nosepress' | 'tailpress';
 
 export type TrickCategory = 'spin' | 'invert' | 'grab' | 'flip' | 'rail' | 'surface' | 'special' | 'bonus';
 

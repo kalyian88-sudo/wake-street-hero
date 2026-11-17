@@ -63,6 +63,10 @@ class Hud implements IHud {
   private needLayout = true;
   private spot: SpotDef | null = null;
   private hintIds: ButtonId[] = [];
+  /** Start-of-run tip: seconds left on screen (0 = none shown by us). */
+  private tipLeft = 0;
+  private tipText = '';
+  private runCount = 0;
   private resizeObserver: ResizeObserver | null = null;
 
   constructor(private readonly deps: HudDeps) {
@@ -121,6 +125,28 @@ class Hud implements IHud {
     this.controls.bind(true);
     this.deps.input.bindButton('pause', this.top.pauseEl);
     this.applyHighlights();
+    if (cfg.mode !== 'tutorial') this.showStartTip(spot);
+  }
+
+  /** A short "how to" tip at the start of each run: the spot's trick goal every other run, otherwise a rotating general tip. */
+  private showStartTip(spot: SpotDef): void {
+    const t = this.ctx.t;
+    const l = this.ctx.l;
+    this.runCount++;
+    let text = '';
+    const goal = spot.goals.find((g) => g.type === 'trick');
+    if (goal && goal.type === 'trick' && this.runCount % 2 === 1) {
+      const def = getTrick(goal.trickId);
+      if (def) text = `${l(def.name)}: ${l(def.input)}`;
+    }
+    if (!text) {
+      const n = 12;
+      const i = ((this.runCount * 7 + Math.floor(Math.random() * n)) % n) + 1;
+      text = t(`hud.tip.${i}`);
+    }
+    this.tipText = `${t('hud.tip.title')} · ${text}`;
+    this.tipLeft = 7;
+    this.setHint(this.tipText);
   }
 
   hide(): void {
@@ -147,9 +173,21 @@ class Hud implements IHud {
     this.feed.update(state, view.countdown, realDt);
     this.toasts.update(realDt);
     this.controls.update(state, score);
+    if (this.tipLeft > 0) {
+      // the tip stays through the countdown and fades a few seconds into the run
+      if (view.countdown === null) this.tipLeft -= realDt;
+      if (this.tipLeft <= 0) {
+        this.tipLeft = 0;
+        if (this.gaugesHint === this.tipText) this.setHint(null);
+      }
+    }
   }
 
+  private gaugesHint: string | null = null;
+
   setHint(text: string | null, highlight?: ButtonId[]): void {
+    this.gaugesHint = text;
+    if (text !== this.tipText) this.tipLeft = 0;
     this.gauges.setHint(text);
     this.clearHighlights();
     this.hintIds = text !== null && highlight ? highlight.slice() : [];

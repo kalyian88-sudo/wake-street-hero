@@ -148,6 +148,10 @@ function stanceYaw(stance: RailStance): number {
     case 'lipslide':
     case 'tailslide':
       return -HALF;
+    case 'noseblunt':
+      return HALF;
+    case 'tailblunt':
+      return -HALF;
     default:
       return 0;
   }
@@ -163,7 +167,7 @@ function setStance(c: SimCore, stance: RailStance): void {
   c.bus.emit('sim:railStance', { stance });
 }
 
-const STANCE_DIFFICULTY: Record<RailStance, number> = { fifty: 1, boardslide: 1.3, lipslide: 1.35, noseslide: 1.45, tailslide: 1.4, nosepress: 1.2, tailpress: 1.2 };
+const STANCE_DIFFICULTY: Record<RailStance, number> = { fifty: 1, boardslide: 1.3, lipslide: 1.35, noseslide: 1.45, tailslide: 1.4, noseblunt: 1.6, tailblunt: 1.55, nosepress: 1.2, tailpress: 1.2 };
 
 export function stepRail(c: SimCore, dt: number): void {
   const s = c.state;
@@ -183,7 +187,7 @@ export function stepRail(c: SimCore, dt: number): void {
   let tx = ((line.px[i + 1] - line.px[i]) / len) * run.dir;
   let ty = ((line.py[i + 1] - line.py[i]) / len) * run.dir;
   let tz = ((line.pz[i + 1] - line.pz[i]) / len) * run.dir;
-  const pressing = rs.stance === 'nosepress' || rs.stance === 'tailpress';
+  const pressing = rs.stance === 'nosepress' || rs.stance === 'tailpress' || rs.stance === 'noseblunt' || rs.stance === 'tailblunt';
   const sliding = rs.stance === 'boardslide' || rs.stance === 'lipslide' || rs.stance === 'noseslide' || rs.stance === 'tailslide';
   const friction = line.friction * (pressing ? 1.5 : sliding ? 1.25 : 1);
   const accel = c.rope.ax * tx + c.rope.az * tz - friction - gravityAt(9) * SIM.railSlopeGravity * ty;
@@ -242,8 +246,14 @@ export function stepRail(c: SimCore, dt: number): void {
     else if (ay >= thr) want = inp.pitch > 0 ? 'noseslide' : 'tailslide';
     setStance(c, want === rs.stance ? 'fifty' : want);
   }
+  // hold GRAB: the stick at the moment of the press picks ↑ nose press · ↓ tail press · ← nose blunt ·
+  // → tail blunt (neutral = nose press). While held the stick is free again for balance (↑/↓ may still swap presses).
   if (inp.grab.down && !sliding) {
-    const want: RailStance = inp.pitch < -0.3 ? 'tailpress' : inp.pitch > 0.3 ? 'nosepress' : rs.stance === 'tailpress' ? 'tailpress' : 'nosepress';
+    const ax = Math.abs(inp.steer);
+    const ay = Math.abs(inp.pitch);
+    let want: RailStance = rs.stance === 'fifty' ? 'nosepress' : rs.stance;
+    if (inp.grab.pressed && ax >= 0.3 && ax >= ay) want = inp.steer < 0 ? 'noseblunt' : 'tailblunt';
+    else if (ay >= 0.3 && ay > ax && (rs.stance === 'nosepress' || rs.stance === 'tailpress' || rs.stance === 'fifty')) want = inp.pitch > 0 ? 'nosepress' : 'tailpress';
     setStance(c, want);
     run.pressTime += dt;
   } else if (pressing && !inp.grab.down) setStance(c, 'fifty');

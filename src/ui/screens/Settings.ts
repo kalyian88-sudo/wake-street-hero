@@ -2,7 +2,8 @@ import { version } from '../../../package.json';
 import { BRAND } from '../../config';
 import { i18n, t } from '../../i18n/i18n';
 import type { Lang, QualitySetting, SaveData, Stance } from '../../types';
-import { button, segmented, slider, toggle } from '../components/basic';
+import { LANGS } from '../../i18n/langs';
+import { button, segmented, select, slider, toggle } from '../components/basic';
 import { caption, header } from '../components/game';
 import type { UICtx } from '../context';
 import { h, type Child } from '../dom';
@@ -74,13 +75,12 @@ export class SettingsScreen extends Screen {
       return h('div', { class: 'wn-set__slider' }, ctl.el, out);
     };
 
-    const lang = segmented<Lang>(
-      [
-        { value: 'ru', label: 'Русский' },
-        { value: 'en', label: 'English' },
-      ],
+    const lang = select<Lang>(
+      LANGS.map((x) => ({ value: x.id, label: x.label })),
       i18n.lang,
       (v) => this.ctx.setLang(v),
+      undefined,
+      'Language',
     );
 
     const stance = segmented<Stance>(

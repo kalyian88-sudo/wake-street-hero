@@ -2,7 +2,8 @@ import { version } from '../../../package.json';
 import { BRAND } from '../../config';
 import { i18n, t } from '../../i18n/i18n';
 import type { Lang } from '../../types';
-import { segmented } from '../components/basic';
+import { LANGS } from '../../i18n/langs';
+import { select } from '../components/basic';
 import { wordmark } from '../components/game';
 import type { UICtx } from '../context';
 import { h, type Child } from '../dom';
@@ -33,14 +34,12 @@ export class SplashScreen extends Screen {
   }
 
   protected build(): Child {
-    const lang = segmented<Lang>(
-      [
-        { value: 'ru', label: 'RU' },
-        { value: 'en', label: 'EN' },
-      ],
+    const lang = select<Lang>(
+      LANGS.map((x) => ({ value: x.id, label: `${x.short} · ${x.label}` })),
       i18n.lang,
       (v) => this.ctx.setLang(v),
-      'wn-seg--quiet wn-splash__lang',
+      'wn-select--quiet wn-splash__lang',
+      'Language',
     );
     // Language switch must not start the game.
     lang.el.addEventListener('click', (ev) => ev.stopPropagation());

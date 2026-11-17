@@ -255,7 +255,7 @@ describe('migrate — current version, garbage and future saves', () => {
       version: 3,
       coins: -50,
       rep: Infinity,
-      settings: { musicVolume: 7, sfxVolume: -1, quality: 'ultra', stance: 'sideways', haptics: 'yes', lang: 'de' },
+      settings: { musicVolume: 7, sfxVolume: -1, quality: 'ultra', stance: 'sideways', haptics: 'yes', lang: 'xx' },
       appearance: { skin: 99, hairColor: -4, gender: 'robot', vest: 1 },
       stats: { totalRuns: 3.7, totalFalls: -2, tricksLanded: { backroll: 4, indy: 'many', bad: -1 } },
       last: { power: 'ludicrous', cityId: 5, spotId: 'phuket_oldtown' },

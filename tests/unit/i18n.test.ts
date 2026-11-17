@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '../../src/i18n/en.json';
 import { detectLang, i18n, l, plural, pluralIndex, t } from '../../src/i18n/i18n';
+import type { Lang } from '../../src/types';
 import ru from '../../src/i18n/ru.json';
 
 const ruDict = ru as Record<string, string>;
@@ -181,7 +182,7 @@ describe('i18n', () => {
     i18n.setLang('en');
     expect(cb).toHaveBeenCalledTimes(1);
     expect(cb).toHaveBeenLastCalledWith('en');
-    i18n.setLang('de' as never);
+    i18n.setLang('xx' as never);
     expect(i18n.lang).toBe('en');
     off();
     i18n.setLang('ru');
@@ -205,7 +206,7 @@ describe('i18n', () => {
 describe('detectLang', () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  const cases: [string, 'ru' | 'en'][] = [
+  const cases: [string, Lang][] = [
     ['ru', 'ru'],
     ['ru-RU', 'ru'],
     ['RU-ru', 'ru'],
@@ -214,9 +215,12 @@ describe('detectLang', () => {
     ['kk-KZ', 'ru'],
     ['en-US', 'en'],
     ['en', 'en'],
-    ['de-DE', 'en'],
-    ['fr', 'en'],
-    ['th-TH', 'en'],
+    ['de-DE', 'de'],
+    ['fr', 'fr'],
+    ['th-TH', 'th'],
+    ['pt-BR', 'pt'],
+    ['ja', 'ja'],
+    ['ko-KR', 'en'],
     ['rup', 'en'],
     ['', 'en'],
   ];

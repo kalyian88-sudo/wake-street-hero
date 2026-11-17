@@ -667,14 +667,26 @@ export class Animator {
     let fold = wrapAngle(along);
     if (fold > HALF_PI) fold -= Math.PI;
     else if (fold <= -HALF_PI) fold += Math.PI;
-    if (stance === 'boardslide' || stance === 'lipslide' || stance === 'noseslide' || stance === 'tailslide') {
+    const blunt = stance === 'noseblunt' || stance === 'tailblunt';
+    if (stance === 'boardslide' || stance === 'lipslide' || stance === 'noseslide' || stance === 'tailslide' || blunt) {
       if (Math.abs(fold) > Math.PI / 4) {
         // the sim already turned the board across: only square it up
         T.wYaw = fold - Math.sign(fold) * HALF_PI;
       } else {
-        T.wYaw = fold + (stance === 'boardslide' || stance === 'noseslide' ? 1 : -1) * m * HALF_PI;
+        T.wYaw = fold + (stance === 'boardslide' || stance === 'noseslide' || stance === 'noseblunt' ? 1 : -1) * m * HALF_PI;
       }
-      if (stance === 'noseslide' || stance === 'tailslide') {
+      if (blunt) {
+        // the end is locked over the rail, the board stands up steeply, the rider stacked over that end
+        const nose = stance === 'noseblunt' ? 1 : -1;
+        const half = this.spec.kind === 'wakeboard' ? 0.62 : 0.5;
+        T.bZ = -nose * half;
+        T.bPivot = nose * half;
+        T.bPitch = -nose * 0.95;
+        T.hipZ = nose * 0.3;
+        T.hipY -= 0.1;
+        T.pRoll = -nose * 0.18;
+        T.kneeOut = 0.3;
+      } else if (stance === 'noseslide' || stance === 'tailslide') {
         // only the nose (tail) sits on the rail: the board slides back (forward) along itself,
         // weight over that end, the free end tipped up a little
         const nose = stance === 'noseslide' ? 1 : -1;

@@ -5,6 +5,7 @@
  *   ?lang=ru|en                 overrides the saved language
  *   ?spot=<id>&winch=<id>&board=wakeboard|wakeskate&power=slow|medium|fast&mode=career|free|tutorial&autostart
  */
+import { LANG_IDS } from '../i18n/langs';
 import type { BoardKind, Lang, PowerLevel, QualitySetting, RunConfig } from '../types';
 
 export interface UrlParams {
@@ -28,7 +29,7 @@ export function readUrlParams(search: string = typeof location !== 'undefined' ?
   return {
     debug: q.has('debug') && q.get('debug') !== '0',
     quality: oneOf(q.get('quality'), ['auto', 'low', 'medium', 'high'] as const),
-    lang: oneOf(q.get('lang'), ['ru', 'en'] as const),
+    lang: oneOf(q.get('lang'), LANG_IDS),
     spot: q.get('spot'),
     winch: q.get('winch'),
     board: oneOf(q.get('board'), ['wakeboard', 'wakeskate'] as const),

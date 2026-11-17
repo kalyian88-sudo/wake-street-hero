@@ -212,3 +212,23 @@ export function toggle(value: boolean, aria: string, onChange: (value: boolean) 
     },
   };
 }
+
+/** Native drop-down (long lists such as languages). Styled like the pill controls. */
+export function select<T extends string>(items: readonly Option<T>[], value: T, onChange: (value: T) => void, cls?: string, aria?: string): Control<T> {
+  const el = h('select', { class: cx('wn-select', cls), 'aria-label': aria ?? '' }) as HTMLSelectElement;
+  for (const it of items) {
+    const o = h('option', { value: it.value }, it.label) as HTMLOptionElement;
+    el.appendChild(o);
+  }
+  el.value = value;
+  el.addEventListener('change', () => {
+    sfx('ui.tap');
+    onChange(el.value as T);
+  });
+  return {
+    el,
+    set(v) {
+      el.value = v;
+    },
+  };
+}

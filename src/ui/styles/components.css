@@ -856,3 +856,35 @@
   text-transform: uppercase;
   color: var(--text-2);
 }
+
+/* ── native select (language picker) ── */
+.wn-select {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 44px;
+  padding: 0 40px 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    linear-gradient(45deg, transparent 50%, #fff 50%) calc(100% - 22px) 50% / 6px 6px no-repeat,
+    linear-gradient(135deg, #fff 50%, transparent 50%) calc(100% - 16px) 50% / 6px 6px no-repeat,
+    rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: 700 15px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  pointer-events: auto;
+  cursor: pointer;
+  max-width: 100%;
+}
+.wn-select:focus-visible {
+  outline: 2px solid #e30613;
+  outline-offset: 2px;
+}
+.wn-select option {
+  color: #111;
+  background: #fff;
+}
+.wn-select--quiet {
+  min-height: 36px;
+  font-size: 13px;
+  background-color: rgba(0, 0, 0, 0.35);
+}

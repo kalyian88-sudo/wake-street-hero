@@ -199,3 +199,49 @@ describe('sim: rail slides', () => {
     throw new Error('the autopilot never reached a rail on any line');
   });
 });
+
+describe('collision: canal edges', () => {
+  it('quay sides along the water become grindable ledge lines on top of the quay', () => {
+    const shapes = createSimHarness({ spot: phuketOldTown, winchId: 'main' }).sim.world.debugShapes();
+    const edges = shapes.filter((s) => s.kind === 'line' && (s.label ?? '').includes('.edge.'));
+    const ids = edges.map((e) => e.label ?? '');
+    expect(ids.some((id) => id.startsWith('quay_left.edge'))).toBe(true);
+    expect(ids.some((id) => id.startsWith('quay_right.edge'))).toBe(true);
+    // the low slab across the canal (0.12 m above the water) is not a canal edge
+    expect(ids.some((id) => id.startsWith('slab_gap'))).toBe(false);
+    for (const e of edges.filter((x) => /^quay_(left|right)/.test(x.label ?? ''))) {
+      expect(e.points[1]).toBeCloseTo(0.9, 5);
+      // runs along the canal just inside the quay top (quay faces at |x| = 7)
+      expect(Math.abs(Math.abs(e.points[0]) - 7.14)).toBeLessThan(0.05);
+      expect(Math.abs(e.points[5] - e.points[2])).toBeGreaterThan(100);
+    }
+  });
+});
+
+describe('sim: grinding the canal edge', () => {
+  it('carving at the quay and popping locks the board onto the quay edge', () => {
+    const h = createSimHarness({ spot: phuketOldTown, winchId: 'main' });
+    let popped = false;
+    h.run(
+      25,
+      (hh) => {
+        const s = hh.sim.state;
+        const held: { steer?: number; jump?: boolean } = {};
+        if (s.time > 1.5 && !popped) {
+          held.steer = s.pos.x < 3.5 ? -1 : -0.2;
+          held.jump = s.pos.x > 1.0;
+          if (s.pos.x > 4.8 && s.crouch > 0.95) {
+            held.jump = false;
+            popped = true;
+          }
+        }
+        return held;
+      },
+      (hh) => hh.count('sim:railEnter') > 0 || hh.count('sim:bail') > 0,
+    );
+    const enter = h.of('sim:railEnter')[0];
+    expect(enter?.obstacleId).toBe('quay_left.edge.0');
+    expect(enter?.pos.y).toBeCloseTo(0.9, 3);
+    expect(h.sim.state.mode).toBe('rail');
+  });
+});

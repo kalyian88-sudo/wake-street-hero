@@ -1,4 +1,5 @@
 /** Tiny DOM helpers for the menu UI (no framework). */
+import { isLang, localeOf } from '../i18n/langs';
 
 export type Child = Node | string | number | null | undefined | false | Child[];
 
@@ -83,7 +84,7 @@ export function fmt(n: number, lang: string): string {
   let f = numberFormats[lang];
   if (!f) {
     try {
-      f = new Intl.NumberFormat(lang === 'ru' ? 'ru-RU' : 'en-US', { maximumFractionDigits: 0 });
+      f = new Intl.NumberFormat(isLang(lang) ? localeOf(lang) : 'en-US', { maximumFractionDigits: 0 });
     } catch {
       f = new Intl.NumberFormat();
     }

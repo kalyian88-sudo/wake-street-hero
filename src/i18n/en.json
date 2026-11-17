@@ -266,5 +266,18 @@
   "ui.dialog.name.filmer": "Lex",
   "ui.dialog.name.manager": "Nika",
   "ui.dialog.name.rider": "You",
-  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide. The same direction again — back to a 50-50."
+  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide. The same direction again — back to a 50-50.",
+  "hud.tip.title": "Tip",
+  "hud.tip.1": "Hold JUMP to load the rope, let go to pop. The fuller the ring, the higher you fly.",
+  "hud.tip.2": "In the air hold the stick ← or →: it keeps adding 180°. Let go when you have enough.",
+  "hud.tip.3": "TRICK + ↑ in the air is a backroll, TRICK + ↓ a frontroll. Off a kicker the backroll becomes a tantrum.",
+  "hud.tip.4": "Hold GRAB in the air: no stick — Indy, ← Melon, → Mute, ↑ Nose, ↓ Tail. Let go before you land!",
+  "hud.tip.5": "On a rail TRICK + ←/→/↑/↓ is a boardslide, lipslide, noseslide or tailslide. GRAB + ←/→ — blunts.",
+  "hud.tip.6": "The canal edges are rideable too: pop onto the quay edge and slide along the water.",
+  "hud.tip.7": "On the water TRICK + ←/→ is a surface 180. It links tricks into one combo.",
+  "hud.tip.8": "A combo lives 3 seconds between tricks. A fall burns every point in it.",
+  "hud.tip.9": "HERO meter full? Hit HERO — 8 seconds of slow motion and double points.",
+  "hud.tip.10": "The same trick twice in a row pays less and less. Mix it up to score more.",
+  "hud.tip.11": "Collect W-H-Y-N-O-T in one run — it is one of the spot goals.",
+  "hud.tip.12": "Hold JUMP all the way to the lip of a kicker to fly noticeably higher."
 }

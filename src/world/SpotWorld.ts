@@ -40,7 +40,7 @@ i18n.extend('en', enPart);
 function label(key: 'world.start' | 'world.finish' | 'world.rec'): string {
   const s = t(key);
   if (s !== key) return s;
-  return (i18n.lang === 'ru' ? ruPart : enPart)[key];
+  return (i18n.lang === 'ru' ? ruPart : enPart)[key] ?? enPart[key];
 }
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));

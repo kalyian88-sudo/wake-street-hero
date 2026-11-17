@@ -54,13 +54,18 @@ export function stepAir(c: SimCore, dt: number): void {
   if (a.time > 0.1 && sp >= SIM.railMinSpeed) {
     const skip = c.relockT > 0 ? c.relockLine : -1;
     const g = c.grind;
-    if (c.world.nearestGrind(s.pos.x, s.pos.y, s.pos.z, -SIM.railSnapAbove, SIM.railSnapBelow, 0, skip, g)) {
+    // canal edges are forgiving (arcade): flying over the quay edge up to ~1.1 m above it pulls the board onto it
+    const hit =
+      c.world.nearestGrind(s.pos.x, s.pos.y, s.pos.z, -SIM.railSnapAbove, SIM.railSnapBelow, 0, skip, g) ||
+      (v.y < 2.5 && c.world.nearestGrind(s.pos.x, s.pos.y, s.pos.z, -1.1, SIM.railSnapBelow, 0, skip, g) && (g.line as GrindLine).id.includes('.edge.'));
+    if (hit) {
       const line = g.line as GrindLine;
       const dir = alignment(c, line, g.seg);
       // the BOARD may be sideways (boardslide entry) but the travel direction has to follow the rail
       const slope = ((line.py[g.seg + 1] - line.py[g.seg]) / Math.hypot(line.px[g.seg + 1] - line.px[g.seg], line.pz[g.seg + 1] - line.pz[g.seg])) * (dir || 1);
       const rise = v.y - sp * slope;
-      if (dir !== 0 && rise <= SIM.railMaxRise && prevY >= g.y - SIM.railSnapBelow - 0.05 && remaining(line, g.seg, g.t, dir) > 0.6) {
+      const edge = line.id.includes('.edge.');
+      if (dir !== 0 && (rise <= SIM.railMaxRise || (edge && v.y < 2.5)) && prevY >= g.y - SIM.railSnapBelow - 0.05 && remaining(line, g.seg, g.t, dir) > 0.6) {
         landOnRail(c, line, dir, -rise);
         return;
       }

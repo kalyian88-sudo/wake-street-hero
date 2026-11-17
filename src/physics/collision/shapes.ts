@@ -2,7 +2,7 @@
  * Collider primitives built from a SpotDef. Every shape comes from src/data/geometry.ts so the
  * hitboxes match what the world builder draws.
  */
-import { DEG, footprintBounds, ledgeBox, ledgeEdges, stairsLayout, wallNormal } from '../../data/geometry';
+import { DEG, footprintBounds, footprintContains, ledgeBox, ledgeEdges, stairsLayout, wallNormal } from '../../data/geometry';
 import type { Footprint, GapDef, KickerDef, LedgeDef, RailDef, SpotDef, StairsDef, SurfaceKind, V3, WallDef } from '../../types';
 
 export interface Aabb {
@@ -201,6 +201,7 @@ function makeGrind(
   radius: number,
   path: readonly V3[],
   lift: number,
+  snapOverride?: number,
 ): GrindLine {
   const n = path.length;
   const px = new Float64Array(n);
@@ -228,7 +229,7 @@ function makeGrind(
     total += segLen[i];
   }
   const fat = kind === 'pipe' && radius >= 0.15;
-  const snap = fat ? radius + 0.3 : kind === 'ledge' ? 0.66 : kind === 'handrail' ? 0.48 : 0.42;
+  const snap = snapOverride ?? (fat ? radius + 0.3 : kind === 'ledge' ? 0.66 : kind === 'handrail' ? 0.48 : 0.42);
   const balance = fat ? 0.5 : kind === 'ledge' ? 0.6 : kind === 'handrail' ? 1.1 : kind === 'pipe' ? 0.85 : 1;
   const line: GrindLine = {
     index: lines.length,
@@ -333,6 +334,59 @@ function addWall(def: WallDef, out: SpotColliders): void {
   });
 }
 
+/**
+ * Canal edges: every side of a ground box (quay, bank) that runs along water and stands at least
+ * 0.4 m above it becomes a grindable ledge line along its top edge ("<groundId>.edge.<n>").
+ */
+function addQuayEdges(spot: SpotDef, g: SpotDef['ground'][number], out: SpotColliders): void {
+  const rot = (g.rot ?? 0) * DEG;
+  const c = Math.cos(rot);
+  const s = Math.sin(rot);
+  const hx = g.size[0] / 2;
+  const hz = g.size[1] / 2;
+  const toWorld = (lx: number, lz: number): [number, number] => [g.center[0] + lx * c + lz * s, g.center[1] - lx * s + lz * c];
+  const inset = 0.14;
+  // side: start corner, end corner, outward normal (local)
+  const sides: [[number, number], [number, number], [number, number]][] = [
+    [[-hx, -hz], [-hx, hz], [-1, 0]],
+    [[hx, -hz], [hx, hz], [1, 0]],
+    [[-hx, -hz], [hx, -hz], [0, -1]],
+    [[-hx, hz], [hx, hz], [0, 1]],
+  ];
+  let n = 0;
+  for (const [a, b, nrm] of sides) {
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const steps = Math.max(2, Math.floor(len / 1));
+    let runStart = -1;
+    const flush = (end: number): void => {
+      if (runStart < 0) return;
+      const t0 = runStart / steps;
+      const t1 = end / steps;
+      if ((t1 - t0) * len >= 3) {
+        const p = (t: number): V3 => {
+          const lx = a[0] + (b[0] - a[0]) * t - nrm[0] * inset;
+          const lz = a[1] + (b[1] - a[1]) * t - nrm[1] * inset;
+          const [x, z] = toWorld(lx, lz);
+          return [x, g.top, z];
+        };
+        // a little more forgiving than a ledge: coming down on the first ~0.9 m of the quay top locks onto its edge
+        makeGrind(out.grinds, `${g.id}.edge.${n++}`, 'ledge', surfaceMaterial(g.surface), 0, [p(t0), p(t1)], 0, 0.9);
+      }
+      runStart = -1;
+    };
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const lx = a[0] + (b[0] - a[0]) * t + nrm[0] * 0.5;
+      const lz = a[1] + (b[1] - a[1]) * t + nrm[1] * 0.5;
+      const [x, z] = toWorld(lx, lz);
+      const wet = spot.water.some((w) => g.top - w.level >= 0.4 && footprintContains(w.shape, x, z));
+      if (wet && runStart < 0) runStart = i;
+      else if (!wet) flush(i - 1);
+    }
+    flush(steps);
+  }
+}
+
 export function buildColliders(spot: SpotDef): SpotColliders {
   const out: SpotColliders = { solids: [], ramps: [], waters: [], gaps: [], grinds: [], walls: [] };
   for (const w of spot.water) {
@@ -341,6 +395,7 @@ export function buildColliders(spot: SpotDef): SpotColliders {
   }
   for (const g of spot.ground) {
     out.solids.push(makeBox(g.id, 'ground', g.surface, g.center[0], g.center[1], g.size[0], g.size[1], g.rot, g.top, g.bottom ?? g.top - 3));
+    if (g.visible !== false) addQuayEdges(spot, g, out);
   }
   for (const o of spot.obstacles) {
     switch (o.kind) {
