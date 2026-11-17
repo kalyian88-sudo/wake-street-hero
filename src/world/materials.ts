@@ -184,6 +184,40 @@ export class MaterialLibrary {
     return t;
   }
 
+  /**
+   * Roughness map for the facade atlas: window glass (dark, bluish pixels) is glossy so it mirrors the
+   * sky; frames, shutters and plaster stay matte. Derived from the colour atlas once.
+   */
+  private facadeRoughness(): Texture {
+    let t = this.canvases.get('facade.rough');
+    if (t) return t;
+    const src = this.texture('facade').image as HTMLCanvasElement;
+    const c = document.createElement('canvas');
+    c.width = src.width;
+    c.height = src.height;
+    const ctx = c.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(src, 0, 0);
+      const img = ctx.getImageData(0, 0, c.width, c.height);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i] / 255;
+        const g = d[i + 1] / 255;
+        const b = d[i + 2] / 255;
+        const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        const glass = lum < 0.32 && b >= r - 0.02 ? 1 : 0;
+        const v = Math.round((glass ? 0.08 : 0.78) * 255);
+        d[i] = d[i + 1] = d[i + 2] = v;
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+    t = new CanvasTexture(c);
+    t.magFilter = LinearFilter;
+    t.minFilter = LinearMipmapLinearFilter;
+    this.canvases.set('facade.rough', t);
+    return t;
+  }
+
   /** Shared decal textures for modules that build their own materials (letters, preview…). */
   texture(key: 'brand' | 'signs' | 'facade'): Texture {
     if (key === 'brand') return this.canvasTex('brand', () => drawBrandAtlas(this.labels));
@@ -231,6 +265,12 @@ export class MaterialLibrary {
         polygonOffsetFactor: -2,
         polygonOffsetUnits: -2,
       });
+      if (key === 'facade') {
+        // glossy glass + a bit more sky in the windows: the street reads as real buildings
+        m.roughness = 1;
+        m.roughnessMap = this.facadeRoughness();
+        m.envMapIntensity = 1.6;
+      }
       if (side !== undefined) m.side = side;
       m.userData.cast = false;
       return m;

@@ -434,5 +434,18 @@
   "ui.settings.controlSwipe": "Deslizar",
   "ui.settings.controlClassic": "Clásico",
   "ui.mode.endless": "Sin fin",
-  "hud.tip.swipe": "Desliza ↑ para saltar, ←/→ para cambiar de carril. En el aire los deslizamientos giran, mantén para grab."
+  "hud.tip.swipe": "Desliza ↑ para saltar, ←/→ para cambiar de carril. En el aire los deslizamientos giran, mantén para grab.",
+  "hud.tut.stepOf": "PASO {n} DE {total}",
+  "hud.tut.doneTitle": "¡LISTO!",
+  "hud.tut.lane.swipe": "Desliza el dedo a la derecha o izquierda — el rider cambia de carril.",
+  "hud.tut.lane.classic": "Mueve el stick a los lados — el rider gira.",
+  "hud.tut.pop.swipe": "Desliza hacia ARRIBA — ¡salto!",
+  "hud.tut.pop.classic": "Mantén SALTO y suelta — pop. Cuanto más tiempo, más alto.",
+  "hud.tut.spin.swipe": "En el aire desliza a un lado: giro de 180°. Otro deslizamiento — otros 180°.",
+  "hud.tut.spin.classic": "En el aire TRUCO + ← o →: giro. O mantén el stick a un lado.",
+  "hud.tut.rail.swipe": "Ponte en el carril del rail y desliza hacia ARRIBA justo delante.",
+  "hud.tut.rail.classic": "Dirígete al rail y salta justo delante.",
+  "hud.tut.slide.swipe": "En el rail, desliza a la izquierda — ¡boardslide!",
+  "hud.tut.slide.classic": "En el rail, mantén el stick a la izquierda — ¡boardslide!",
+  "hud.tut.done.all": "Ya sabes lo básico. ¡Recoge W-H-Y-N-O-T y cumple los objetivos!"
 }

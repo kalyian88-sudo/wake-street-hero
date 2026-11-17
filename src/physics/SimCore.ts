@@ -178,6 +178,10 @@ export class SimCore {
   readonly railState: RailState = { obstacleId: '', kind: 'rail', stance: 'fifty', balance: 0, time: 0, tangent: new Vector3(0, 0, 1) };
   relockLine = -1;
   relockT = 0;
+  /** Seconds after GO during which grind locks are off (dropping off the start bank). */
+  noGrindT = 0;
+  /** Direction (+1 / −1 along the right-of-line axis) of the bank start push, 0 = water start. */
+  bankSide = 0;
   readonly wall: WallRun = { face: null, u: 0, h: 0, dir: 1, vu: 0, vh: 0, time: 0 };
   readonly wallState: WallState = { obstacleId: '', normal: new Vector3(1, 0, 0), time: 0 };
   wallCooldown = 0;
@@ -263,11 +267,17 @@ export class SimCore {
     s.mode = 'waiting';
     s.time = 0;
     const start = this.wp.start;
-    const smp = this.world.sampleInto(this.smp, start[0], start[2], start[1] + 0.5, 0);
-    s.pos.set(start[0], smp.y, start[2]);
+    // Street start: the rider stands on the side bank next to the start and drops into the canal on GO.
+    const bank = cfg.bankStart === false ? null : this.findBankStart(start[0], start[2]);
+    const sx = bank ? bank.x : start[0];
+    const sz = bank ? bank.z : start[2];
+    const smp = this.world.sampleInto(this.smp, sx, sz, bank ? bank.y + 0.5 : start[1] + 0.5, 0);
+    s.pos.set(sx, smp.y, sz);
     s.vel.set(0, 0, 0);
     s.speed = 0;
-    s.heading = s.boardYaw = this.lineYaw;
+    this.bankSide = bank ? bank.side : 0;
+    // on the bank the board points a little out over the water, towards the line
+    s.heading = s.boardYaw = this.lineYaw + (bank ? bank.side * 0.5 : 0);
     s.switch = false;
     s.lean = 0;
     s.crouch = 0;
@@ -299,6 +309,7 @@ export class SimCore {
     this.rampPower = 0;
     this.climbVy = 0;
     this.stallT = 0;
+    this.noGrindT = 0;
     this.contactT = 9;
     this.airYawOffset = 0;
     this.gapState.fill(0);
@@ -313,6 +324,50 @@ export class SimCore {
   go(): void {
     if (this.state.mode !== 'waiting') return;
     this.going = true;
+    if (this.bankSide !== 0) {
+      // push off the bank towards the water: the rope does the rest
+      const s = this.state;
+      const yaw = s.heading;
+      s.vel.set(Math.sin(yaw) * 3.2, 0, Math.cos(yaw) * 3.2);
+      s.speed = 3.2;
+      this.noGrindT = 2.2;
+    }
+  }
+
+  /**
+   * Nearest side bank to the line start: walks out sideways (perpendicular to the line) until the
+   * surface rises out of the water, and returns a standing spot 0.45 m inside the bank's edge.
+   * `side` = +1 when the push into the canal is towards the left of the line (yaw +), −1 otherwise.
+   */
+  private findBankStart(x0: number, z0: number): { x: number; z: number; y: number; side: number } | null {
+    const dx = Math.sin(this.lineYaw);
+    const dz = Math.cos(this.lineYaw);
+    // left of the line = (dz, −dx) rotated… left of travel for yaw θ is (cos θ, −sin θ)
+    const lx = dz;
+    const lz = -dx;
+    let best: { x: number; z: number; y: number; side: number; d: number } | null = null;
+    for (const sgn of [1, -1]) {
+      let prevWater = true;
+      for (let d = 0.5; d <= 20; d += 0.25) {
+        const x = x0 + lx * sgn * d;
+        const z = z0 + lz * sgn * d;
+        const smp = this.world.sampleInto(this.smp, x, z, 5, 0);
+        const solid = smp.kind !== 'water' && smp.y > 0.3 && smp.y < 2.5 && smp.ny > 0.95;
+        if (solid && prevWater) {
+          const e = d + 0.45;
+          const ex = x0 + lx * sgn * e;
+          const ez = z0 + lz * sgn * e;
+          const chk = this.world.sampleInto(this.smp, ex, ez, 5, 0);
+          if (chk.kind !== 'water' && Math.abs(chk.y - smp.y) < 0.05 && (!best || d < best.d)) {
+            // standing on the left bank the board points right (into the canal), and vice versa
+            best = { x: ex, z: ez, y: chk.y, side: -sgn, d };
+          }
+          break;
+        }
+        prevWater = !solid;
+      }
+    }
+    return best ? { x: best.x, z: best.z, y: best.y, side: best.side } : null;
   }
 
   // ──────────────────────────────────────────────────────── surfaces ──

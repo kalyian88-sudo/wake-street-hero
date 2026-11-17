@@ -2,6 +2,8 @@
  * Environment: procedural sky, image based lighting baked from it, sun with a rider-following
  * texel-snapped shadow frustum, hemisphere fill and fog.
  */
+import type { Lensflare } from 'three/examples/jsm/objects/Lensflare.js';
+import { createSunFlare } from './lensflare';
 import {
   Color,
   CubeCamera,
@@ -65,6 +67,8 @@ class Environment implements IEnvironment {
   private readonly lightUp = new Vector3();
   private disposed = false;
 
+  private readonly flare: Lensflare | null;
+
   constructor(def: EnvDef, ctx: WorldBuildContext) {
     this.def = def;
     this.renderer = ctx.renderer;
@@ -89,6 +93,11 @@ class Environment implements IEnvironment {
     this.sun.name = 'env.sun';
     this.sun.position.copy(this.sunDirection).multiplyScalar(SUN_DISTANCE);
     this.object.add(this.sun, this.sun.target);
+    this.flare = createSunFlare(def);
+    if (this.flare) {
+      this.flare.visible = ctx.profile.post;
+      this.object.add(this.flare);
+    }
 
     this.hemi = new HemisphereLight(0xffffff, 0x444444, 1);
     this.hemi.name = 'env.hemi';
@@ -120,6 +129,8 @@ class Environment implements IEnvironment {
     this.dome.setTime(this.time);
     // The dome rides with the camera so the horizon always sits at eye level.
     camera.getWorldPosition(this.dome.mesh.position);
+    // the flare source sits far out along the sun direction, riding with the camera like the sky
+    if (this.flare) this.flare.position.copy(this.dome.mesh.position).addScaledVector(this.sunDirection, 800);
 
     if (!this.sun.castShadow) return;
     // Centre the frustum a little ahead of the focus along the view direction: more of what the
@@ -141,6 +152,7 @@ class Environment implements IEnvironment {
   }
 
   setProfile(profile: QualityProfile): void {
+    if (this.flare) this.flare.visible = profile.post;
     const prev = this.profile;
     this.profile = profile;
     if (prev.shadows !== profile.shadows || prev.shadowMapSize !== profile.shadowMapSize || prev.shadowRange !== profile.shadowRange) {

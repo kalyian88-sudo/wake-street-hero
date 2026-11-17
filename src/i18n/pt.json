@@ -434,5 +434,18 @@
   "ui.settings.controlSwipe": "Deslizar",
   "ui.settings.controlClassic": "Clássico",
   "ui.mode.endless": "Infinito",
-  "hud.tip.swipe": "Deslize ↑ pra pular, ←/→ pra trocar de faixa. No ar, deslizes giram, segurar = grab."
+  "hud.tip.swipe": "Deslize ↑ pra pular, ←/→ pra trocar de faixa. No ar, deslizes giram, segurar = grab.",
+  "hud.tut.stepOf": "PASSO {n} DE {total}",
+  "hud.tut.doneTitle": "PRONTO!",
+  "hud.tut.lane.swipe": "Deslize o dedo pra direita ou esquerda — o rider troca de faixa.",
+  "hud.tut.lane.classic": "Mexa o analógico pros lados — o rider vira.",
+  "hud.tut.pop.swipe": "Deslize pra CIMA — pulo!",
+  "hud.tut.pop.classic": "Segure PULO e solte — pop. Quanto mais segurar, mais alto.",
+  "hud.tut.spin.swipe": "No ar, deslize pro lado: giro de 180°. Outro deslize — mais 180°.",
+  "hud.tut.spin.classic": "No ar, MANOBRA + ← ou →: giro. Ou segure o analógico pro lado.",
+  "hud.tut.rail.swipe": "Fique na faixa do rail e deslize pra CIMA bem na frente dele.",
+  "hud.tut.rail.classic": "Vá até o rail e pule bem na frente dele.",
+  "hud.tut.slide.swipe": "No rail, deslize pra esquerda — boardslide!",
+  "hud.tut.slide.classic": "No rail, segure o analógico pra esquerda — boardslide!",
+  "hud.tut.done.all": "Você já sabe o principal. Pegue W-H-Y-N-O-T e cumpra as metas do spot!"
 }

@@ -340,6 +340,8 @@ export interface SimConfig {
   stance: Stance;
   /** Totals from equipped gear (0..10, 5 = neutral). */
   stats: GearStats;
+  /** Street start: stand on the side bank and drop into the canal on GO (default true). */
+  bankStart?: boolean;
 }
 
 export interface CollisionDebugShape {

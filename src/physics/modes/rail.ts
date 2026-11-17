@@ -22,11 +22,13 @@ export function tryLockRailFromGround(c: SimCore): boolean {
   const s = c.state;
   const v = s.vel;
   const sp = Math.hypot(v.x, v.z);
-  if (sp < SIM.railMinSpeed) return false;
+  if (sp < SIM.railMinSpeed || c.noGrindT > 0) return false;
   const skip = c.relockT > 0 ? c.relockLine : -1;
   const g = c.grind;
   // look a little ahead so the hop starts before the board would hit the obstacle's face
   if (!c.world.nearestGrind(s.pos.x + (v.x / sp) * 0.3, s.surfaceY, s.pos.z + (v.z / sp) * 0.3, -0.06, SIM.railAutoHeight, 0, skip, g)) return false;
+  // canal edges are only grinded by popping onto them, never by drifting alongside the bank
+  if ((g.line as GrindLine).id.includes('.edge.')) return false;
   const dir = alignment(c, g.line as GrindLine, g.seg);
   if (dir === 0) return false;
   if (remaining(g.line as GrindLine, g.seg, g.t, dir) < 0.9) return false;

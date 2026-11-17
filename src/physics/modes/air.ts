@@ -51,7 +51,7 @@ export function stepAir(c: SimCore, dt: number): void {
   c.trackGaps();
 
   // ── rails: come down onto a grind line ──
-  if (a.time > 0.1 && sp >= SIM.railMinSpeed) {
+  if (a.time > 0.1 && sp >= SIM.railMinSpeed && c.noGrindT <= 0) {
     const skip = c.relockT > 0 ? c.relockLine : -1;
     const g = c.grind;
     // Arcade magnet: coming down over any rail / ledge from up to ~1.6 m above it pulls the board onto it

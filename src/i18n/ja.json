@@ -434,5 +434,18 @@
   "ui.settings.controlSwipe": "スワイプ",
   "ui.settings.controlClassic": "クラシック",
   "ui.mode.endless": "エンドレス",
-  "hud.tip.swipe": "上スワイプでジャンプ、左右でレーン変更。空中のスワイプでスピン、長押しでグラブ。"
+  "hud.tip.swipe": "上スワイプでジャンプ、左右でレーン変更。空中のスワイプでスピン、長押しでグラブ。",
+  "hud.tut.stepOf": "ステップ {n} / {total}",
+  "hud.tut.doneTitle": "完了！",
+  "hud.tut.lane.swipe": "指を左右にスライド — ライダーがレーン変更。",
+  "hud.tut.lane.classic": "スティックを左右に — ライダーが曲がる。",
+  "hud.tut.pop.swipe": "上にスワイプ — ジャンプ！",
+  "hud.tut.pop.classic": "ジャンプ長押しで離す — ポップ。長いほど高く。",
+  "hud.tut.spin.swipe": "空中で横にスワイプ：180°スピン。もう一回 — さらに180°。",
+  "hud.tut.spin.classic": "空中でトリック + ← か →：スピン。スティックを横に倒してもOK。",
+  "hud.tut.rail.swipe": "レールと同じレーンに入り、直前で上にスワイプ。",
+  "hud.tut.rail.classic": "レールに向かい、直前でジャンプ。",
+  "hud.tut.slide.swipe": "レール上で左にスワイプ — ボードスライド！",
+  "hud.tut.slide.classic": "レール上でスティックを左に — ボードスライド！",
+  "hud.tut.done.all": "基本はOK。W-H-Y-N-O-Tを集めてスポットの目標をクリアしよう！"
 }

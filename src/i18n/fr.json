@@ -434,5 +434,18 @@
   "ui.settings.controlSwipe": "Swipes",
   "ui.settings.controlClassic": "Classique",
   "ui.mode.endless": "Sans fin",
-  "hud.tip.swipe": "Swipe ↑ pour sauter, ←/→ pour changer de couloir. En l’air, les swipes font tourner, maintiens pour grab."
+  "hud.tip.swipe": "Swipe ↑ pour sauter, ←/→ pour changer de couloir. En l’air, les swipes font tourner, maintiens pour grab.",
+  "hud.tut.stepOf": "ÉTAPE {n} SUR {total}",
+  "hud.tut.doneTitle": "C’EST BON !",
+  "hud.tut.lane.swipe": "Glisse le doigt à droite ou à gauche — le rider change de couloir.",
+  "hud.tut.lane.classic": "Bouge le stick à gauche-droite — le rider tourne.",
+  "hud.tut.pop.swipe": "Swipe vers le HAUT — saut !",
+  "hud.tut.pop.classic": "Maintiens SAUT et relâche — pop. Plus tu tiens, plus c’est haut.",
+  "hud.tut.spin.swipe": "En l’air, swipe sur le côté : rotation 180°. Encore un swipe — encore 180°.",
+  "hud.tut.spin.classic": "En l’air, TRICK + ← ou → : rotation. Ou tiens le stick sur le côté.",
+  "hud.tut.rail.swipe": "Mets-toi dans le couloir du rail et swipe vers le HAUT juste devant.",
+  "hud.tut.rail.classic": "Dirige-toi vers le rail et saute juste devant.",
+  "hud.tut.slide.swipe": "Sur le rail, swipe à gauche — boardslide !",
+  "hud.tut.slide.classic": "Sur le rail, tiens le stick à gauche — boardslide !",
+  "hud.tut.done.all": "Tu connais l’essentiel. Récupère W-H-Y-N-O-T et remplis les objectifs !"
 }

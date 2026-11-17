@@ -434,5 +434,18 @@
   "ui.settings.controlSwipe": "Swipe",
   "ui.settings.controlClassic": "Klasyczne",
   "ui.mode.endless": "Nieskończony",
-  "hud.tip.swipe": "Swipe ↑ — skok, ←/→ — zmiana pasa. W powietrzu swipe to obroty, przytrzymanie — grab."
+  "hud.tip.swipe": "Swipe ↑ — skok, ←/→ — zmiana pasa. W powietrzu swipe to obroty, przytrzymanie — grab.",
+  "hud.tut.stepOf": "KROK {n} Z {total}",
+  "hud.tut.doneTitle": "GOTOWE!",
+  "hud.tut.lane.swipe": "Przesuń palcem w prawo lub w lewo — rider zmieni pas.",
+  "hud.tut.lane.classic": "Ruszaj gałką w lewo-prawo — rider skręca.",
+  "hud.tut.pop.swipe": "Przesuń palcem W GÓRĘ — skok!",
+  "hud.tut.pop.classic": "Przytrzymaj SKOK i puść — pop. Im dłużej, tym wyżej.",
+  "hud.tut.spin.swipe": "W powietrzu przesuń w bok: obrót 180°. Kolejny swipe — kolejne 180°.",
+  "hud.tut.spin.classic": "W powietrzu TRIK + ← lub →: obrót. Albo trzymaj gałkę w bok.",
+  "hud.tut.rail.swipe": "Ustaw się na pasie raila i przesuń W GÓRĘ tuż przed nim.",
+  "hud.tut.rail.classic": "Podjedź do raila i skocz tuż przed nim.",
+  "hud.tut.slide.swipe": "Na railu przesuń w lewo — boardslide!",
+  "hud.tut.slide.classic": "Na railu trzymaj gałkę w lewo — boardslide!",
+  "hud.tut.done.all": "Znasz podstawy. Zbieraj W-H-Y-N-O-T i wykonuj cele spotu!"
 }

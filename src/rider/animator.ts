@@ -229,7 +229,9 @@ export class Animator {
 
     switch (state.mode) {
       case 'waiting':
-        this.sit(T, rdYaw, false, time);
+        // street start: standing on the bank, knees loaded, ready to drop in; deep-water start otherwise
+        if (state.surface === 'water') this.sit(T, rdYaw, false, time);
+        else this.ride(T, state, 0, 0, skate);
         break;
       case 'water':
       case 'slide': {

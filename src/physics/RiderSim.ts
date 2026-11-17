@@ -51,6 +51,7 @@ function substep(c: SimCore, dt: number): void {
     c.inp.jump.released = true;
   }
   if (c.relockT > 0) c.relockT -= dt;
+  if (c.noGrindT > 0) c.noGrindT -= dt;
   if (c.wallCooldown > 0) c.wallCooldown -= dt;
   switch (s.mode) {
     case 'waiting':

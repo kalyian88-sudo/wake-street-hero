@@ -21,6 +21,7 @@ import { Feed } from './Feed';
 import { lacksCondensedFont, makeStreakTexture } from './fxTexture';
 import { Gauges } from './Gauges';
 import { MoveCard } from './MoveCard';
+import { Tutorial } from './Tutorial';
 import { bindHaptics } from './haptics';
 import { Toasts } from './Toasts';
 import { TopBar } from './TopBar';
@@ -59,6 +60,10 @@ class Hud implements IHud {
   private readonly controls: Controls;
   private readonly gauges: Gauges;
   private readonly moves: MoveCard;
+  private readonly tutorial: Tutorial;
+  private tutPending = false;
+  private tutShown = false;
+  private swipeScheme = true;
 
   private on = false;
   private touch = true;
@@ -88,6 +93,7 @@ class Hud implements IHud {
     // build order = paint order (screen effects first, controls last)
     this.gauges = new Gauges(root, this.ctx);
     this.moves = new MoveCard(root, this.ctx);
+    this.tutorial = new Tutorial(root, this.ctx, deps.bus);
     this.top = new TopBar(root, this.ctx);
     this.feed = new Feed(root, this.ctx);
     this.toasts = new Toasts(root, this.ctx);
@@ -129,6 +135,8 @@ class Hud implements IHud {
     this.controls.bind(true);
     this.deps.input.bindButton('pause', this.top.pauseEl);
     this.applyHighlights();
+    this.tutorial.stop();
+    this.tutPending = cfg.mode === 'tutorial';
     if (cfg.mode !== 'tutorial') this.showStartTip(spot);
   }
 
@@ -160,6 +168,7 @@ class Hud implements IHud {
     this.controls.bind(false);
     this.deps.input.bindButton('pause', null);
     this.setHint(null);
+    this.tutorial.stop();
   }
 
   update(view: HudView, realDt: number): void {
@@ -174,6 +183,16 @@ class Hud implements IHud {
     const score = view.score;
     this.gauges.update(state, score, view.timeScale, realDt);
     this.moves.update(state, realDt);
+    if (this.tutPending) {
+      this.tutPending = false;
+      this.tutorial.start(this.swipeScheme, state);
+    }
+    this.tutorial.update(state, realDt);
+    const tut = this.tutorial.active;
+    if (tut !== this.tutShown) {
+      this.tutShown = tut;
+      this.root.classList.toggle('is-tut', tut);
+    }
     this.top.update(score, state, view.objectives, realDt);
     this.feed.update(state, view.countdown, realDt);
     this.toasts.update(realDt);
@@ -214,6 +233,8 @@ class Hud implements IHud {
 
   setScheme(scheme: 'swipe' | 'classic'): void {
     this.root.classList.toggle('is-swipe', scheme === 'swipe');
+    this.swipeScheme = scheme === 'swipe';
+    this.tutorial.setSwipe(this.swipeScheme);
     this.moves.setSwipe(scheme === 'swipe');
     if (scheme === 'swipe' && this.tipLeft > 0) {
       // the stick / button tips do not apply: explain the gestures instead

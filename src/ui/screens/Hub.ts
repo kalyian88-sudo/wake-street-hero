@@ -280,25 +280,6 @@ export class HubScreen extends Screen {
         starCount(have, allStars, 'wn-hub__stars'),
       ),
       this.stage,
-      h(
-        'button',
-        {
-          type: 'button',
-          class: 'wn-hub__endless wn-rise',
-          style: '--i:2',
-          onclick: () => {
-            sfx('ui.tap');
-            void this.ctx.g.raw.startEndless?.(data.last.board);
-          },
-        },
-        h('span', { class: 'wn-hub__endless-play' }, '▶'),
-        h(
-          'span',
-          { class: 'wn-hub__endless-text' },
-          h('b', { class: 'wn-hd' }, t('ui.endless.title')),
-          h('small', null, (data.stats.endlessBest ?? 0) > 0 ? t('ui.endless.best', { score: String(data.stats.endlessBest), stage: String((data.stats.endlessStage ?? 0) + 1) }) : t('ui.endless.sub')),
-        ),
-      ),
       this.carousel,
       h(
         'nav',

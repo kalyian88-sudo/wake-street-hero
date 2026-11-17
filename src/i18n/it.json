@@ -434,5 +434,18 @@
   "ui.settings.controlSwipe": "Swipe",
   "ui.settings.controlClassic": "Classico",
   "ui.mode.endless": "Infinito",
-  "hud.tip.swipe": "Swipe ↑ per saltare, ←/→ per cambiare corsia. In aria gli swipe fanno girare, tieni per il grab."
+  "hud.tip.swipe": "Swipe ↑ per saltare, ←/→ per cambiare corsia. In aria gli swipe fanno girare, tieni per il grab.",
+  "hud.tut.stepOf": "PASSO {n} DI {total}",
+  "hud.tut.doneTitle": "FATTO!",
+  "hud.tut.lane.swipe": "Scorri il dito a destra o a sinistra — il rider cambia corsia.",
+  "hud.tut.lane.classic": "Muovi lo stick a destra-sinistra — il rider sterza.",
+  "hud.tut.pop.swipe": "Scorri verso l’ALTO — salto!",
+  "hud.tut.pop.classic": "Tieni SALTA e rilascia — pop. Più tieni, più sali.",
+  "hud.tut.spin.swipe": "In aria scorri di lato: spin 180°. Un altro swipe — altri 180°.",
+  "hud.tut.spin.classic": "In aria TRICK + ← o →: spin. Oppure tieni lo stick di lato.",
+  "hud.tut.rail.swipe": "Mettiti nella corsia del rail e scorri verso l’ALTO subito prima.",
+  "hud.tut.rail.classic": "Punta al rail e salta subito prima.",
+  "hud.tut.slide.swipe": "Sul rail scorri a sinistra — boardslide!",
+  "hud.tut.slide.classic": "Sul rail tieni lo stick a sinistra — boardslide!",
+  "hud.tut.done.all": "Sai le basi. Raccogli W-H-Y-N-O-T e completa gli obiettivi!"
 }

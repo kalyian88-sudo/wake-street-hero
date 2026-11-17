@@ -313,5 +313,18 @@
   "ui.settings.controlSwipe": "Swipes",
   "ui.settings.controlClassic": "Classic",
   "ui.mode.endless": "Endless",
-  "hud.tip.swipe": "Swipe ↑ to jump, ←/→ to change lane. In the air swipes spin and flip you, hold to grab."
+  "hud.tip.swipe": "Swipe ↑ to jump, ←/→ to change lane. In the air swipes spin and flip you, hold to grab.",
+  "hud.tut.stepOf": "STEP {n} OF {total}",
+  "hud.tut.doneTitle": "DONE!",
+  "hud.tut.lane.swipe": "Slide your finger right or left — the rider changes lane.",
+  "hud.tut.lane.classic": "Move the stick left-right — the rider steers.",
+  "hud.tut.pop.swipe": "Swipe UP — jump!",
+  "hud.tut.pop.classic": "Hold JUMP and let go — pop. The longer you hold, the higher.",
+  "hud.tut.spin.swipe": "While in the air, swipe sideways: a 180° spin. Another swipe — another 180°.",
+  "hud.tut.spin.classic": "While in the air, TRICK + ← or →: spin. Or hold the stick sideways.",
+  "hud.tut.rail.swipe": "Get in the rail’s lane and swipe UP right in front of it.",
+  "hud.tut.rail.classic": "Steer to the rail and pop right in front of it.",
+  "hud.tut.slide.swipe": "On the rail, swipe left — boardslide!",
+  "hud.tut.slide.classic": "On the rail, hold the stick left — boardslide!",
+  "hud.tut.done.all": "You know the basics. Collect W-H-Y-N-O-T and complete the spot goals!"
 }

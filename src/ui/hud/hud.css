@@ -1011,3 +1011,106 @@
 @keyframes wsh-endless-hit {
   0%, 30% { background: rgba(227, 6, 19, 0.9); transform: scale(1.12); }
 }
+
+/* ─────────────────────────────────────────────────── interactive tutorial ── */
+.wsh-tut {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: none;
+}
+.wsh-tut.is-on { display: block; }
+.wsh-tut-card {
+  position: absolute;
+  left: 50%;
+  top: calc(118px + var(--sat));
+  width: min(86vw, 360px);
+  transform: translateX(-50%);
+  padding: 12px 16px 14px;
+  border-radius: 16px;
+  background: rgba(16, 17, 20, 0.86);
+  border: 2px solid var(--red);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+.wsh-tut.is-pop .wsh-tut-card { animation: wsh-tut-pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+@keyframes wsh-tut-pop {
+  from { opacity: 0; transform: translateX(-50%) scale(0.85); }
+}
+.wsh-tut.is-done .wsh-tut-card { border-color: #2fbf71; }
+.wsh-tut-step {
+  color: #ff5a63;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+.wsh-tut.is-done .wsh-tut-step { color: #5fe39a; }
+.wsh-tut-text {
+  color: #fff;
+  font: 700 17px/1.3 var(--font-ui);
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.wsh-hud.is-tut .wsh-moves,
+.wsh-hud.is-tut .wsh-coach { display: none !important; }
+/* the finger: a glowing dot that keeps repeating the gesture */
+.wsh-tut-hand {
+  position: absolute;
+  left: 50%;
+  top: 74%;
+  width: 0;
+  height: 0;
+}
+.wsh-tut-hand--none { display: none; }
+.wsh-tut-finger {
+  position: absolute;
+  left: -22px;
+  top: -22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.25), 0 0 24px rgba(227, 6, 19, 0.6);
+}
+.wsh-tut-trail {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, rgba(227, 6, 19, 0), rgba(227, 6, 19, 0.9));
+  opacity: 0;
+}
+.wsh-tut-hand--up .wsh-tut-finger { animation: wsh-tut-up 1.3s ease-in-out infinite; }
+.wsh-tut-hand--right .wsh-tut-finger { animation: wsh-tut-right 1.3s ease-in-out infinite; }
+.wsh-tut-hand--left .wsh-tut-finger { animation: wsh-tut-left 1.3s ease-in-out infinite; }
+.wsh-tut-hand--down .wsh-tut-finger { animation: wsh-tut-down 1.3s ease-in-out infinite; }
+@keyframes wsh-tut-up {
+  0% { transform: translateY(60px); opacity: 0; }
+  20% { opacity: 1; }
+  70% { transform: translateY(-70px); opacity: 1; }
+  100% { transform: translateY(-80px); opacity: 0; }
+}
+@keyframes wsh-tut-down {
+  0% { transform: translateY(-60px); opacity: 0; }
+  20% { opacity: 1; }
+  70% { transform: translateY(70px); opacity: 1; }
+  100% { transform: translateY(80px); opacity: 0; }
+}
+@keyframes wsh-tut-right {
+  0% { transform: translateX(-80px); opacity: 0; }
+  20% { opacity: 1; }
+  70% { transform: translateX(80px); opacity: 1; }
+  100% { transform: translateX(90px); opacity: 0; }
+}
+@keyframes wsh-tut-left {
+  0% { transform: translateX(80px); opacity: 0; }
+  20% { opacity: 1; }
+  70% { transform: translateX(-80px); opacity: 1; }
+  100% { transform: translateX(-90px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wsh-tut-finger { animation: none !important; }
+}

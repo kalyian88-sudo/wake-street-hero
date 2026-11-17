@@ -434,5 +434,18 @@
   "ui.settings.controlSwipe": "Wischen",
   "ui.settings.controlClassic": "Klassisch",
   "ui.mode.endless": "Endlos",
-  "hud.tip.swipe": "Nach oben wischen = Sprung, ←/→ = Spur wechseln. In der Luft drehen Wischer dich, Halten = Grab."
+  "hud.tip.swipe": "Nach oben wischen = Sprung, ←/→ = Spur wechseln. In der Luft drehen Wischer dich, Halten = Grab.",
+  "hud.tut.stepOf": "SCHRITT {n} VON {total}",
+  "hud.tut.doneTitle": "GESCHAFFT!",
+  "hud.tut.lane.swipe": "Wisch nach rechts oder links — der Rider wechselt die Spur.",
+  "hud.tut.lane.classic": "Stick nach links-rechts — der Rider lenkt.",
+  "hud.tut.pop.swipe": "Nach OBEN wischen — Sprung!",
+  "hud.tut.pop.classic": "JUMP halten und loslassen — Pop. Je länger, desto höher.",
+  "hud.tut.spin.swipe": "In der Luft zur Seite wischen: 180°-Spin. Noch ein Wischer — noch 180°.",
+  "hud.tut.spin.classic": "In der Luft TRICK + ← oder →: Spin. Oder Stick zur Seite halten.",
+  "hud.tut.rail.swipe": "Fahr in die Spur der Rail und wisch direkt davor nach OBEN.",
+  "hud.tut.rail.classic": "Lenk zur Rail und spring direkt davor ab.",
+  "hud.tut.slide.swipe": "Auf der Rail nach links wischen — Boardslide!",
+  "hud.tut.slide.classic": "Auf der Rail Stick nach links halten — Boardslide!",
+  "hud.tut.done.all": "Du kannst das Wichtigste. Sammle W-H-Y-N-O-T und erfülle die Spot-Ziele!"
 }

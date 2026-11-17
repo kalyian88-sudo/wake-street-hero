@@ -8,6 +8,7 @@ import { SPOTS } from '../../src/data/spots';
 import { getTrick } from '../../src/data/tricks';
 import { createAutopilot } from '../../src/physics/autopilot';
 import { createSimHarness, type SimHarness } from '../../src/physics/simTestKit';
+import { neutralInputFrame } from '../../src/input/Input';
 
 const only = process.env.SPOT;
 const list = SPOTS.filter((s) => !only || s.id === only);
@@ -60,3 +61,27 @@ describe.each(list.map((s) => [s.id, s] as const))('spot %s', (_id, spot) => {
     });
   }
 });
+
+describe('street start from the side bank', () => {
+  it('every line starts on a bank and the rider is on the water within 3 s of GO', () => {
+    for (const spot of list) {
+      for (const wp of spot.winchPoints) {
+        const h = createSimHarness({ spot, winchId: wp.id, bankStart: true });
+        const s = h.sim.state;
+        expect(s.surface, `${spot.id}/${wp.id}`).not.toBe('water');
+        h.sim.go();
+        let onWater = false;
+        for (let i = 0; i < 60 * 3 && !onWater; i++) {
+          h.sim.step(h.dt, bot0(), 1);
+          onWater = s.mode === 'water';
+        }
+        expect(onWater, `${spot.id}/${wp.id}`).toBe(true);
+        expect(h.count('sim:bail'), `${spot.id}/${wp.id}`).toBe(0);
+      }
+    }
+  });
+});
+
+function bot0(): ReturnType<typeof neutralInputFrame> {
+  return neutralInputFrame();
+}

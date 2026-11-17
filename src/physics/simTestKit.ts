@@ -46,6 +46,7 @@ export interface HarnessOptions {
   dt?: number;
   /** Call go() straight away (default true). */
   go?: boolean;
+  bankStart?: boolean;
 }
 
 const LOGGED: (keyof GameEvents)[] = [
@@ -90,6 +91,8 @@ export function createSimHarness(opts: HarnessOptions): SimHarness {
       board: opts.board ?? 'wakeboard',
       stance: opts.stance ?? 'regular',
       stats: { ...NEUTRAL_STATS, ...opts.stats },
+      // most tests reason about a start on the water; the bank start has its own test
+      bankStart: opts.bankStart ?? false,
     },
     bus,
   );
