@@ -178,8 +178,8 @@
   "ui.controls.flips": "Flips: neutral Shuvit · ← Kickflip · → Heelflip · ↑ Impossible · ↓ 360 Flip.",
   "ui.controls.catch": "Catch it: press again when the board comes round (JUMP works too). Miss it and the board is gone.",
   "ui.controls.balance": "Balance: keep the marker in the middle of the bar.",
-  "ui.controls.boardslide": "← boardslide, → lipslide. The same direction again — back to a 50-50.",
-  "ui.controls.press": "Press: ↑ nose press, ↓ tail press.",
+  "ui.controls.boardslide": "Hold the stick: ← boardslide, → lipslide. Let go — 50-50. Balance takes care of itself.",
+  "ui.controls.press": "Hold the stick: ↑ nose press, ↓ tail press.",
   "ui.controls.popOff": "Pop off — and go straight into an air trick.",
   "ui.controls.handle": "Drop the handle and coast, press again to grab it back.",
   "ui.controls.hero": "HERO mode when the meter is full: ×2 points and super slow-mo for 8 seconds.",
@@ -266,7 +266,7 @@
   "ui.dialog.name.filmer": "Lex",
   "ui.dialog.name.manager": "Nika",
   "ui.dialog.name.rider": "You",
-  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide. The same direction again — back to a 50-50.",
+  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide.",
   "hud.tip.title": "Tip",
   "hud.tip.1": "Hold JUMP to load the rope, let go to pop. The fuller the ring, the higher you fly.",
   "hud.tip.2": "In the air hold the stick ← or →: it keeps adding 180°. Let go when you have enough.",
@@ -282,7 +282,7 @@
   "hud.tip.12": "Hold JUMP all the way to the lip of a kicker to fly noticeably higher.",
   "hud.moves.water": "On the water",
   "hud.moves.air": "In the air",
-  "hud.moves.rail": "On the rail — slides & presses",
+  "hud.moves.rail": "On the rail",
   "hud.moves.aheadRail": "Rail ahead — pop!",
   "hud.moves.aheadKicker": "Kicker — hold jump to the lip",
   "hud.moves.pop": "hold & release to pop",
@@ -293,5 +293,6 @@
   "hud.el.noseslide": "Noseslide",
   "hud.el.tailslide": "Tailslide",
   "hud.el.noseblunt": "Nose blunt",
-  "hud.el.tailblunt": "Tail blunt"
+  "hud.el.tailblunt": "Tail blunt",
+  "ui.controls.blunts": "← nose blunt, → tail blunt. TRICK again — back to the stick."
 }

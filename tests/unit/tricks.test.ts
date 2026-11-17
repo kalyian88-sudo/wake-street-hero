@@ -111,12 +111,14 @@ describe('trick table — integrity', () => {
     }
     expect(input('boneless').en).toBe('On the water: hold FLIP while releasing JUMP');
     expect(input('surface180').en).toBe('On the water: TRICK + ←/→');
-    expect(input('rail.boardslide').en).toBe('On the rail: TRICK + ← (again = back to 50-50)');
-    expect(input('rail.noseslide').en).toBe('On the rail: TRICK + ↑');
+    expect(input('rail.boardslide').en).toBe('On the rail: stick ←');
+    expect(input('rail.lipslide').en).toBe('On the rail: stick →');
+    expect(input('rail.nosepress').en).toBe('On the rail: stick ↑');
+    expect(input('rail.tailpress').en).toBe('On the rail: stick ↓');
+    expect(input('rail.noseblunt').en).toBe('On the rail: TRICK + ←');
+    expect(input('rail.tailblunt').en).toBe('On the rail: TRICK + →');
+    expect(input('rail.noseslide').en).toBe('On the rail: TRICK + ↑ (again = back to the stick)');
     expect(input('rail.tailslide').en).toBe('On the rail: TRICK + ↓');
-    expect(input('rail.lipslide').en).toBe('On the rail: TRICK + →');
-    expect(input('rail.nosepress').en).toBe('On the rail: hold GRAB (FLIP on the wakeskate) + ↑');
-    expect(input('rail.tailpress').en).toBe('On the rail: hold GRAB (FLIP on the wakeskate) + ↓');
     // the hint of a wakeboard trick never mentions FLIP and vice versa
     for (const t of TRICKS) {
       if (t.boards.length === 1 && t.boards[0] === 'wakeboard') expect(t.input.en, t.id).not.toContain('FLIP');

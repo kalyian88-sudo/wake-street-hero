@@ -178,8 +178,8 @@
   "ui.controls.flips": "Flipy: neutral Shuvit · ← Kickflip · → Heelflip · ↑ Impossible · ↓ 360 Flip.",
   "ui.controls.catch": "Złap deskę: naciśnij jeszcze raz, gdy deska zrobi obrót (SKOK też działa). Nie złapiesz, deska ucieka.",
   "ui.controls.balance": "Balans: trzymaj znacznik na środku paska.",
-  "ui.controls.boardslide": "← boardslide, → lipslide. Ten sam kierunek jeszcze raz — z powrotem na 50-50.",
-  "ui.controls.press": "Press: ↑ nose press, ↓ tail press.",
+  "ui.controls.boardslide": "Trzymaj gałkę: ← boardslide, → lipslide. Puść — 50-50.",
+  "ui.controls.press": "Trzymaj gałkę: ↑ nose press, ↓ tail press.",
   "ui.controls.popOff": "Odbij się — i od razu zrób trik w powietrzu.",
   "ui.controls.handle": "Puść uchwyt i płyń siłą rozpędu, naciśnij jeszcze raz, żeby złapać go z powrotem.",
   "ui.controls.hero": "Tryb HERO, gdy pasek jest pełny: ×2 punkty i super slow-mo przez 8 sekund.",
@@ -266,7 +266,7 @@
   "ui.dialog.name.filmer": "Lex",
   "ui.dialog.name.manager": "Nika",
   "ui.dialog.name.rider": "Ty",
-  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide. Ten sam kierunek jeszcze raz — z powrotem na 50-50.",
+  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide.",
   "hud.tip.title": "Wskazówka",
   "hud.tip.1": "Przytrzymaj SKOK, żeby napiąć linę, puść, żeby wyskoczyć. Im pełniejszy pierścień, tym wyżej polecisz.",
   "hud.tip.2": "W powietrzu przytrzymaj drążek ← lub →: dokłada 180°. Puść, gdy masz dość.",
@@ -403,7 +403,7 @@
   "world.rec": "REC",
   "hud.moves.water": "Na wodzie",
   "hud.moves.air": "W powietrzu",
-  "hud.moves.rail": "Na railu — slajdy i presy",
+  "hud.moves.rail": "Na railu",
   "hud.moves.aheadRail": "Rail przed tobą — skacz!",
   "hud.moves.aheadKicker": "Kicker — trzymaj skok do krawędzi",
   "hud.moves.pop": "przytrzymaj i puść — pop",
@@ -414,5 +414,6 @@
   "hud.el.noseslide": "Noseslide",
   "hud.el.tailslide": "Tailslide",
   "hud.el.noseblunt": "Nose blunt",
-  "hud.el.tailblunt": "Tail blunt"
+  "hud.el.tailblunt": "Tail blunt",
+  "ui.controls.blunts": "← nose blunt, → tail blunt. Jeszcze raz — powrót do gałki."
 }

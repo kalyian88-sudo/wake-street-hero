@@ -42,14 +42,14 @@ const AIR_WAKESKATE: Row[] = [
 ];
 
 const RAIL: Row[] = [
-  { btn: 'trick', dir: '←', label: 'rail.boardslide', stance: 'boardslide' },
-  { btn: 'trick', dir: '→', label: 'rail.lipslide', stance: 'lipslide' },
+  { btn: 'stick', dir: '←', label: 'rail.boardslide', stance: 'boardslide' },
+  { btn: 'stick', dir: '→', label: 'rail.lipslide', stance: 'lipslide' },
+  { btn: 'stick', dir: '↑', label: 'rail.nosepress', stance: 'nosepress' },
+  { btn: 'stick', dir: '↓', label: 'rail.tailpress', stance: 'tailpress' },
+  { btn: 'trick', dir: '←', label: 'rail.noseblunt', stance: 'noseblunt' },
+  { btn: 'trick', dir: '→', label: 'rail.tailblunt', stance: 'tailblunt' },
   { btn: 'trick', dir: '↑', label: 'rail.noseslide', stance: 'noseslide' },
   { btn: 'trick', dir: '↓', label: 'rail.tailslide', stance: 'tailslide' },
-  { btn: 'grab', dir: '↑', label: 'rail.nosepress', stance: 'nosepress' },
-  { btn: 'grab', dir: '↓', label: 'rail.tailpress', stance: 'tailpress' },
-  { btn: 'grab', dir: '←', label: 'rail.noseblunt', stance: 'noseblunt' },
-  { btn: 'grab', dir: '→', label: 'rail.tailblunt', stance: 'tailblunt' },
   { btn: 'jump', dir: '', label: '@hud.moves.popoff' },
 ];
 

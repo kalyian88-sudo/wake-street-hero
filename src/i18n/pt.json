@@ -178,8 +178,8 @@
   "ui.controls.flips": "Flips: neutro Shuvit · ← Kickflip · → Heelflip · ↑ Impossible · ↓ 360 Flip.",
   "ui.controls.catch": "Pegue: aperte de novo quando a prancha voltar (PULO também vale). Perdeu a hora, perdeu a prancha.",
   "ui.controls.balance": "Equilíbrio: mantenha o marcador no meio da barra.",
-  "ui.controls.boardslide": "← boardslide, → lipslide. A mesma direção de novo — volta ao 50-50.",
-  "ui.controls.press": "Press: ↑ nose press, ↓ tail press.",
+  "ui.controls.boardslide": "Segura o analógico: ← boardslide, → lipslide. Soltou — 50-50.",
+  "ui.controls.press": "Segura o analógico: ↑ nose press, ↓ tail press.",
   "ui.controls.popOff": "Saia no pop — e emende direto numa manobra aérea.",
   "ui.controls.handle": "Solte o handle e deslize, aperte de novo para pegar de volta.",
   "ui.controls.hero": "Modo HERO com o medidor cheio: pontos ×2 e super câmera lenta por 8 segundos.",
@@ -266,7 +266,7 @@
   "ui.dialog.name.filmer": "Lex",
   "ui.dialog.name.manager": "Nika",
   "ui.dialog.name.rider": "Você",
-  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide. A mesma direção de novo — volta ao 50-50.",
+  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide.",
   "hud.tip.title": "Dica",
   "hud.tip.1": "Segure PULO para carregar a corda e solte para dar o pop. Quanto mais cheio o anel, mais alto você voa.",
   "hud.tip.2": "No ar, segure o analógico ← ou →: ele soma 180°. Solte quando já tiver o suficiente.",
@@ -403,7 +403,7 @@
   "world.rec": "REC",
   "hud.moves.water": "Na água",
   "hud.moves.air": "No ar",
-  "hud.moves.rail": "No rail — slides e presses",
+  "hud.moves.rail": "No rail",
   "hud.moves.aheadRail": "Rail à frente — pula!",
   "hud.moves.aheadKicker": "Kicker — segura o pulo até a borda",
   "hud.moves.pop": "segura e solta — pop",
@@ -414,5 +414,6 @@
   "hud.el.noseslide": "Noseslide",
   "hud.el.tailslide": "Tailslide",
   "hud.el.noseblunt": "Nose blunt",
-  "hud.el.tailblunt": "Tail blunt"
+  "hud.el.tailblunt": "Tail blunt",
+  "ui.controls.blunts": "← nose blunt, → tail blunt. De novo — volta ao analógico."
 }

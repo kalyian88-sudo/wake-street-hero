@@ -178,8 +178,8 @@
   "ui.controls.flips": "Flip: centro Shuvit · ← Kickflip · → Heelflip · ↑ Impossible · ↓ 360 Flip.",
   "ui.controls.catch": "Riprendila: premi di nuovo quando la tavola gira (va bene anche SALTA). Se la manchi, la tavola è persa.",
   "ui.controls.balance": "Equilibrio: tieni il segnalino al centro della barra.",
-  "ui.controls.boardslide": "← boardslide, → lipslide. Stessa direzione ancora — torni al 50-50.",
-  "ui.controls.press": "Press: ↑ nose press, ↓ tail press.",
+  "ui.controls.boardslide": "Tieni lo stick: ← boardslide, → lipslide. Rilascia — 50-50.",
+  "ui.controls.press": "Tieni lo stick: ↑ nose press, ↓ tail press.",
   "ui.controls.popOff": "Stacca — e vai dritto su un trick in aria.",
   "ui.controls.handle": "Lascia la maniglia e scivola, premi ancora per riprenderla.",
   "ui.controls.hero": "Modalità HERO a barra piena: punti ×2 e super slow-mo per 8 secondi.",
@@ -266,7 +266,7 @@
   "ui.dialog.name.filmer": "Lex",
   "ui.dialog.name.manager": "Nika",
   "ui.dialog.name.rider": "Tu",
-  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide. Stessa direzione ancora — torni al 50-50.",
+  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide.",
   "hud.tip.title": "Dritta",
   "hud.tip.1": "Tieni SALTA per caricare la fune, rilascia per il pop. Più l'anello è pieno, più voli alto.",
   "hud.tip.2": "In aria tieni lo stick ← o →: aggiunge 180° di continuo. Molla quando ne hai abbastanza.",
@@ -403,7 +403,7 @@
   "world.rec": "REC",
   "hud.moves.water": "In acqua",
   "hud.moves.air": "In aria",
-  "hud.moves.rail": "Sul rail — slide e press",
+  "hud.moves.rail": "Sul rail",
   "hud.moves.aheadRail": "Rail davanti — salta!",
   "hud.moves.aheadKicker": "Kicker — tieni il salto fino al bordo",
   "hud.moves.pop": "tieni e rilascia — pop",
@@ -414,5 +414,6 @@
   "hud.el.noseslide": "Noseslide",
   "hud.el.tailslide": "Tailslide",
   "hud.el.noseblunt": "Nose blunt",
-  "hud.el.tailblunt": "Tail blunt"
+  "hud.el.tailblunt": "Tail blunt",
+  "ui.controls.blunts": "← nose blunt, → tail blunt. Di nuovo — torna allo stick."
 }

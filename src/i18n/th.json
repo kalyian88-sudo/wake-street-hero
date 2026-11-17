@@ -178,8 +178,8 @@
   "ui.controls.flips": "ฟลิป: จอยกลาง Shuvit · ← Kickflip · → Heelflip · ↑ Impossible · ↓ 360 Flip",
   "ui.controls.catch": "จับบอร์ด: กดอีกครั้งตอนบอร์ดหมุนกลับมา (กด JUMP ก็ได้) ถ้าพลาด บอร์ดจะหลุดไป",
   "ui.controls.balance": "ทรงตัว: รักษาตัวชี้ให้อยู่กลางแถบ",
-  "ui.controls.boardslide": "← boardslide, → lipslide ทิศเดิมอีกครั้ง — กลับเป็น 50-50",
-  "ui.controls.press": "Press: ↑ nose press, ↓ tail press",
+  "ui.controls.boardslide": "กดจอยค้าง: ← บอร์ดสไลด์, → ลิปสไลด์ ปล่อย — 50-50",
+  "ui.controls.press": "กดจอยค้าง: ↑ โนสเพรส, ↓ เทลเพรส",
   "ui.controls.popOff": "ป็อปออก — แล้วต่อท่ากลางอากาศทันที",
   "ui.controls.handle": "ปล่อยด้ามแล้วไหลต่อ กดอีกครั้งเพื่อจับคืน",
   "ui.controls.hero": "โหมด HERO เมื่อมิเตอร์เต็ม: แต้ม ×2 และสโลว์โมชันสุดๆ นาน 8 วินาที",
@@ -266,7 +266,7 @@
   "ui.dialog.name.filmer": "เล็กซ์",
   "ui.dialog.name.manager": "นิกา",
   "ui.dialog.name.rider": "คุณ",
-  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide ทิศเดิมอีกครั้ง — กลับเป็น 50-50",
+  "ui.controls.noseTail": "↑ โนสสไลด์, ↓ เทลสไลด์",
   "hud.tip.title": "เคล็ดลับ",
   "hud.tip.1": "กด JUMP ค้างเพื่อโหลดเชือก ปล่อยเพื่อป็อป วงยิ่งเต็ม ยิ่งลอยสูง",
   "hud.tip.2": "กลางอากาศกดจอย ← หรือ → ค้าง: จะเพิ่มทีละ 180° ปล่อยเมื่อหมุนพอแล้ว",
@@ -403,7 +403,7 @@
   "world.rec": "REC",
   "hud.moves.water": "บนน้ำ",
   "hud.moves.air": "กลางอากาศ",
-  "hud.moves.rail": "บนเรล — สไลด์และเพรส",
+  "hud.moves.rail": "บนเรล",
   "hud.moves.aheadRail": "เรลข้างหน้า — กระโดด!",
   "hud.moves.aheadKicker": "คิกเกอร์ — กด JUMP ค้างจนถึงขอบ",
   "hud.moves.pop": "กดค้างแล้วปล่อย — ป๊อป",
@@ -414,5 +414,6 @@
   "hud.el.noseslide": "Noseslide",
   "hud.el.tailslide": "Tailslide",
   "hud.el.noseblunt": "Nose blunt",
-  "hud.el.tailblunt": "Tail blunt"
+  "hud.el.tailblunt": "Tail blunt",
+  "ui.controls.blunts": "← โนสบลันท์, → เทลบลันท์ กดอีกครั้ง — กลับไปใช้จอย"
 }

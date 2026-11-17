@@ -315,7 +315,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 200,
     difficulty: 2,
-    input: { ru: 'На рейле: ТРЮК + ← (ещё раз — обратно в 50-50)', en: 'On the rail: TRICK + ← (again = back to 50-50)' },
+    input: { ru: 'На рейле: стик ←', en: 'On the rail: stick ←' },
     tip: { ru: 'Доска поперёк рейла. Метр стоит дороже, чем в 50-50.', en: 'Board across the rail. Each metre is worth more than in a 50-50.' },
   },
   {
@@ -325,7 +325,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 220,
     difficulty: 3,
-    input: { ru: 'На рейле: ТРЮК + →', en: 'On the rail: TRICK + →' },
+    input: { ru: 'На рейле: стик →', en: 'On the rail: stick →' },
   },
   {
     id: 'rail.noseslide',
@@ -334,7 +334,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 240,
     difficulty: 3,
-    input: { ru: 'На рейле: ТРЮК + ↑', en: 'On the rail: TRICK + ↑' },
+    input: { ru: 'На рейле: ТРЮК + ↑ (ещё раз — назад к стику)', en: 'On the rail: TRICK + ↑ (again = back to the stick)' },
     tip: { ru: 'Доска поперёк, на рейле только нос. Баланс злее, метр дороже.', en: 'Board across, only the nose on the rail. Touchier balance, pricier metres.' },
   },
   {
@@ -354,7 +354,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 320,
     difficulty: 4,
-    input: { ru: 'На рейле: держи ГРЭБ + ←', en: 'On the rail: hold GRAB + ←' },
+    input: { ru: 'На рейле: ТРЮК + ←', en: 'On the rail: TRICK + ←' },
     tip: { ru: 'Нос поверх рейла, доска задрана почти вертикально. Самый дорогой слайд — и самый злой по балансу.', en: 'Nose over the rail, board tipped almost vertical. The priciest slide — and the meanest balance.' },
   },
   {
@@ -364,8 +364,8 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 320,
     difficulty: 4,
-    input: { ru: 'На рейле: держи ГРЭБ + →', en: 'On the rail: hold GRAB + →' },
-    tip: { ru: 'Хвост поверх рейла, доска стоит почти вертикально. Отпустил ГРЭБ — обратно в 50-50.', en: 'Tail over the rail, board almost vertical. Let go of GRAB — back to a 50-50.' },
+    input: { ru: 'На рейле: ТРЮК + →', en: 'On the rail: TRICK + →' },
+    tip: { ru: 'Хвост поверх рейла, доска стоит почти вертикально. ТРЮК ещё раз — назад к стику.', en: 'Tail over the rail, board almost vertical. TRICK again — back to the stick.' },
   },
   {
     id: 'rail.nosepress',
@@ -374,7 +374,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 120,
     difficulty: 3,
-    input: { ru: 'На рейле: держи ГРЭБ (на вейкскейте — ФЛИП) + ↑', en: 'On the rail: hold GRAB (FLIP on the wakeskate) + ↑' },
+    input: { ru: 'На рейле: стик ↑', en: 'On the rail: stick ↑' },
     tip: { ru: 'Пресс добавляет до +50% к очкам рейла, но баланс держать сложнее.', en: 'A press adds up to +50% to the rail score, but balance gets harder.' },
   },
   {
@@ -384,7 +384,7 @@ export const TRICKS: TrickDef[] = [
     boards: ['wakeboard', 'wakeskate'],
     points: 120,
     difficulty: 3,
-    input: { ru: 'На рейле: держи ГРЭБ (на вейкскейте — ФЛИП) + ↓', en: 'On the rail: hold GRAB (FLIP on the wakeskate) + ↓' },
+    input: { ru: 'На рейле: стик ↓', en: 'On the rail: stick ↓' },
   },
 
   // ─────────────────────────────── Вода и особые / Surface & special ──

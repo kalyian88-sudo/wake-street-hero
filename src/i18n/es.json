@@ -178,8 +178,8 @@
   "ui.controls.flips": "Flips: neutro Shuvit · ← Kickflip · → Heelflip · ↑ Impossible · ↓ 360 Flip.",
   "ui.controls.catch": "Atrápala: pulsa otra vez cuando la tabla gire hacia ti (SALTO también vale). Si fallas, la tabla se va.",
   "ui.controls.balance": "Equilibrio: mantén el marcador en el centro de la barra.",
-  "ui.controls.boardslide": "← boardslide, → lipslide. La misma dirección otra vez — vuelta al 50-50.",
-  "ui.controls.press": "Press: ↑ nose press, ↓ tail press.",
+  "ui.controls.boardslide": "Mantén el stick: ← boardslide, → lipslide. Suelta — 50-50.",
+  "ui.controls.press": "Mantén el stick: ↑ nose press, ↓ tail press.",
   "ui.controls.popOff": "Salta del rail — y entra directo en un truco aéreo.",
   "ui.controls.handle": "Suelta el mango y desliza; pulsa otra vez para recuperarlo.",
   "ui.controls.hero": "Modo HERO con la barra llena: ×2 puntos y súper cámara lenta durante 8 segundos.",
@@ -266,7 +266,7 @@
   "ui.dialog.name.filmer": "Lex",
   "ui.dialog.name.manager": "Nika",
   "ui.dialog.name.rider": "Tú",
-  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide. La misma dirección otra vez — vuelta al 50-50.",
+  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide.",
   "hud.tip.title": "Consejo",
   "hud.tip.1": "Mantén SALTO para cargar la cuerda y suelta para saltar. Cuanto más lleno el anillo, más alto vuelas.",
   "hud.tip.2": "En el aire mantén el stick ← o →: sigue sumando 180°. Suéltalo cuando tengas suficiente.",
@@ -403,7 +403,7 @@
   "world.rec": "REC",
   "hud.moves.water": "En el agua",
   "hud.moves.air": "En el aire",
-  "hud.moves.rail": "En el rail — slides y presses",
+  "hud.moves.rail": "En el rail",
   "hud.moves.aheadRail": "¡Rail delante — salta!",
   "hud.moves.aheadKicker": "Kicker — mantén el salto hasta el borde",
   "hud.moves.pop": "mantén y suelta — pop",
@@ -414,5 +414,6 @@
   "hud.el.noseslide": "Noseslide",
   "hud.el.tailslide": "Tailslide",
   "hud.el.noseblunt": "Nose blunt",
-  "hud.el.tailblunt": "Tail blunt"
+  "hud.el.tailblunt": "Tail blunt",
+  "ui.controls.blunts": "← nose blunt, → tail blunt. Otra vez — vuelta al stick."
 }

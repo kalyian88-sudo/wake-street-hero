@@ -178,8 +178,8 @@
   "ui.controls.flips": "フリップ：ニュートラル ショービット · ←キックフリップ · →ヒールフリップ · ↑インポッシブル · ↓360フリップ。",
   "ui.controls.catch": "キャッチ：ボードが回ってきたらもう一度押す（ジャンプでも可）。逃すとボードは消えます。",
   "ui.controls.balance": "バランス：マーカーをバーの中央に保とう。",
-  "ui.controls.boardslide": "←ボードスライド、→リップスライド。同じ方向をもう一度で50-50に戻ります。",
-  "ui.controls.press": "プレス：↑ノーズプレス、↓テールプレス。",
+  "ui.controls.boardslide": "スティック長押し：← ボードスライド、→ リップスライド。離すと 50-50。",
+  "ui.controls.press": "スティック長押し：↑ ノーズプレス、↓ テールプレス。",
   "ui.controls.popOff": "ポップオフ — そのままエアトリックへ。",
   "ui.controls.handle": "ハンドルを放してコースト、もう一度押すと握り直し。",
   "ui.controls.hero": "メーターが満タンでHEROモード：8秒間、ポイント×2とスーパースローモーション。",
@@ -266,7 +266,7 @@
   "ui.dialog.name.filmer": "レックス",
   "ui.dialog.name.manager": "ニカ",
   "ui.dialog.name.rider": "あなた",
-  "ui.controls.noseTail": "↑ノーズスライド、↓テールスライド。同じ方向をもう一度で50-50に戻ります。",
+  "ui.controls.noseTail": "↑ ノーズスライド、↓ テールスライド。",
   "hud.tip.title": "ヒント",
   "hud.tip.1": "ジャンプを長押ししてロープにため、離してポップ。リングが満タンに近いほど高く飛べます。",
   "hud.tip.2": "空中でスティックを←か→に長押し：180°ずつ加算されます。十分回ったら離そう。",
@@ -403,7 +403,7 @@
   "world.rec": "REC",
   "hud.moves.water": "水上",
   "hud.moves.air": "空中",
-  "hud.moves.rail": "レール上 — スライドとプレス",
+  "hud.moves.rail": "レール上",
   "hud.moves.aheadRail": "前方にレール — ジャンプ！",
   "hud.moves.aheadKicker": "キッカー — 先端までジャンプ長押し",
   "hud.moves.pop": "長押しして離す — ポップ",
@@ -414,5 +414,6 @@
   "hud.el.noseslide": "ノーズスライド",
   "hud.el.tailslide": "テールスライド",
   "hud.el.noseblunt": "ノーズブラント",
-  "hud.el.tailblunt": "テールブラント"
+  "hud.el.tailblunt": "テールブラント",
+  "ui.controls.blunts": "← ノーズブラント、→ テールブラント。もう一度でスティックに戻る。"
 }

@@ -51,10 +51,10 @@ const SHEET: { title: string; rows: Combo[] }[] = [
   {
     title: 'ui.controls.sec.rail',
     rows: [
-      { keys: ['lr'], text: 'ui.controls.balance' },
-      { keys: ['trick', 'lr'], text: 'ui.controls.boardslide' },
+      { keys: ['lr'], hold: true, text: 'ui.controls.boardslide' },
+      { keys: ['ud'], hold: true, text: 'ui.controls.press' },
+      { keys: ['trick', 'lr'], text: 'ui.controls.blunts' },
       { keys: ['trick', 'ud'], text: 'ui.controls.noseTail' },
-      { keys: ['grab', 'ud'], hold: true, text: 'ui.controls.press' },
       { keys: ['jump'], text: 'ui.controls.popOff' },
     ],
   },

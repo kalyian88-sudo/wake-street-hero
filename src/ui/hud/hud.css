@@ -988,3 +988,6 @@
     right: calc(140px + var(--sar));
   }
 }
+
+/* the stick now picks the rail stance and balance is automatic: no balance bar */
+.wsh-balance { display: none !important; }

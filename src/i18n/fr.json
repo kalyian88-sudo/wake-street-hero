@@ -178,8 +178,8 @@
   "ui.controls.flips": "Flips : neutre Shuvit · ← Kickflip · → Heelflip · ↑ Impossible · ↓ 360 Flip.",
   "ui.controls.catch": "Rattrape : rappuie quand la board revient (SAUT marche aussi). Si tu la rates, la board est perdue.",
   "ui.controls.balance": "Équilibre : garde le curseur au milieu de la barre.",
-  "ui.controls.boardslide": "← boardslide, → lipslide. Même direction encore — retour au 50-50.",
-  "ui.controls.press": "Press : ↑ nose press, ↓ tail press.",
+  "ui.controls.boardslide": "Tiens le stick : ← boardslide, → lipslide. Relâche — 50-50.",
+  "ui.controls.press": "Tiens le stick : ↑ nose press, ↓ tail press.",
   "ui.controls.popOff": "Pop off — et enchaîne direct sur un trick en l'air.",
   "ui.controls.handle": "Lâche la poignée et laisse filer, rappuie pour la reprendre.",
   "ui.controls.hero": "Mode HERO quand la jauge est pleine : ×2 points et super slow-mo pendant 8 secondes.",
@@ -266,7 +266,7 @@
   "ui.dialog.name.filmer": "Lex",
   "ui.dialog.name.manager": "Nika",
   "ui.dialog.name.rider": "Toi",
-  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide. Même direction encore — retour au 50-50.",
+  "ui.controls.noseTail": "↑ noseslide, ↓ tailslide.",
   "hud.tip.title": "Astuce",
   "hud.tip.1": "Maintiens SAUT pour charger la corde, relâche pour pop. Plus l'anneau est plein, plus tu voles haut.",
   "hud.tip.2": "En l'air, maintiens le stick ← ou → : il ajoute 180°. Relâche quand t'en as assez.",
@@ -403,7 +403,7 @@
   "world.rec": "REC",
   "hud.moves.water": "Sur l'eau",
   "hud.moves.air": "En l'air",
-  "hud.moves.rail": "Sur le rail — slides & presses",
+  "hud.moves.rail": "Sur le rail",
   "hud.moves.aheadRail": "Rail devant — saute !",
   "hud.moves.aheadKicker": "Kicker — garde le saut jusqu'au bout",
   "hud.moves.pop": "maintiens et relâche — pop",
@@ -414,5 +414,6 @@
   "hud.el.noseslide": "Noseslide",
   "hud.el.tailslide": "Tailslide",
   "hud.el.noseblunt": "Nose blunt",
-  "hud.el.tailblunt": "Tail blunt"
+  "hud.el.tailblunt": "Tail blunt",
+  "ui.controls.blunts": "← nose blunt, → tail blunt. Encore — retour au stick."
 }

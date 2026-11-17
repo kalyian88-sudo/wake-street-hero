@@ -55,6 +55,8 @@ export interface RailRun {
   distance: number;
   pressTime: number;
   stances: RailStance[];
+  /** Stance picked with TRICK + direction (blunts, nose/tail slides); null = the stick decides. */
+  trickStance: RailStance | null;
   /** Hop-on blend 1 → 0 and the offset it fades out. */
   blend: number;
   blendTime: number;
@@ -160,6 +162,7 @@ export class SimCore {
     distance: 0,
     pressTime: 0,
     stances: [],
+    trickStance: null,
     blend: 0,
     blendTime: 0.1,
     offX: 0,

@@ -85,6 +85,7 @@ export function lockRail(c: SimCore, dir: 1 | -1, quality: LandingQuality, fromA
   run.distance = 0;
   run.pressTime = 0;
   run.stances.length = 0;
+  run.trickStance = null;
   run.offX = s.pos.x - g.x;
   run.offY = s.pos.y - g.y;
   run.offZ = s.pos.z - g.z;
@@ -235,28 +236,33 @@ export function stepRail(c: SimCore, dt: number): void {
   s.heading = tanYaw;
   c.boardDir = tanYaw;
 
-  // ── stance ──
-  // TRICK + ← boardslide · → lipslide · ↑ noseslide · ↓ tailslide; the same direction again (or TRICK alone) = back to 50-50.
+  // ── stance (owner's control scheme) ──
+  // Stick alone: ← boardslide · → lipslide · ↑ nose press · ↓ tail press · centre = 50-50 (held, with hysteresis).
+  // TRICK + ← nose blunt · → tail blunt · ↑ noseslide · ↓ tailslide — latched until TRICK again (same direction
+  // or no direction) switches back to the stick.
   if (inp.trick.pressed) {
     const ax = Math.abs(inp.steer);
     const ay = Math.abs(inp.pitch);
     const thr = TRICK.dirThreshold;
-    let want: RailStance = 'fifty';
-    if (ax >= thr && ax >= ay) want = inp.steer < 0 ? 'boardslide' : 'lipslide';
+    let want: RailStance | null = null;
+    if (ax >= thr && ax >= ay) want = inp.steer < 0 ? 'noseblunt' : 'tailblunt';
     else if (ay >= thr) want = inp.pitch > 0 ? 'noseslide' : 'tailslide';
-    setStance(c, want === rs.stance ? 'fifty' : want);
+    run.trickStance = want === run.trickStance ? null : want;
   }
-  // hold GRAB: the stick at the moment of the press picks ↑ nose press · ↓ tail press · ← nose blunt ·
-  // → tail blunt (neutral = nose press). While held the stick is free again for balance (↑/↓ may still swap presses).
-  if (inp.grab.down && !sliding) {
+  let want: RailStance;
+  if (run.trickStance) want = run.trickStance;
+  else {
     const ax = Math.abs(inp.steer);
     const ay = Math.abs(inp.pitch);
-    let want: RailStance = rs.stance === 'fifty' ? 'nosepress' : rs.stance;
-    if (inp.grab.pressed && ax >= 0.3 && ax >= ay) want = inp.steer < 0 ? 'noseblunt' : 'tailblunt';
-    else if (ay >= 0.3 && ay > ax && (rs.stance === 'nosepress' || rs.stance === 'tailpress' || rs.stance === 'fifty')) want = inp.pitch > 0 ? 'nosepress' : 'tailpress';
-    setStance(c, want);
-    run.pressTime += dt;
-  } else if (pressing && !inp.grab.down) setStance(c, 'fifty');
+    const cur = rs.stance;
+    const holding = (cur === 'boardslide' && inp.steer < -0.35) || (cur === 'lipslide' && inp.steer > 0.35) || (cur === 'nosepress' && inp.pitch > 0.35) || (cur === 'tailpress' && inp.pitch < -0.35);
+    if (holding) want = cur;
+    else if (ax >= 0.55 && ax >= ay) want = inp.steer < 0 ? 'boardslide' : 'lipslide';
+    else if (ay >= 0.55) want = inp.pitch > 0 ? 'nosepress' : 'tailpress';
+    else want = 'fifty';
+  }
+  setStance(c, want);
+  if (pressing) run.pressTime += dt;
   const turn = (HALF / SIM.railStanceTime) * dt;
   const dyaw = run.stanceYawTarget - run.stanceYaw;
   run.stanceYaw += dyaw > turn ? turn : dyaw < -turn ? -turn : dyaw;
@@ -274,7 +280,9 @@ export function stepRail(c: SimCore, dt: number): void {
   // rope pulling across the rail drags the rider off to that side
   const side = (c.rope.ax * tz - c.rope.az * tx) / SIM.maxPull;
   const drift = difficulty * (wobble * run.noise + SIM.balanceInstability * rs.balance - side * 0.6);
-  rs.balance += (drift + inp.steer * SIM.balanceControl) * dt;
+  // the stick now picks the stance, so the rider balances himself: the wobble stays visual and never throws him off
+  rs.balance += (drift - rs.balance * 6) * dt * 0.35;
+  rs.balance = Math.max(-0.35, Math.min(0.35, rs.balance));
   s.lean = Math.max(-1, Math.min(1, rs.balance * 0.7));
   if (Math.abs(rs.balance) >= 1) {
     rs.balance = rs.balance > 0 ? 1 : -1;
