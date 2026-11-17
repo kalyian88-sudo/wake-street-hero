@@ -9,6 +9,10 @@ import { MeshBuilder, capsuleRings, ringsOf, type Ring } from './geo';
 import { contrast, shade } from './paint';
 import { ATLAS, B, SWATCH, rectUV, swatchUV, type Outfit, type Proportions } from './rigDef';
 
+/** Shorts length below the knee (m) and where the knee falls in the leg texture (v). */
+const SHORTS_BELOW_KNEE = 0.12;
+const SHORTS_KNEE_V = 0.22;
+
 const FRONT = new Vector3(0, 0, 1);
 const UP = new Vector3(0, 1, 0);
 const _a = new Vector3();
@@ -212,18 +216,20 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     _b.set(x, P.kneeY, 0);
     b.segment(_a, _b, FRONT).capsule(P.thigh, 0.096 * g + fat, 0.063 * g + fat, { radial: 16, sz: 1.06, mid: [[0.42, 0.088 * g + fat]] });
     if (!wet) {
-      // board-shorts leg: loose tube, open hem
+      // loose street boardshorts with cargo pockets: the thigh part runs to the knee, a second tube on the
+      // shin bone carries the leg on below the knee (texture v: hip 1 → knee SHORTS_KNEE_V → hem 0)
       b.color(0xffffff);
-      const r0 = 0.108 * g;
-      const len = P.thigh * 0.84; // long boardshorts, just above the knee
+      const r0 = 0.116 * g;
+      const len = P.thigh;
+      const legUV = rectUV(ATLAS.legs, 1);
       b.loft(
         [
-          { y: -0.05, rx: r0 * 0.94, rz: r0 * 1.02 },
-          { y: len * 0.3, rx: r0 * 0.96, rz: r0 * 1.0 },
-          { y: len * 0.75, rx: r0 * 0.9, rz: r0 * 0.93 },
-          { y: len, rx: r0 * 0.9, rz: r0 * 0.92 },
+          { y: -0.05, rx: r0 * 0.95, rz: r0 * 1.02 },
+          { y: len * 0.3, rx: r0 * 1.0, rz: r0 * 1.04 },
+          { y: len * 0.62, rx: r0 * 1.02, rz: r0 * 1.03 },
+          { y: len, rx: r0 * 0.98, rz: r0 * 1.0 },
         ],
-        { radial: 16, wrap: rectUV(ATLAS.legs, 1), vOf: (_r, i, n) => 1 - i / (n - 1), capEnd: len - 0.006 },
+        { radial: 16, wrap: legUV, vOf: (_r, i, n) => 1 - (i / (n - 1)) * (1 - SHORTS_KNEE_V), capEnd: len - 0.004 },
       );
     }
     b.bone(L ? B.shinL : B.shinR).color(legC);
@@ -242,6 +248,20 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
       { y: P.shin + 0.026 * g, rx: 0.027 * g, rz: 0.028 * g },
     ];
     b.loft(calf, { radial: 16, capStart: -(0.062 * g + fat), capEnd: P.shin + 0.038 * g });
+    if (!wet) {
+      // shorts below the knee: starts a little above the joint so a bent knee never shows a gap
+      b.color(0xffffff);
+      sw(SWATCH.skin);
+      const r1 = 0.106 * g;
+      b.loft(
+        [
+          { y: -0.06, rx: r1 * 1.0, rz: r1 * 1.02 },
+          { y: 0.04, rx: r1 * 1.02, rz: r1 * 1.04 },
+          { y: SHORTS_BELOW_KNEE, rx: r1 * 1.04, rz: r1 * 1.06 },
+        ],
+        { radial: 16, wrap: rectUV(ATLAS.legs, 1), vOf: (_r, i, n) => SHORTS_KNEE_V * (1 - i / (n - 1)), capStart: -0.06, capEnd: SHORTS_BELOW_KNEE - 0.003 },
+      );
+    }
 
     // bare foot (toes peek out of the open-toe boots)
     b.bone(L ? B.footL : B.footR);

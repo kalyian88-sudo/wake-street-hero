@@ -562,6 +562,29 @@ function paintLegs(ctx: Ctx, rctx: Ctx, o: Outfit): void {
   ctx.moveTo(0, 236);
   ctx.lineTo(256, 236);
   ctx.stroke();
+  // cargo pockets on the side seams (u = 0/256 and 128): patch, flap, stitching
+  const pocket = shade(look.primary, luma(look.primary) > 0.35 ? -0.1 : 0.1);
+  const flap = shade(look.primary, luma(look.primary) > 0.35 ? -0.2 : 0.18);
+  for (const cx of [0, 128, 256]) {
+    ctx.fillStyle = css(pocket);
+    roundRect(ctx, cx - 34, 112, 68, 82, 8);
+    ctx.fill();
+    ctx.fillStyle = css(flap);
+    roundRect(ctx, cx - 37, 104, 74, 26, 6);
+    ctx.fill();
+    ctx.strokeStyle = rgba(contrast(look.primary, 0xffffff), 0.35);
+    ctx.lineWidth = 1.6;
+    ctx.setLineDash([4, 3]);
+    roundRect(ctx, cx - 30, 116, 60, 74, 6);
+    ctx.stroke();
+    roundRect(ctx, cx - 33, 107, 66, 20, 5);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(cx - 34, 192, 68, 3);
+    rctx.fillStyle = grey(0.9);
+    rctx.fillRect(cx - 37, 104, 74, 92);
+  }
   drawWordmark(ctx, BRAND.name, 64, 206, 13, css(ink));
   drawWordmark(ctx, BRAND.name, 192, 206, 13, css(ink));
   softShade(ctx, 0, 0, 256, 256, 0.16, true);
