@@ -34,9 +34,10 @@ const TORSO_M: readonly (readonly number[])[] = [
   [0.23, 0.142, 0.097, 0.004, 2.4],
   [0.31, 0.152, 0.108, 0.008, 2.5],
   [0.39, 0.16, 0.116, 0.01, 2.6],
-  [0.455, 0.16, 0.108, 0.004, 2.6],
-  [0.505, 0.148, 0.094, -0.004, 2.5],
-  [0.545, 0.104, 0.074, -0.008, 2.2],
+  [0.455, 0.16, 0.108, 0.004, 2.4],
+  [0.505, 0.146, 0.094, -0.004, 2.15],
+  [0.528, 0.128, 0.084, -0.008, 2.0],
+  [0.552, 0.096, 0.07, -0.008, 2.1],
   [0.572, 0.062, 0.06, -0.006, 2],
 ];
 const TORSO_F: readonly (readonly number[])[] = [
@@ -111,7 +112,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
   b.identity().color(0xffffff);
   b.skinFn = torsoSkin;
   b.loft(torso, {
-    radial: 16,
+    radial: 24,
     wrap: rectUV(ATLAS.torso, 1),
     vOf: (r) => (r.y - yBot) / (yTop - yBot),
     capStart: yBot - 0.016,
@@ -167,7 +168,19 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     sw(sleeveLong ? (hoodie ? SWATCH.matte : jersey ? SWATCH.cloth : SWATCH.rubber) : SWATCH.skin);
     _a.set(x, P.shoulderY, 0);
     _b.set(x, P.shoulderY - P.uarm, 0);
-    b.segment(_a, _b, FRONT).capsule(P.uarm, 0.054 * g + fat, 0.04 * g + fat, { radial: 16, mid: [[0.35, 0.05 * g + fat]] });
+    // the top of the upper arm is partly carried by the chest so the shoulder stays rounded when the arm lifts
+    const uarmBone = L ? B.uarmL : B.uarmR;
+    const shoulderSkin = (p: Vector3, out: [number, number, number]): void => {
+      out[0] = uarmBone;
+      out[1] = B.chest;
+      out[2] = 0.9 + 0.1 * smooth(P.shoulderY + 0.02, P.shoulderY - 0.06, p.y);
+    };
+    b.skinFn = shoulderSkin;
+    b.segment(_a, _b, FRONT).capsule(P.uarm, 0.056 * g + fat, 0.04 * g + fat, { radial: 20, mid: [[0.22, 0.056 * g + fat], [0.5, 0.05 * g + fat], [0.8, 0.043 * g + fat]] });
+    // deltoid cap rounding the shoulder into the torso
+    b.skinFn = shoulderSkin;
+    b.at(x - side * 0.006, P.shoulderY - 0.035 * s, 0.002).ellipsoid(0.054 * g + fat, 0.07 * s, 0.056 * g + fat, { radial: 18, rings: 8 });
+    b.bone(uarmBone).segment(_a, _b, FRONT);
     if (!sleeveLong) {
       // short tee sleeve
       b.color(topC);
@@ -189,7 +202,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     sw(sleeveLong ? (hoodie ? SWATCH.matte : jersey ? SWATCH.cloth : SWATCH.rubber) : SWATCH.skin);
     _a.set(x, P.shoulderY - P.uarm, 0);
     _b.set(x, P.shoulderY - P.uarm - P.larm, 0);
-    b.segment(_a, _b, FRONT).capsule(P.larm, 0.04 * g + fat, 0.03 * g + fat * 0.7, { radial: 16, mid: [[0.28, 0.044 * g + fat]] });
+    b.segment(_a, _b, FRONT).capsule(P.larm, 0.04 * g + fat, 0.03 * g + fat * 0.7, { radial: 20, mid: [[0.22, 0.045 * g + fat], [0.55, 0.04 * g + fat]] });
     if (sleeveLong) {
       // cuff
       b.color(hoodie || jersey ? shade(topC, -0.2) : contrast(suitC, o.bottomLook.accent));
@@ -214,7 +227,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     sw(wet ? SWATCH.rubber : SWATCH.skin);
     _a.set(x, P.hipY, 0);
     _b.set(x, P.kneeY, 0);
-    b.segment(_a, _b, FRONT).capsule(P.thigh, 0.096 * g + fat, 0.063 * g + fat, { radial: 16, sz: 1.06, mid: [[0.42, 0.088 * g + fat]] });
+    b.segment(_a, _b, FRONT).capsule(P.thigh, 0.096 * g + fat, 0.063 * g + fat, { radial: 20, sz: 1.06, mid: [[0.42, 0.088 * g + fat]] });
     if (!wet) {
       // loose street boardshorts with cargo pockets: the thigh part runs to the knee, a second tube on the
       // shin bone carries the leg on below the knee (texture v: hip 1 → knee SHORTS_KNEE_V → hem 0)
@@ -247,7 +260,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
       { y: P.shin, rx: 0.041 * g + fat, rz: 0.043 * g + fat },
       { y: P.shin + 0.026 * g, rx: 0.027 * g, rz: 0.028 * g },
     ];
-    b.loft(calf, { radial: 16, capStart: -(0.062 * g + fat), capEnd: P.shin + 0.038 * g });
+    b.loft(calf, { radial: 20, capStart: -(0.062 * g + fat), capEnd: P.shin + 0.038 * g });
     if (!wet) {
       // shorts below the knee: starts a little above the joint so a bent knee never shows a gap
       b.color(0xffffff);
@@ -462,33 +475,33 @@ function buildHand(b: MeshBuilder, left: boolean, x: number, wristY: number, g: 
     ]),
     { radial: 8, capStart: -0.008, capEnd: 0.102 * k },
   );
-  // fingers: two curled blocks
-  const kx = x + m * 0.006;
-  const ky = wristY - 0.092 * k;
-  _a.set(kx, ky, -0.003);
-  _b.set(kx + m * 0.03 * k, ky - 0.03 * k, -0.003);
-  b.segment(_a, _b, FRONT);
-  b.loft(
-    ringsOf([
-      [-0.004, 0.012, 0.038, 0, 3],
-      [0.022 * k, 0.0115, 0.037, 0, 3],
-      [0.044 * k, 0.011, 0.036, 0, 3],
-    ]),
-    { radial: 8, capStart: -0.01, capEnd: 0.05 * k },
-  );
-  _a.copy(_b);
-  _b.set(_a.x + m * 0.026 * k, _a.y + 0.012 * k, -0.003);
-  b.segment(_a, _b, FRONT);
-  b.loft(
-    ringsOf([
-      [-0.004, 0.011, 0.036, 0, 3],
-      [0.018 * k, 0.0105, 0.034, 0, 3],
-      [0.03 * k, 0.009, 0.031, 0, 2.6],
-    ]),
-    { radial: 8, capStart: -0.01, capEnd: 0.037 * k },
-  );
+  // four separate fingers, each curled in three phalanges towards the palm (closes round the bar)
+  const kx = x + m * 0.004;
+  const ky = wristY - 0.09 * k;
+  const FINGERS: readonly [number, number, number][] = [
+    // z across the palm, length scale, radius
+    [0.03, 0.92, 0.0098],
+    [0.0105, 1.0, 0.0102],
+    [-0.009, 0.96, 0.0098],
+    [-0.027, 0.8, 0.0088],
+  ];
+  const _c = new Vector3();
+  for (const [fz, fl, fr] of FINGERS) {
+    _c.set(kx, ky + (1 - fl) * 0.01, fz);
+    const segs: readonly [number, number, number][] = [
+      [m * 0.012, -0.036, 1],
+      [m * 0.024, -0.012, 0.9],
+      [m * 0.014, 0.012, 0.8],
+    ];
+    for (const [ddx, ddy, rr] of segs) {
+      _a.copy(_c);
+      _b.set(_a.x + ddx * fl * k, _a.y + ddy * fl * k, fz);
+      b.segment(_a, _b, FRONT).capsule(_a.distanceTo(_b), fr * rr * k, fr * rr * 0.92 * k, { radial: 7, capSeg: 2 });
+      _c.copy(_b);
+    }
+  }
   // thumb
   _a.set(x + m * 0.004, wristY - 0.03 * k, 0.034);
   _b.set(x + m * 0.034 * k, wristY - 0.074 * k, 0.046);
-  b.segment(_a, _b, FRONT).capsule(_a.distanceTo(_b), 0.0125, 0.0105, { radial: 6, capSeg: 1 });
+  b.segment(_a, _b, FRONT).capsule(_a.distanceTo(_b), 0.0128, 0.0102, { radial: 8, capSeg: 2, mid: [[0.5, 0.0118]] });
 }

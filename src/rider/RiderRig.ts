@@ -25,6 +25,7 @@ import { acquireBodyAtlas, releaseBodyAtlas, type BodyAtlas } from './bodyAtlas'
 import { buildBody } from './bodyMesh';
 import { acquireBoardTextures, boardSpec, buildBoard, buildBridle, buildHandle, releaseBoardTextures, type BoardSpec } from './boardMesh';
 import { buildHead } from './headMesh';
+import { addClothDetail } from './clothDetail';
 import { createPose, PoseSprings } from './pose';
 import { B, BONE_COUNT, outfitKeys, proportionsFor, resolveOutfit, type Outfit, type Proportions } from './rigDef';
 import { createSolved, Solver } from './solver';
@@ -124,6 +125,7 @@ class RiderRig implements IRiderRig {
       this.root.add(bone);
     }
     this.bodyMat = new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
+    if (profile.post) addClothDetail(this.bodyMat);
     this.boardMat = new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
     this.handleMat = new MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0 });
     const handle = buildHandle();
