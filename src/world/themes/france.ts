@@ -696,8 +696,9 @@ function basilica(def: PropDef, ctx: PropContext): void {
   const sc = num(ctx, def, 'scale', 1);
   const rng = ctx.rng;
   const hill = k.g('flat');
-  const lit = k.g('neon', undefined, { intensity: 0.8 });
-  const litDim = k.g('neon', undefined, { intensity: 0.5 });
+  // floodlit: bright enough to read through 400 m of night fog
+  const lit = k.g('neon', undefined, { intensity: 2.4 });
+  const litDim = k.g('neon', undefined, { intensity: 1.6 });
   const glowG = k.g('neon', undefined, { intensity: 1 });
   const dark = k.g('flat');
   void sc;

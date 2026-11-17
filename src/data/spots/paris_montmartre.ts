@@ -53,7 +53,7 @@ for (let i = 0; i < 9; i++) {
 [36, 90, 130].forEach((z, i) => add({ type: 'common.tree', pos: [-10.2, 0.9, z], seed: 1900 + i, params: { height: 7.5, crown: 2.8, tint: 0x4f7a3a } }));
 
 // the hill and the white basilica far behind
-add({ type: 'france.basilica', pos: [0, 0, 400], seed: 5, params: { scale: 1 } });
+add({ type: 'france.basilica', pos: [0, 26, 420], seed: 5, params: { scale: 1 } });
 add({ type: 'common.birds', pos: [0, 0, 120], params: { count: 4, radius: 16, height: 22 } });
 
 export const parisMontmartre: SpotDef = {
@@ -71,10 +71,10 @@ export const parisMontmartre: SpotDef = {
     sunAzimuth: 200,
     sunColor: 0x8fa6ff,
     sunIntensity: 0.55,
-    ambientIntensity: 0.42,
+    ambientIntensity: 0.6,
     turbidity: 3,
     rayleigh: 0.6,
-    exposure: 0.95,
+    exposure: 1.15,
     fogColor: 0x0d1226,
     fogNear: 70,
     fogFar: 720,

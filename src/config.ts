@@ -40,7 +40,7 @@ export const QUALITY_PROFILES: Record<QualityLevel, QualityProfile> = {
     waterDetail: 0,
     particles: 0.4,
     detail: 0.5,
-    drawDistance: 220,
+    drawDistance: 380,
     anisotropy: 1,
   },
   medium: {
@@ -55,7 +55,7 @@ export const QUALITY_PROFILES: Record<QualityLevel, QualityProfile> = {
     waterDetail: 1,
     particles: 0.75,
     detail: 0.8,
-    drawDistance: 320,
+    drawDistance: 520,
     anisotropy: 4,
   },
   high: {
@@ -70,7 +70,7 @@ export const QUALITY_PROFILES: Record<QualityLevel, QualityProfile> = {
     waterDetail: 2,
     particles: 1,
     detail: 1,
-    drawDistance: 450,
+    drawDistance: 700,
     anisotropy: 8,
   },
 };
