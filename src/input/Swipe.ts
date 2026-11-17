@@ -90,6 +90,8 @@ export class SwipeControls {
 
   private ignore(e: PointerEvent): boolean {
     if (!this.enabled || !this.surface) return true;
+    // a desktop mouse click is not a gesture (desktop players use the keyboard)
+    if (e.pointerType === 'mouse') return true;
     const t = e.target as Element | null;
     // menus, the pause button and anything that is a real button keep working normally
     return !!t && !!t.closest('#ui, button, .wsh-tr, .wsh-pause, [data-ui]');
@@ -140,6 +142,7 @@ export class SwipeControls {
 
   /** Edit the polled frame for this sim state (call once per frame before sim.step). */
   apply(f: InputFrame, s: RiderSimState): void {
+    f.popNow = 0;
     if (!this.enabled) return;
     if (this.pointer !== -1 && !this.fired && performance.now() - this.st >= HOLD_MS) this.holding = true;
 

@@ -479,6 +479,8 @@ class Input implements IInput {
 
   poll(): InputFrame {
     const f = this.frame;
+    // one-shot fields written by other controllers (swipe pop) must never survive into the next frame
+    f.popNow = 0;
     const t = now();
     let dt = (t - this.lastPoll) / 1000;
     this.lastPoll = t;
