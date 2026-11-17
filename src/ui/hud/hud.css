@@ -991,3 +991,23 @@
 
 /* the stick now picks the rail stance and balance is automatic: no balance bar */
 .wsh-balance { display: none !important; }
+
+/* endless canal badge: stage + lives, under the score */
+.wsh-endless {
+  position: absolute;
+  left: calc(14px + var(--sal));
+  top: calc(92px + var(--sat));
+  padding: 4px 10px 3px;
+  border-radius: 8px;
+  background: rgba(16, 17, 20, 0.66);
+  color: #fff;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  white-space: pre;
+  display: none;
+}
+.wsh-endless.is-on { display: block; }
+.wsh-endless.is-hit { animation: wsh-endless-hit 0.6s ease-out; }
+@keyframes wsh-endless-hit {
+  0%, 30% { background: rgba(227, 6, 19, 0.9); transform: scale(1.12); }
+}

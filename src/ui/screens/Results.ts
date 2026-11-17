@@ -129,7 +129,8 @@ export class ResultsScreen extends Screen {
       );
     }
     const spot = findSpot(r.config.spotId);
-    const free = r.config.mode === 'free';
+    const endless = r.config.mode === 'endless';
+    const free = r.config.mode === 'free' || endless;
     const fresh = this.freshStars(r);
     const flags = [0, 1, 2, 3, 4].map((i) => r.goals?.[i] === true);
     const lang = i18n.lang;
@@ -164,7 +165,9 @@ export class ResultsScreen extends Screen {
     const lvBefore = levelForRep(before);
     const lvAfter = levelForRep(before + (r.rep || 0));
     const up = lvAfter.level > lvBefore.level;
-    const rewards = free
+    const rewards = endless
+      ? h('div', { class: 'wn-results__rewards is-in' }, h('div', { class: 'wn-reward' }, coinIcon(), h('b', { class: 'wn-hd' }, `+${fmt(r.coins || 0, lang)}`), h('span', null, t('ui.results.coins'))))
+      : free
       ? null
       : h(
           'div',
@@ -172,7 +175,9 @@ export class ResultsScreen extends Screen {
           h('div', { class: 'wn-reward' }, coinIcon(), h('b', { class: 'wn-hd' }, `+${fmt(r.coins || 0, lang)}`), h('span', null, t('ui.results.coins'))),
           h('div', { class: 'wn-reward' }, h('span', { class: 'wn-reward__rep' }, icon('bolt')), h('b', { class: 'wn-hd' }, `+${fmt(r.rep || 0, lang)}`), h('span', null, t('ui.results.rep'))),
         );
-    const level = free
+    const level = endless
+      ? h('p', { class: 'wn-results__free' }, t('ui.endless.resultNote', { stage: String((r.endless?.stage ?? 0) + 1), metres: fmt(r.endless?.distance ?? 0, lang) }))
+      : free
       ? h('p', { class: 'wn-results__free' }, t('ui.results.freeNote'))
       : h(
           'div',
@@ -200,7 +205,7 @@ export class ResultsScreen extends Screen {
         h(
           'div',
           { class: 'wn-results__main' },
-          h('div', { class: 'wn-kicker' }, [spot ? l(spot.name) : '', t(`ui.mode.${r.config.mode}`), t(`ui.board.${r.config.board}`)].filter(Boolean).join(' · ')),
+          h('div', { class: 'wn-kicker' }, [endless ? t('ui.endless.title') : spot ? l(spot.name) : '', endless ? '' : t(`ui.mode.${r.config.mode}`), t(`ui.board.${r.config.board}`)].filter(Boolean).join(' · ')),
           h('h1', { class: 'wn-results__title wn-hd' }, r.falls === 0 && r.score > 0 ? t('ui.results.titleClean') : t('ui.results.title')),
           h(
             'div',

@@ -160,7 +160,7 @@ describe('migrate v2 → v3', () => {
   it('renames settings and keeps their values', () => {
     const s = migrate(v2);
     expectValid(s);
-    expect(s.settings).toEqual({ lang: 'en', quality: 'high', musicVolume: 0.25, sfxVolume: 0.5, stance: 'goofy', haptics: false, invertY: false, showFps: false });
+    expect(s.settings).toEqual({ lang: 'en', quality: 'high', musicVolume: 0.25, sfxVolume: 0.5, stance: 'goofy', haptics: false, invertY: false, showFps: false, controls: 'swipe' });
   });
 
   it('moves look → appearance and spells the gender out', () => {

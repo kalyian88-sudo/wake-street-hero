@@ -103,5 +103,14 @@
   "hud.el.noseslide": "Noseslide",
   "hud.el.tailslide": "Tailslide",
   "hud.el.noseblunt": "Nose blunt",
-  "hud.el.tailblunt": "Tail blunt"
+  "hud.el.tailblunt": "Tail blunt",
+  "hud.moves.jump": "jump",
+  "hud.moves.lane": "change lane",
+  "hud.moves.spin180": "spin +180",
+  "hud.moves.swipe": "Swipe",
+  "hud.moves.tap": "Tap",
+  "hud.moves.hold": "Hold",
+  "hud.moves.aheadKickerSwipe": "Kicker — swipe up at the lip",
+  "hud.endless.stage": "STAGE {n}",
+  "hud.tip.swipe": "Swipe ↑ to jump, ←/→ to change lane. In the air swipes spin and flip you, hold to grab."
 }

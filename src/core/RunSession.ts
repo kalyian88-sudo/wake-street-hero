@@ -29,6 +29,7 @@ import type {
   SpotDef,
   WorldView,
 } from '../types';
+import type { SwipeControls } from '../input/Swipe';
 import type { CameraRig } from './CameraRig';
 import type { Engine } from './Engine';
 import type { EventBus } from './events';
@@ -49,9 +50,28 @@ export interface SessionDeps {
   engine: Engine;
   cameraRig: CameraRig;
   time: TimeScale;
+  swipe: SwipeControls;
 }
 
+/** What an endless run carries from one stage to the next. */
+export interface EndlessCarry {
+  stage: number;
+  lives: number;
+  score: number;
+  falls: number;
+  tricksLanded: number;
+  bestCombo: number;
+  bestTrick: RunResult['bestTrick'];
+  /** Metres ridden in the stages already cleared. */
+  distance: number;
+  runTime: number;
+}
+
+export const ENDLESS_LIVES = 3;
+
 export interface SessionCallbacks {
+  /** Endless canal: the winch of this stage was reached — build the next one. */
+  onStageClear?(carry: EndlessCarry): void;
   /** GO: the countdown is over. */
   onGo(): void;
   /** Result built and saved. */
@@ -93,6 +113,9 @@ export class RunSession {
   private worldTime = 0;
   private clock = 0;
   private disposed = false;
+  /** Endless canal state (null in every other mode). */
+  endless: EndlessCarry | null = null;
+  private outOfLives = false;
 
   // replay playback
   private clip: ReplayClip | null = null;
@@ -150,7 +173,11 @@ export class RunSession {
         this.markFx('land', e.pos.x, e.pos.y, e.pos.z, Math.min(1, Math.max(0.15, e.impact / 9)), e.onto === 'water' || e.surface === 'water'),
       ),
       bus.on('sim:bail', (e) => this.markFx('bail', e.pos.x, e.pos.y, e.pos.z, 0.7 + 0.3 * e.intensity, e.surface === 'water')),
+      bus.on('sim:bail', () => this.onEndlessBail()),
     );
+    if (config.mode === 'endless') {
+      this.endless = { stage: 0, lives: ENDLESS_LIVES, score: 0, falls: 0, tricksLanded: 0, bestCombo: 0, bestTrick: null, distance: 0, runTime: 0 };
+    }
 
     loaded.world.setWinchPoint(winch.id);
     loaded.world.setLinePreview(false);
@@ -190,8 +217,43 @@ export class RunSession {
     cameraRig.setMode('chase');
     cameraRig.reset(this.sim.state);
     hud.show(this.config, this.spot);
+    hud.setScheme?.(this.deps.save.data.settings.controls);
+    hud.setEndless?.(this.endless ? { stage: this.endless.stage, lives: this.endless.lives } : null);
+    this.deps.swipe.reset();
     input.setEnabled(true);
     if (this.hitboxes) this.loaded.world.setDebug(true, this.sim.world.debugShapes());
+  }
+
+  /** Endless: continue from the previous stage (score, lives…) and skip the countdown. */
+  applyCarry(carry: EndlessCarry): void {
+    this.endless = { ...carry };
+    const sc = this.sim.score.state;
+    sc.total = carry.score;
+    sc.falls = carry.falls;
+    sc.tricksLanded = carry.tricksLanded;
+    sc.bestCombo = carry.bestCombo;
+    sc.bestTrick = carry.bestTrick;
+    this.runTime = carry.runTime;
+    this.deps.hud.setEndless?.({ stage: carry.stage, lives: carry.lives });
+    this.skipCountdown();
+  }
+
+  private onEndlessBail(): void {
+    const e = this.endless;
+    if (!e || this.phase !== 'run') return;
+    e.lives = Math.max(0, e.lives - 1);
+    this.deps.hud.setEndless?.({ stage: e.stage, lives: e.lives });
+    if (e.lives === 0) {
+      this.outOfLives = true;
+      this.phase = 'finishing';
+      this.finishTimer = -0.6; // let the splash play out
+    }
+  }
+
+  /** Metres ridden in this stage so far. */
+  private stageDistance(): number {
+    const wp = this.spot.winchPoints[0];
+    return Math.max(0, this.sim.state.pos.z - wp.start[2]);
   }
 
   /** Same spot, same line, fresh attempt — nothing is rebuilt. */
@@ -220,6 +282,27 @@ export class RunSession {
 
   private beginFinish(): void {
     if (this.phase !== 'run') return;
+    const e = this.endless;
+    if (e && this.cb.onStageClear) {
+      // stage cleared: bank everything and hand over to the next stage
+      const score = this.sim.score;
+      if (score.state.comboActive || score.state.comboPoints > 0) score.finish();
+      const sc = score.state;
+      this.phase = 'finishing';
+      this.finishTimer = -1e9; // never times out into results: the game builds the next stage
+      this.cb.onStageClear({
+        stage: e.stage + 1,
+        lives: e.lives,
+        score: sc.total,
+        falls: sc.falls,
+        tricksLanded: sc.tricksLanded,
+        bestCombo: sc.bestCombo,
+        bestTrick: sc.bestTrick,
+        distance: e.distance + this.stageDistance(),
+        runTime: this.runTime,
+      });
+      return;
+    }
     this.phase = 'finishing';
     this.finishTimer = 0;
   }
@@ -230,7 +313,27 @@ export class RunSession {
     // The sim banks the combo when it crosses the line; make sure nothing is left hanging.
     if (score.state.comboActive || score.state.comboPoints > 0) score.finish();
     const result = buildRunResult(this.config, score.state, this.objectives.state, save.data, this.runTime);
-    if (this.config.mode === 'free') {
+    if (this.endless) {
+      const e = this.endless;
+      const distance = Math.round(e.distance + this.stageDistance());
+      const best = result.score > (save.data.stats.endlessBest ?? 0);
+      result.coins = Math.floor(result.score / 40) + e.stage * 25;
+      result.rep = 0;
+      result.newGoals = [];
+      result.goals = [];
+      result.stars = 0;
+      result.newRecord = best;
+      result.endless = { stage: e.stage, distance, best };
+      save.update((d) => {
+        d.coins += result.coins;
+        d.stats.totalRuns++;
+        d.stats.totalScore += result.score;
+        d.stats.totalFalls += result.falls;
+        d.stats.bestCombo = Math.max(d.stats.bestCombo, result.bestCombo);
+        d.stats.endlessBest = Math.max(d.stats.endlessBest ?? 0, result.score);
+        d.stats.endlessStage = Math.max(d.stats.endlessStage ?? 0, e.stage);
+      });
+    } else if (this.config.mode === 'free') {
       // Free ride: no goals, no rewards — only the personal best is kept.
       const prev = save.data.spots[this.spot.id];
       result.coins = 0;
@@ -283,6 +386,7 @@ export class RunSession {
     }
     const state = this.sim.state;
     if (paused) {
+      this.deps.swipe.setEnabled(false);
       this.audioView.state = state;
       this.audioView.timeScale = time.scale;
       this.audioView.paused = true;
@@ -317,6 +421,9 @@ export class RunSession {
     }
 
     // ── PLAN §3 frame order ──
+    const swipeOn = playing && this.deps.save.data.settings.controls === 'swipe' && this.deps.input.touchMode;
+    this.deps.swipe.setEnabled(swipeOn);
+    if (swipeOn) this.deps.swipe.apply(polled, state);
     const frame = playing ? polled : this.neutral;
     const scale = time.update(realDt, state.slowMo, state.hero);
     const dt = realDt * scale;
@@ -340,6 +447,7 @@ export class RunSession {
     }
 
     if (this.phase === 'finishing' && this.finishTimer >= FINISH_HOLD) this.finish();
+    void this.outOfLives;
   }
 
   /** Draw the current frame. */

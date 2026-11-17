@@ -139,6 +139,7 @@ export const DEFAULT_SETTINGS: Settings = {
   haptics: true,
   invertY: false,
   showFps: false,
+  controls: 'swipe',
 };
 
 /** Ids of the gear every new player owns (must exist in src/data/gear.ts). */

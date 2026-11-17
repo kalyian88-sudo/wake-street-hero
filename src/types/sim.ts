@@ -45,6 +45,11 @@ export interface InputFrame {
   grab: ButtonState;
   /** Toggle rope handle (release / re-grab). */
   handlePressed: boolean;
+  /**
+   * One-shot "pop now with this charge" (0..1) — the swipe controls pop instantly instead of charging a
+   * held button. Off a kicker it counts as a perfectly timed lip release. 0 / undefined = none.
+   */
+  popNow?: number;
   /** Activate HERO mode. */
   heroPressed: boolean;
   pausePressed: boolean;

@@ -31,12 +31,21 @@ export const SPOTS: SpotDef[] = [
   veniceSanMarco,
 ];
 
+/** Spots generated at runtime (endless-canal stages). Not part of the career. */
+const runtime = new Map<string, SpotDef>();
+
+export function registerRuntimeSpot(spot: SpotDef): void {
+  runtime.set(spot.id, spot);
+  // keep only the latest few stages in memory
+  if (runtime.size > 3) runtime.delete(runtime.keys().next().value as string);
+}
+
 export function getSpot(id: string): SpotDef {
-  const s = SPOTS.find((x) => x.id === id);
+  const s = SPOTS.find((x) => x.id === id) ?? runtime.get(id);
   if (!s) throw new Error(`Unknown spot "${id}"`);
   return s;
 }
 
 export function findSpot(id: string): SpotDef | undefined {
-  return SPOTS.find((x) => x.id === id);
+  return SPOTS.find((x) => x.id === id) ?? runtime.get(id);
 }

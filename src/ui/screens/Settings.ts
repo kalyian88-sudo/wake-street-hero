@@ -135,6 +135,19 @@ export class SettingsScreen extends Screen {
             'section',
             { class: 'wn-setgroup' },
             caption(t('ui.settings.controls')),
+            this.row(
+              t('ui.settings.controlScheme'),
+              t('ui.settings.controlSchemeHint'),
+              segmented<'swipe' | 'classic'>(
+                [
+                  { value: 'swipe', label: t('ui.settings.controlSwipe') },
+                  { value: 'classic', label: t('ui.settings.controlClassic') },
+                ],
+                s.controls,
+                (v) => this.change((d) => (d.settings.controls = v)),
+              ).el,
+              'wn-set--stack',
+            ),
             this.row(t('ui.settings.stance'), t(`ui.stance.${s.stance}.hint`), stance.el, 'wn-set--stack wn-set--stance'),
             this.row(t('ui.settings.haptics'), t('ui.settings.hapticsHint'), flag('haptics', t('ui.settings.haptics'))),
             this.row(t('ui.settings.invertY'), t('ui.settings.invertYHint'), flag('invertY', t('ui.settings.invertY'))),

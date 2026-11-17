@@ -190,6 +190,39 @@ class Hud implements IHud {
 
   private gaugesHint: string | null = null;
 
+  private endlessEl: HTMLElement | null = null;
+  private endlessText: Text | null = null;
+  private endlessLives = -1;
+
+  setEndless(info: { stage: number; lives: number } | null): void {
+    if (!this.endlessEl) {
+      this.endlessEl = h('div', 'wsh-endless wsh-x', this.root);
+      this.endlessText = document.createTextNode('');
+      this.endlessEl.appendChild(this.endlessText);
+    }
+    this.endlessEl.classList.toggle('is-on', !!info);
+    if (!info || !this.endlessText) return;
+    const hearts = '♥'.repeat(info.lives) + '♡'.repeat(Math.max(0, 3 - info.lives));
+    this.endlessText.data = `${this.ctx.t('hud.endless.stage', { n: info.stage + 1 })}  ${hearts}`;
+    if (this.endlessLives !== -1 && info.lives < this.endlessLives) {
+      this.endlessEl.classList.remove('is-hit');
+      void this.endlessEl.offsetWidth;
+      this.endlessEl.classList.add('is-hit');
+    }
+    this.endlessLives = info.lives;
+  }
+
+  setScheme(scheme: 'swipe' | 'classic'): void {
+    this.root.classList.toggle('is-swipe', scheme === 'swipe');
+    this.moves.setSwipe(scheme === 'swipe');
+    if (scheme === 'swipe' && this.tipLeft > 0) {
+      // the stick / button tips do not apply: explain the gestures instead
+      this.tipText = this.ctx.t('hud.tip.swipe');
+      this.setHint(this.tipText);
+      this.tipLeft = 7;
+    }
+  }
+
   setHint(text: string | null, highlight?: ButtonId[]): void {
     this.gaugesHint = text;
     if (text !== this.tipText) this.tipLeft = 0;

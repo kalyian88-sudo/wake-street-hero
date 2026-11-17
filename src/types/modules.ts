@@ -143,6 +143,10 @@ export interface IHud {
   update(view: HudView, realDt: number): void;
   /** Tutorial coach line + highlighted buttons (null to clear). */
   setHint(text: string | null, highlight?: ButtonId[]): void;
+  /** Control scheme of the run: 'swipe' hides the joystick and buttons and shows gesture hints. */
+  setScheme?(scheme: 'swipe' | 'classic'): void;
+  /** Endless canal badge (stage + lives); null hides it. */
+  setEndless?(info: { stage: number; lives: number } | null): void;
 }
 
 // ───────────────────────────────────────────────────────────────── Rider ──
@@ -405,6 +409,8 @@ export interface IGame {
   /** Start a run (loads the spot if needed) → countdown → run. */
   startRun(cfg: RunConfig): Promise<void>;
   restartRun(): void;
+  /** Start an endless-canal run (procedural stages through every country, 3 lives). */
+  startEndless?(board: BoardKind): Promise<void>;
   pauseRun(): void;
   resumeRun(): void;
   /** Abort the run and go back to menus. */

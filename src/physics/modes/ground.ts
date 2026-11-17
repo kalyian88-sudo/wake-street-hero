@@ -93,7 +93,7 @@ export function stepGround(c: SimCore, dt: number): void {
     if (c.jumpArmed && c.groundRamp) {
       // on a kicker the pop is saved for the lip: released in the lip zone = full boost, earlier = weak
       const t = c.world.rampProgress(c.groundId, s.pos.x, s.pos.z);
-      const boost = popSpeed(tune, c.charge) * (t >= 1 - SIM.lipZone ? SIM.lipBoost : SIM.earlyBoost);
+      const boost = popSpeed(tune, c.charge) * (t >= 1 - SIM.lipZone || (inp.popNow ?? 0) > 0 ? SIM.lipBoost : SIM.earlyBoost);
       if (boost > c.rampBoost) {
         c.rampBoost = boost;
         c.rampPower = c.charge;

@@ -27,6 +27,7 @@ function copyInput(src: InputFrame, dst: InputFrame): void {
   dst.grab.pressed = src.grab.pressed;
   dst.grab.released = src.grab.released;
   dst.handlePressed = src.handlePressed;
+  dst.popNow = src.popNow ?? 0;
   dst.heroPressed = src.heroPressed;
   dst.pausePressed = src.pausePressed;
 }
@@ -36,11 +37,19 @@ function clearEdges(inp: InputFrame): void {
   inp.trick.pressed = inp.trick.released = false;
   inp.grab.pressed = inp.grab.released = false;
   inp.handlePressed = false;
+  inp.popNow = 0;
   inp.heroPressed = false;
 }
 
 function substep(c: SimCore, dt: number): void {
   const s = c.state;
+  const pn = c.inp.popNow ?? 0;
+  if (pn > 0) {
+    // swipe pop: an instant full release with the requested charge
+    c.jumpArmed = true;
+    c.charge = Math.max(c.charge, Math.min(1, pn));
+    c.inp.jump.released = true;
+  }
   if (c.relockT > 0) c.relockT -= dt;
   if (c.wallCooldown > 0) c.wallCooldown -= dt;
   switch (s.mode) {

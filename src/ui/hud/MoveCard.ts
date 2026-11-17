@@ -8,10 +8,10 @@ import { getTrick } from '../../data/tricks';
 import type { BoardKind, ObstacleDef, RailStance, RiderSimState, SpotDef } from '../../types';
 import { h, txt, type HudCtx } from './dom';
 
-type Btn = 'jump' | 'trick' | 'grab' | 'stick';
+type Btn = 'jump' | 'trick' | 'grab' | 'stick' | 'swipe' | 'tap' | 'hold';
 interface Row {
   btn: Btn | null;
-  dir: '' | '←' | '→' | '↑' | '↓' | '←/→';
+  dir: '' | '←' | '→' | '↑' | '↓' | '←/→' | '←←' | '→→';
   /** Trick table id (localised name) or an i18n key prefixed with "@". */
   label: string;
   /** Rail stance this row selects (highlighted while active). */
@@ -53,6 +53,34 @@ const RAIL: Row[] = [
   { btn: 'jump', dir: '', label: '@hud.moves.popoff' },
 ];
 
+// one-finger scheme (src/input/Swipe.ts)
+const S_WATER: Row[] = [
+  { btn: 'swipe', dir: '↑', label: '@hud.moves.jump' },
+  { btn: 'swipe', dir: '←/→', label: '@hud.moves.lane' },
+  { btn: 'swipe', dir: '↓', label: 'surface180' },
+];
+const S_AIR_WAKEBOARD: Row[] = [
+  { btn: 'swipe', dir: '←/→', label: '@hud.moves.spin180' },
+  { btn: 'swipe', dir: '↑', label: 'backroll' },
+  { btn: 'swipe', dir: '↓', label: 'frontroll' },
+  { btn: 'hold', dir: '', label: 'indy' },
+];
+const S_AIR_WAKESKATE: Row[] = [
+  { btn: 'swipe', dir: '←/→', label: '@hud.moves.spin180' },
+  { btn: 'swipe', dir: '↑', label: 'kickflip' },
+  { btn: 'swipe', dir: '↓', label: 'heelflip' },
+  { btn: 'tap', dir: '', label: '@hud.moves.catch' },
+];
+const S_RAIL: Row[] = [
+  { btn: 'swipe', dir: '←', label: 'rail.boardslide', stance: 'boardslide' },
+  { btn: 'swipe', dir: '→', label: 'rail.lipslide', stance: 'lipslide' },
+  { btn: 'swipe', dir: '↑', label: 'rail.nosepress', stance: 'nosepress' },
+  { btn: 'swipe', dir: '↓', label: 'rail.tailpress', stance: 'tailpress' },
+  { btn: 'swipe', dir: '←←', label: 'rail.noseblunt', stance: 'noseblunt' },
+  { btn: 'swipe', dir: '→→', label: 'rail.tailblunt', stance: 'tailblunt' },
+  { btn: 'tap', dir: '', label: '@hud.moves.popoff' },
+];
+
 type Ctx = 'water' | 'aheadRail' | 'aheadKicker' | 'air' | 'rail' | 'none';
 
 export class MoveCard {
@@ -65,6 +93,13 @@ export class MoveCard {
   private obstacles: ObstacleDef[] = [];
   private board: BoardKind = 'wakeboard';
   private aheadT = 0;
+  private swipe = false;
+
+  setSwipe(on: boolean): void {
+    if (on === this.swipe) return;
+    this.swipe = on;
+    this.ctxKey = '';
+  }
 
   constructor(
     root: HTMLElement,
@@ -90,7 +125,7 @@ export class MoveCard {
 
   update(s: RiderSimState, dt: number): void {
     const c = this.context(s, dt);
-    const key = `${c}|${this.board}`;
+    const key = `${c}|${this.board}|${this.swipe ? 's' : 'c'}`;
     if (key !== this.ctxKey) {
       this.ctxKey = key;
       this.build(c);
@@ -168,25 +203,25 @@ export class MoveCard {
     let hot = false;
     switch (c) {
       case 'water':
-        rows = WATER;
+        rows = this.swipe ? S_WATER : WATER;
         title = t('hud.moves.water');
         break;
       case 'aheadRail':
-        rows = [{ btn: 'jump', dir: '', label: '@hud.moves.pop' }];
+        rows = [this.swipe ? { btn: 'swipe', dir: '↑', label: '@hud.moves.jump' } : { btn: 'jump', dir: '', label: '@hud.moves.pop' }];
         title = t('hud.moves.aheadRail');
         hot = true;
         break;
       case 'aheadKicker':
-        rows = [{ btn: 'jump', dir: '', label: '@hud.moves.pop' }];
-        title = t('hud.moves.aheadKicker');
+        rows = [this.swipe ? { btn: 'swipe', dir: '↑', label: '@hud.moves.jump' } : { btn: 'jump', dir: '', label: '@hud.moves.pop' }];
+        title = t(this.swipe ? 'hud.moves.aheadKickerSwipe' : 'hud.moves.aheadKicker');
         hot = true;
         break;
       case 'air':
-        rows = this.board === 'wakeskate' ? AIR_WAKESKATE : AIR_WAKEBOARD;
+        rows = this.swipe ? (this.board === 'wakeskate' ? S_AIR_WAKESKATE : S_AIR_WAKEBOARD) : this.board === 'wakeskate' ? AIR_WAKESKATE : AIR_WAKEBOARD;
         title = t('hud.moves.air');
         break;
       case 'rail':
-        rows = RAIL;
+        rows = this.swipe ? S_RAIL : RAIL;
         title = t('hud.moves.rail');
         break;
       default:
@@ -200,7 +235,12 @@ export class MoveCard {
     this.rows = rows.map((r) => {
       const row = h('div', 'wsh-move', this.list);
       if (r.btn) {
-        const key = r.btn === 'stick' ? 'hud.moves.stick' : r.btn === 'grab' && this.board === 'wakeskate' ? 'hud.btn.flip' : `hud.btn.${r.btn}`;
+        const key =
+          r.btn === 'stick' || r.btn === 'swipe' || r.btn === 'tap' || r.btn === 'hold'
+            ? `hud.moves.${r.btn}`
+            : r.btn === 'grab' && this.board === 'wakeskate'
+              ? 'hud.btn.flip'
+              : `hud.btn.${r.btn}`;
         h('span', `wsh-move-btn wsh-move-btn--${r.btn} wsh-x`, row, t(key));
       }
       if (r.dir) h('span', 'wsh-move-dir', row, r.dir);

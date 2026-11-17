@@ -443,6 +443,8 @@ export interface Settings {
   /** Invert joystick Y for trick directions. */
   invertY: boolean;
   showFps: boolean;
+  /** 'swipe' = one-finger gestures (default), 'classic' = joystick + buttons. */
+  controls: 'swipe' | 'classic';
 }
 
 export interface SpotProgress {
@@ -475,6 +477,9 @@ export interface SaveData {
     totalFalls: number;
     bestCombo: number;
     tricksLanded: Record<string, number>;
+    /** Endless canal personal bests. */
+    endlessBest?: number;
+    endlessStage?: number;
   };
   last: { board: BoardKind; power: PowerLevel; cityId: string | null; spotId: string | null };
 }
@@ -486,11 +491,13 @@ export interface RunConfig {
   winchId: string;
   power: PowerLevel;
   board: BoardKind;
-  mode: 'career' | 'free' | 'tutorial';
+  mode: 'career' | 'free' | 'tutorial' | 'endless';
 }
 
 export interface RunResult {
   config: RunConfig;
+  /** Endless canal: stages cleared, metres ridden, new personal best. */
+  endless?: { stage: number; distance: number; best: boolean };
   score: number;
   bestTrick: { name: L10n; points: number; time: number } | null;
   bestCombo: number;

@@ -12,6 +12,7 @@ import ruPart from '../i18n/parts/core.ru.json';
 import { createInput } from '../input/Input';
 import { createSaveStore } from '../save/SaveStore';
 import type {
+  BoardKind,
   AudioView,
   FrameStats,
   GameState,
@@ -40,6 +41,10 @@ import type { FxParams } from './PostFx';
 import { QualityManager } from './Quality';
 import { RunSession, type SessionDeps } from './RunSession';
 import { SpotLoader, type LoadedSpot } from './SpotLoader';
+import { endlessSourceFor, generateEndlessStage } from '../endless/generate';
+import { findSpot, registerRuntimeSpot } from '../data/spots';
+import type { EndlessCarry } from './RunSession';
+import { SwipeControls } from '../input/Swipe';
 import { installTestHooks } from './testHooks';
 import { TimeScale } from './Time';
 import { readUrlParams, type UrlParams } from './urlParams';
@@ -102,6 +107,7 @@ export class Game implements IGame, DebugHost {
   private readonly previewView: WorldView;
   private readonly menuAudio: AudioView = { state: null, timeScale: 1, paused: false };
   private readonly sessionDeps: SessionDeps;
+  readonly swipe = new SwipeControls();
 
   constructor(opts: GameOptions) {
     this.app = opts.canvas.parentElement ?? document.body;
@@ -118,6 +124,7 @@ export class Game implements IGame, DebugHost {
     this.audio.setVolumes(settings.musicVolume, settings.sfxVolume);
     this.input = createInput();
     this.input.attach(this.app);
+    this.swipe.attach(this.app);
     this.input.setHaptics(settings.haptics);
     this.input.setInvertY(settings.invertY);
     this.input.setEnabled(false);
@@ -149,6 +156,7 @@ export class Game implements IGame, DebugHost {
       engine: this.engine,
       cameraRig: this.cameraRig,
       time: this.time,
+      swipe: this.swipe,
     };
 
     this.quality.onChange = (profile) => this.applyProfile(profile);
@@ -425,12 +433,35 @@ export class Game implements IGame, DebugHost {
     this.cameraRig.setPreviewLine(wp, false);
   }
 
+  private endlessSeed = 1;
+
+  /** Endless canal: a fresh seed, stage 0 (Thailand), 3 lives. */
+  async startEndless(board: BoardKind): Promise<void> {
+    this.endlessSeed = (Math.floor(Math.random() * 0x7fffffff) | 1) >>> 0;
+    const spot = generateEndlessStage(this.endlessSeed, 0);
+    registerRuntimeSpot(spot);
+    await this.startRun({ spotId: spot.id, winchId: 'main', power: 'medium', board, mode: 'endless' });
+  }
+
+  /** Endless: the winch of a stage was reached — generate the next country and carry the run over. */
+  private async nextEndlessStage(carry: EndlessCarry): Promise<void> {
+    const prev = this.session;
+    if (!prev) return;
+    const spot = generateEndlessStage(this.endlessSeed, carry.stage);
+    registerRuntimeSpot(spot);
+    const src = findSpot(endlessSourceFor(carry.stage));
+    if (src) this.bus.emit('ui:toast', { text: i18n.t('core.endless.stage', { n: carry.stage + 1, place: i18n.l(src.name) }), kind: 'good' });
+    await this.startRun({ ...prev.config, spotId: spot.id });
+    this.session?.applyCarry(carry);
+  }
+
   async startRun(cfg: RunConfig): Promise<void> {
     const token = ++this.navToken;
     this.endSession();
     const loaded = await this.loadSpot(cfg.spotId);
     if (token !== this.navToken) return;
     this.session = new RunSession(this.sessionDeps, loaded, cfg, this.quality.profile, {
+      onStageClear: cfg.mode === 'endless' ? (carry) => void this.nextEndlessStage(carry) : undefined,
       onGo: () => {
         if (this._state === 'countdown') this.setState('run');
       },
@@ -450,6 +481,11 @@ export class Game implements IGame, DebugHost {
   restartRun(): void {
     const s = this.session;
     if (!s) return;
+    if (s.config.mode === 'endless') {
+      // a new endless run from the first country
+      void this.startEndless(s.config.board);
+      return;
+    }
     const wasPaused = this._state === 'paused';
     s.restart();
     this.audio.setDucked(false);

@@ -46,7 +46,7 @@ export function defaultSave(): SaveData {
     equipped: { ...STARTER_GEAR },
     spots: {},
     career: { dialogsSeen: [], sponsors: {}, tutorialDone: false },
-    stats: { totalRuns: 0, totalScore: 0, totalFalls: 0, bestCombo: 0, tricksLanded: {} },
+    stats: { totalRuns: 0, totalScore: 0, totalFalls: 0, bestCombo: 0, tricksLanded: {}, endlessBest: 0, endlessStage: 0 },
     last: { board: 'wakeboard', power: 'medium', cityId: null, spotId: null },
   };
 }
@@ -237,6 +237,7 @@ function sanitizeSettings(raw: unknown): Settings {
     haptics: bool(s.haptics, d.haptics),
     invertY: bool(s.invertY, d.invertY),
     showFps: bool(s.showFps, d.showFps),
+    controls: oneOf(s.controls, ['swipe', 'classic'] as const, d.controls),
   };
 }
 
@@ -347,6 +348,8 @@ function sanitize(raw: Dict): SaveData {
       totalFalls: int(stats.totalFalls, 0, 0, MAX_CURRENCY),
       bestCombo: int(stats.bestCombo, 0, 0, MAX_CURRENCY),
       tricksLanded,
+      endlessBest: int(stats.endlessBest, 0, 0, Number.MAX_SAFE_INTEGER),
+      endlessStage: int(stats.endlessStage, 0, 0, 10000),
     },
     last: {
       board: oneOf(last.board, ['wakeboard', 'wakeskate'] as const, def.last.board),

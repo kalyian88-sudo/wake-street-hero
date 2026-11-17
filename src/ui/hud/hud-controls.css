@@ -470,3 +470,10 @@
     bottom: calc(34px + var(--sab));
   }
 }
+
+/* one-finger (swipe) scheme: no joystick, no buttons — only pause and HERO stay */
+.wsh-hud.is-swipe .wsh-pad .wsh-btn:not(.wsh-btn--hero),
+.wsh-hud.is-swipe .wsh-stick,
+.wsh-hud.is-swipe .wsh-joy {
+  display: none !important;
+}

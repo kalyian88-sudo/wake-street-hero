@@ -19,5 +19,6 @@
   "core.debug.time": "Time",
   "core.debug.unlock": "Unlock all",
   "core.debug.restart": "Restart",
-  "core.debug.unlocked": "Everything unlocked, here's 99,999 coins"
+  "core.debug.unlocked": "Everything unlocked, here's 99,999 coins",
+  "core.endless.stage": "Stage {n}: {place}"
 }

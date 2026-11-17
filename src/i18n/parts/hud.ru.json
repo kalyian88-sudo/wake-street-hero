@@ -103,5 +103,14 @@
   "hud.el.noseslide": "Ноуз-слайд",
   "hud.el.tailslide": "Тейл-слайд",
   "hud.el.noseblunt": "Ноуз-блант",
-  "hud.el.tailblunt": "Тейл-блант"
+  "hud.el.tailblunt": "Тейл-блант",
+  "hud.moves.jump": "прыжок",
+  "hud.moves.lane": "сменить полосу",
+  "hud.moves.spin180": "спин +180",
+  "hud.moves.swipe": "Свайп",
+  "hud.moves.tap": "Тап",
+  "hud.moves.hold": "Держи",
+  "hud.moves.aheadKickerSwipe": "Кикер — свайп вверх у края",
+  "hud.endless.stage": "ЭТАП {n}",
+  "hud.tip.swipe": "Свайп ↑ — прыжок, ←/→ — смена полосы. В воздухе свайпы — спины и сальто, удержание — грэб."
 }

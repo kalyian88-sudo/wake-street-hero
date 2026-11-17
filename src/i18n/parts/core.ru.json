@@ -19,5 +19,6 @@
   "core.debug.time": "Время",
   "core.debug.unlock": "Открыть всё",
   "core.debug.restart": "Заново",
-  "core.debug.unlocked": "Всё открыто, держи 99 999 монет"
+  "core.debug.unlocked": "Всё открыто, держи 99 999 монет",
+  "core.endless.stage": "Этап {n}: {place}"
 }
