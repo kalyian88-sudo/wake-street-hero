@@ -196,7 +196,7 @@ describe('applyRunResult', () => {
     expect(save.coins).toBe(50 + r.coins);
     expect(save.rep).toBe(10 + r.rep);
     expect(save.stats).toEqual({ totalRuns: 1, totalScore: 5200, totalFalls: 1, bestCombo: 2600, tricksLanded: { mobe: 1, backroll: 3 } });
-    expect(save.last).toEqual({ board: 'wakeskate', power: 'fast', cityId: 'phuket', spotId: SPOT.id });
+    expect(save.last).toEqual({ board: 'wakeskate', power: 'fast', cityId: 'thailand', spotId: SPOT.id });
     expect(save.career.tutorialDone).toBe(false);
   });
 
@@ -278,7 +278,7 @@ describe('progress — stars and unlocks', () => {
   it('counts stars per spot, per city and in total', () => {
     expect(spotStars(save, 'phuket_oldtown')).toBe(3);
     expect(spotStars(save, 'nope')).toBe(0);
-    expect(cityStars(save, 'phuket')).toBe(3);
+    expect(cityStars(save, 'thailand')).toBe(3);
     expect(cityStars(save, 'atlantis')).toBe(0);
     expect(totalStars(save)).toBe(5);
     expect(totalStars(makeSave())).toBe(0);
@@ -301,14 +301,14 @@ describe('progress — stars and unlocks', () => {
     expect(starsToUnlockSpot(makeSave(), second)).toBe(4);
     expect(isSpotUnlocked(save, second)).toBe(true);
     expect(starsToUnlockSpot(save, second)).toBe(0);
-    const farAway: SpotDef = { ...phuketOldTown, id: 'ru_1', cityId: 'russia', unlockStars: 0 };
+    const farAway: SpotDef = { ...phuketOldTown, id: 'us_1', cityId: 'usa', unlockStars: 0 };
     expect(isSpotUnlocked(save, farAway)).toBe(false);
     expect(starsToUnlockSpot(save, farAway)).toBe(CITIES[1].unlockStars - 5);
   });
 
   it('accepts ids as well as definitions; unknown ids are locked', () => {
-    expect(isCityUnlocked(makeSave(), 'phuket')).toBe(true);
-    expect(isCityUnlocked(makeSave(), 'russia')).toBe(false);
+    expect(isCityUnlocked(makeSave(), 'thailand')).toBe(true);
+    expect(isCityUnlocked(makeSave(), 'usa')).toBe(false);
     expect(isCityUnlocked(makeSave(), 'atlantis')).toBe(false);
     expect(isSpotUnlocked(makeSave(), 'phuket_oldtown')).toBe(true);
     expect(isSpotUnlocked(makeSave(), 'no_such_spot')).toBe(false);

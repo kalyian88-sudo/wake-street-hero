@@ -8,7 +8,7 @@ import type { SpotDef } from '../../types';
  */
 export const phuketOldTown: SpotDef = {
   id: 'phuket_oldtown',
-  cityId: 'phuket',
+  cityId: 'thailand',
   name: { ru: 'Олд-Таун', en: 'Old Town' },
   blurb: {
     ru: 'Канал между китайско-португальскими домами. Идеально, чтобы начать.',
