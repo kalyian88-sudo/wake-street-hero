@@ -69,14 +69,15 @@ export const GEAR: GearItem[] = [
   {
     id: 'bd_classic',
     category: 'bindings',
-    name: { ru: 'WHY NOT Classic', en: 'WHY NOT Classic' },
+    name: { ru: 'WHY NOT Spanish Mafia', en: 'WHY NOT Spanish Mafia' },
     desc: {
       ru: 'Крепы, с которых начинают. Держат ногу, прощают ошибки и ничего не требуют взамен.',
       en: 'The bindings you start in. They hold your foot, forgive mistakes and ask for nothing back.',
     },
     price: 0,
     stats: {},
-    look: { primary: WHITE, secondary: DARK, accent: RED, graphic: 'logo' },
+    // full black closed boots: three slotted straps with ?! on the ends, round patch on the tongue
+    look: { primary: 0x141416, secondary: 0x1e1f22, accent: RED, graphic: 'mark' },
     url: SITE,
   },
   {

@@ -595,6 +595,10 @@ function paintLegs(ctx: Ctx, rctx: Ctx, o: Outfit): void {
 /** Binding boot cuff wrap (256²): front centre at u = 64, back at 192; v = ankle (bottom) → collar (top). */
 function paintBoot(ctx: Ctx, rctx: Ctx, o: Outfit): void {
   const look = o.bindings;
+  if (look.graphic === 'mark') {
+    paintBlackBoot(ctx, rctx, look);
+    return;
+  }
   const ink = contrast(look.secondary, look.accent);
   ctx.fillStyle = css(look.primary);
   ctx.fillRect(0, 0, 256, 256);
@@ -641,6 +645,76 @@ function paintBoot(ctx: Ctx, rctx: Ctx, o: Outfit): void {
   ctx.fillRect(180, 20, 24, 236);
   ctx.fillStyle = css(ink);
   ctx.fillRect(189, 30, 6, 226);
+  softShade(ctx, 0, 0, 256, 256, 0.14, true);
+}
+
+/**
+ * Full-black closed boot cuff (Spanish Mafia style): leather panels with stitching, mesh collar,
+ * two wide slotted straps with a white ?! on the ends, round patch on the tongue.
+ */
+function paintBlackBoot(ctx: Ctx, rctx: Ctx, look: Outfit['bindings']): void {
+  ctx.fillStyle = css(look.primary);
+  ctx.fillRect(0, 0, 256, 256);
+  rctx.fillStyle = grey(0.55);
+  rctx.fillRect(0, 0, 256, 256);
+  // leather panels + stitching
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([3, 3]);
+  for (const x of [24, 104, 150, 230]) {
+    ctx.beginPath();
+    ctx.moveTo(x, 34);
+    ctx.lineTo(x + 6, 256);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // mesh collar
+  ctx.fillStyle = '#0b0b0c';
+  ctx.fillRect(0, 0, 256, 34);
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  ctx.lineWidth = 1;
+  for (let x = -34; x < 256; x += 6) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x + 34, 34);
+    ctx.moveTo(x + 34, 0);
+    ctx.lineTo(x, 34);
+    ctx.stroke();
+  }
+  rctx.fillStyle = grey(0.9);
+  rctx.fillRect(0, 0, 256, 34);
+  // tongue with the round patch (front centre u = 64)
+  ctx.fillStyle = '#0e0e10';
+  ctx.fillRect(38, 0, 52, 256);
+  ctx.fillStyle = '#f0f0f0';
+  ctx.beginPath();
+  ctx.arc(64, 62, 17, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#0e0e10';
+  ctx.beginPath();
+  ctx.arc(64, 62, 14, 0, Math.PI * 2);
+  ctx.fill();
+  drawBrandImage(ctx, 'mark', 64, 62, 14, 18, { tint: '#f0f0f0' });
+  // two wide straps with slots, ?! on the ends
+  for (const y of [92, 168]) {
+    ctx.fillStyle = css(look.secondary);
+    roundRect(ctx, -20, y, 296, 44, 8);
+    ctx.fill();
+    ctx.fillStyle = '#050506';
+    for (let x = 6; x < 250; x += 16) {
+      roundRect(ctx, x, y + 12, 7, 20, 3);
+      ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fillRect(-20, y, 296, 3);
+    drawBrandImage(ctx, 'mark', 150, y + 22, 22, 30, { tint: '#f2f2f2' });
+  }
+  rctx.fillStyle = grey(0.35);
+  rctx.fillRect(0, 92, 256, 44);
+  rctx.fillRect(0, 168, 256, 44);
+  // heel pull loop
+  ctx.fillStyle = '#0b0b0c';
+  ctx.fillRect(180, 0, 24, 90);
   softShade(ctx, 0, 0, 256, 256, 0.14, true);
 }
 

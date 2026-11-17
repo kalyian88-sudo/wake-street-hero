@@ -232,7 +232,8 @@ export function buildBoard(spec: BoardSpec, look: GearLook, bindings: GearLook |
         { radial: 8, capStart: -0.006, capEnd: 0.31 },
       );
       // side rails
-      b.color(contrast(bindings.primary, bindings.secondary));
+      const allBlack = bindings.graphic === 'mark';
+      b.color(allBlack ? 0x0c0c0d : contrast(bindings.primary, bindings.secondary));
       for (const sr of [1, -1]) {
         const ox = -fz * sr * 0.068;
         const oz = fx * sr * 0.068;
@@ -240,8 +241,8 @@ export function buildBoard(spec: BoardSpec, look: GearLook, bindings: GearLook |
         _b.set(cx + fx * 0.07 + ox, y + 0.02, z + fz * 0.07 + oz);
         b.segment(_a, _b, UP).capsule(0.2, 0.009, 0.007, { radial: 5, capSeg: 1, sz: 1.8 });
       }
-      // bolts
-      b.color(0xb9bec6);
+      // bolts (brass on the full-black boots)
+      b.color(allBlack ? 0xb08a3e : 0xb9bec6);
       for (const [dl, dw] of [
         [-0.12, 0.05],
         [-0.12, -0.05],

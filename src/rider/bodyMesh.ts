@@ -267,9 +267,12 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     b.bone(L ? B.footL : B.footR);
     if (board === 'wakeskate') buildShoe(b, x, P, o);
     else {
-      b.color(skin);
-      sw(SWATCH.skin);
-      buildFoot(b, x, P.footLen, 0);
+      if (o.bindings.graphic !== 'mark') {
+        // open-toe boots: the toes peek out
+        b.color(skin);
+        sw(SWATCH.skin);
+        buildFoot(b, x, P.footLen, 0);
+      }
       buildBoot(b, L, x, P, o);
     }
   }
@@ -364,30 +367,63 @@ function buildBoot(b: MeshBuilder, left: boolean, x: number, P: Proportions, o: 
     ]),
     { radial: 10, capStart: -0.01, capEnd: 0.95 * F },
   );
-  // shell: tall at the heel, open at the toes
+  // shell: tall at the heel; open at the toes, or a closed toe box for full boots (graphic 'mark')
+  const closed = look.graphic === 'mark';
   b.color(look.primary).uv(uvR[0], uvR[1]);
   _a.set(x, 0.034, -0.3 * F);
   _b.set(x, 0.034, 0.7 * F);
   b.segment(_a, _b, UP);
-  b.loft(
-    ringsOf([
-      [0, 0.03, 0.05, 0.03, 2.4],
-      [0.06 * F, 0.046, 0.072, 0.045, 2.6],
-      [0.24 * F, 0.052, 0.08, 0.052, 2.8],
-      [0.42 * F, 0.055, 0.058, 0.03, 2.8],
-      [0.62 * F, 0.058, 0.04, 0.012, 3],
-      [0.8 * F, 0.058, 0.032, 0.004, 3],
-      [0.83 * F, 0.05, 0.026, 0.002, 3],
-    ]),
-    { radial: 12, capStart: -0.012, capEnd: 0.815 * F, colorFn: (p, i, c) => (i >= 6 ? c.setHex(0x0b0b0c) : c) },
-  );
-  // toe strap + heel hoop
-  b.color(look.secondary).uv(uvG[0], uvG[1]);
-  b.at(x, 0.052, 0.3 * F).roundBox(0.064, 0.03, 0.026, { radial: 8, n: 3 });
-  b.color(contrast(look.secondary, look.accent));
-  b.at(x, 0.086, 0.3 * F).roundBox(0.03, 0.005, 0.016, { radial: 6 });
-  b.color(look.secondary);
-  b.at(x, 0.075, -0.3 * F).roundBox(0.036, 0.05, 0.012, { radial: 8, n: 3 });
+  if (closed) {
+    b.loft(
+      ringsOf([
+        [0, 0.03, 0.05, 0.03, 2.4],
+        [0.06 * F, 0.047, 0.073, 0.046, 2.6],
+        [0.24 * F, 0.054, 0.082, 0.052, 2.8],
+        [0.42 * F, 0.058, 0.064, 0.032, 2.8],
+        [0.62 * F, 0.062, 0.052, 0.016, 3],
+        [0.82 * F, 0.06, 0.042, 0.006, 3],
+        [0.96 * F, 0.05, 0.032, 0, 2.6],
+        [1.04 * F, 0.03, 0.02, -0.004, 2.2],
+      ]),
+      { radial: 12, capStart: -0.012, capEnd: 1.07 * F },
+    );
+    // three wide slotted straps: forefoot, instep, ankle
+    b.color(look.secondary).uv(uvG[0], uvG[1]);
+    b.at(x, 0.07, 0.52 * F).roundBox(0.068, 0.012, 0.034, { radial: 8, n: 3 });
+    b.at(x, 0.082, 0.3 * F).roundBox(0.07, 0.012, 0.034, { radial: 8, n: 3 });
+    b.at(x, 0.075, -0.3 * F).roundBox(0.04, 0.05, 0.014, { radial: 8, n: 3 });
+    // slots in the straps (dark dashes) + white ?! hits on the strap ends
+    b.color(0x050506);
+    for (const [zz, yy] of [
+      [0.52, 0.083],
+      [0.3, 0.095],
+    ] as const) {
+      for (let k = -2; k <= 2; k++) b.at(x + k * 0.012, yy, zz * F).roundBox(0.003, 0.002, 0.012, { radial: 4 });
+    }
+    b.color(0xf2f2f2);
+    b.at(x - Math.sign(x || 1) * 0.064, 0.074, 0.52 * F).roundBox(0.004, 0.008, 0.01, { radial: 4 });
+    b.at(x - Math.sign(x || 1) * 0.066, 0.086, 0.3 * F).roundBox(0.004, 0.008, 0.01, { radial: 4 });
+  } else {
+    b.loft(
+      ringsOf([
+        [0, 0.03, 0.05, 0.03, 2.4],
+        [0.06 * F, 0.046, 0.072, 0.045, 2.6],
+        [0.24 * F, 0.052, 0.08, 0.052, 2.8],
+        [0.42 * F, 0.055, 0.058, 0.03, 2.8],
+        [0.62 * F, 0.058, 0.04, 0.012, 3],
+        [0.8 * F, 0.058, 0.032, 0.004, 3],
+        [0.83 * F, 0.05, 0.026, 0.002, 3],
+      ]),
+      { radial: 12, capStart: -0.012, capEnd: 0.815 * F, colorFn: (p, i, c) => (i >= 6 ? c.setHex(0x0b0b0c) : c) },
+    );
+    // toe strap + heel hoop
+    b.color(look.secondary).uv(uvG[0], uvG[1]);
+    b.at(x, 0.052, 0.3 * F).roundBox(0.064, 0.03, 0.026, { radial: 8, n: 3 });
+    b.color(contrast(look.secondary, look.accent));
+    b.at(x, 0.086, 0.3 * F).roundBox(0.03, 0.005, 0.016, { radial: 6 });
+    b.color(look.secondary);
+    b.at(x, 0.075, -0.3 * F).roundBox(0.036, 0.05, 0.012, { radial: 8, n: 3 });
+  }
   // cuff around the lower shin (follows the shin)
   b.bone(left ? B.cuffL : B.cuffR).color(0xffffff);
   const y0 = P.ankleY - 0.02;
