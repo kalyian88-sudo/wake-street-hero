@@ -19,7 +19,7 @@ rowZ.forEach((z, i) => {
   add({ type: 'france.haussmannRow', pos: [-17, 2.4, z + 12], rot: 90, seed: 200 + i, params: { bays: 4, floors: 6, depth: 12, palette: i + 2 } });
 });
 // beyond the bridge the rows keep going, far and low-cost
-[202, 218, 234, 250, 270, 290, 310].forEach((z, i) => {
+[204, 230, 256].forEach((z, i) => {
   add({ type: 'france.haussmannRow', pos: [17, 2.4, z], rot: -90, seed: 300 + i, params: { bays: 4, floors: 6, depth: 12, palette: i } });
   add({ type: 'france.haussmannRow', pos: [-17, 2.4, z + 8], rot: 90, seed: 400 + i, params: { bays: 4, floors: 6, depth: 12, palette: i + 1 } });
 });
@@ -52,7 +52,7 @@ add({ type: 'france.bridge', pos: [0, 0, 165], seed: 1, params: { span: 13, deck
 add({ type: 'france.barge', pos: [5.3, 0, 17], rot: 0, seed: 11, params: { length: 18, hull: 0x2d3f55 } });
 add({ type: 'france.barge', pos: [-5.3, 0, 152], rot: 180, seed: 12, params: { length: 20, hull: 0x6a2f2a } });
 add({ type: 'france.barge', pos: [5.3, 0, 252], rot: 0, seed: 13, params: { length: 20, hull: 0x23484a } });
-add({ type: 'france.barge', pos: [-5.3, 0, 320], rot: 180, seed: 14, params: { length: 22, hull: 0x3a3a46 } });
+//add({ type: 'france.barge', pos: [-5.3, 0, 320], rot: 180, seed: 14, params: { length: 22, hull: 0x3a3a46 } });
 
 // the iron lattice tower, far down the river, plus a hazy city skyline
 add({ type: 'france.tower', pos: [10, 0, 410], seed: 3, params: { height: 215 } });
@@ -104,10 +104,10 @@ export const parisSeine: SpotDef = {
     { id: 'street_left', center: [17.65, 80], size: [10.7, 190], top: 2.4, surface: 'stone', trim: 'granite' },
     { id: 'street_right', center: [-17.65, 80], size: [10.7, 190], top: 2.4, surface: 'stone', trim: 'granite' },
     // far river banks (visual only, beyond the playable bounds)
-    { id: 'far_left', center: [9.65, 330], size: [5.3, 280], top: 0.9, surface: 'stone', trim: 'granite' },
-    { id: 'far_right', center: [-9.65, 330], size: [5.3, 280], top: 0.9, surface: 'stone', trim: 'granite' },
-    { id: 'far_street_left', center: [19.65, 330], size: [14.7, 280], top: 2.4, surface: 'stone', trim: 'none' },
-    { id: 'far_street_right', center: [-19.65, 330], size: [14.7, 280], top: 2.4, surface: 'stone', trim: 'none' },
+    { id: 'far_left', center: [9.65, 285], size: [5.3, 190], top: 0.9, surface: 'stone', trim: 'granite' },
+    { id: 'far_right', center: [-9.65, 285], size: [5.3, 190], top: 0.9, surface: 'stone', trim: 'granite' },
+    { id: 'far_street_left', center: [19.65, 285], size: [14.7, 190], top: 2.4, surface: 'stone', trim: 'none' },
+    { id: 'far_street_right', center: [-19.65, 285], size: [14.7, 190], top: 2.4, surface: 'stone', trim: 'none' },
     { id: 'quay_end_l', center: [10.45, 182], size: [3.7, 14], top: 0.9, surface: 'stone', trim: 'granite' },
     { id: 'pontoon_end', center: [0, 181], size: [10, 8], top: 0.9, surface: 'stone', trim: 'granite' },
     { id: 'quay_start', center: [0, -20], size: [44, 10], top: 0.9, surface: 'stone', trim: 'granite' },

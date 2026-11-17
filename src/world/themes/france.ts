@@ -49,12 +49,12 @@ function haussmannRow(def: PropDef, ctx: PropContext): void {
 
   const wall = k.g('plaster');
   const trim = k.g('plaster');
-  const zinc = k.g('metal');
-  const iron = k.g('paintedMetal');
+  const dark = k.g('flat');
+  const zinc = dark;
+  const iron = dark;
   const facade = k.g('facade');
   const signs = k.g('signs');
-  const brick = k.g('brick');
-  const dark = k.g('flat');
+  const brick = wall;
 
   const stone = STONES[((pal % STONES.length) + STONES.length) % STONES.length];
   wall.color(stone);
@@ -105,7 +105,7 @@ function haussmannRow(def: PropDef, ctx: PropContext): void {
           iron.boxB(wx, by + 0.95, 0.74, 1.5, 0.05, 0.05);
           iron.boxB(wx, by, 0.74, 1.5, 0.04, 0.04);
           for (const sx of [-0.73, 0.73]) iron.boxB(wx + sx, by, 0.4, 0.04, 0.99, 0.7);
-          for (let i = 0; i < 7; i++) iron.boxB(wx - 0.6 + i * 0.2, by, 0.74, 0.025, 0.95, 0.025, 'yY');
+          for (let i = 0; i < 7; i++) iron.quad([wx - 0.6 + i * 0.2 - 0.015, by, 0.76], [wx - 0.6 + i * 0.2 + 0.015, by, 0.76], [wx - 0.6 + i * 0.2 + 0.015, by + 0.95, 0.76], [wx - 0.6 + i * 0.2 - 0.015, by + 0.95, 0.76]);
         }
       }
     }
@@ -174,11 +174,11 @@ function montmartreRow(def: PropDef, ctx: PropContext): void {
 
   const wall = k.g('plaster');
   const trim = k.g('plaster');
-  const roof = k.g('metal');
+  const dark = k.g('flat');
+  const roof = dark;
   const facade = k.g('facade');
   const signs = k.g('signs');
-  const brick = k.g('brick');
-  const dark = k.g('flat');
+  const brick = wall;
   const neon = k.g('neon', undefined, { intensity: 1 });
 
   const widths: number[] = [];

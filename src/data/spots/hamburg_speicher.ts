@@ -129,8 +129,8 @@ export const hamburgSpeicher: SpotDef = {
   props: [
     ...rows,
     ...lamps,
-    { type: 'germany.footbridge', pos: [0, QUAY, 66], params: { span: 21, height: 5.6 } },
-    { type: 'germany.footbridge', pos: [0, QUAY, 128], params: { span: 21, height: 6.2 } },
+    { type: 'germany.footbridge', pos: [0, QUAY, 66], params: { span: 21, height: 7.4 } },
+    { type: 'germany.footbridge', pos: [0, QUAY, 128], params: { span: 21, height: 8.4 } },
     { type: 'germany.barge', pos: [-5.4, 0, 8], seed: 3, params: { length: 10, width: 3 } },
     { type: 'germany.barge', pos: [5.4, 0, 33], seed: 5, params: { length: 9, width: 3 } },
     { type: 'germany.barge', pos: [5.4, 0, 164], seed: 8, params: { length: 10, width: 3.2 } },
@@ -144,7 +144,7 @@ export const hamburgSpeicher: SpotDef = {
     { type: 'common.tree', pos: [-8.6, QUAY, 112], seed: 4, params: { height: 7.5, crown: 2.8 } },
     { type: 'common.tree', pos: [8.6, QUAY, 156], seed: 5, params: { height: 6.5, crown: 2.4 } },
     // landmark: concert hall at the end of the harbour + harbour cranes
-    { type: 'germany.hall', pos: [-14, -1.6, 330], rot: 180, scale: 1.25, params: { width: 80 } },
+    { type: 'germany.hall', pos: [-10, -1.6, 285], rot: 180, scale: 1.4, params: { width: 80 } },
     { type: 'germany.cranes', pos: [95, -1.6, 250], rot: 90, seed: 7, params: { count: 3, spacing: 48 } },
     { type: 'germany.cranes', pos: [-100, -1.6, 270], rot: -90, seed: 9, params: { count: 2, spacing: 60 } },
     { type: 'germany.skyline', pos: [0, -1.6, 420], rot: 180, seed: 2, params: { width: 420, count: 26, minH: 18, maxH: 52, tone: 0x8d979c } },
