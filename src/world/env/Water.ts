@@ -2,7 +2,9 @@
  * Water: one merged mesh for every region of the spot + the rider's wake ribbon (2 draw calls).
  * Shader: src/world/env/waterShader.ts. Shore foam mask: foamMask.ts. Wake: Wake.ts.
  */
+import { PlanarReflection } from './reflection';
 import {
+  Matrix4,
   ClampToEdgeWrapping,
   Color,
   DataTexture,
@@ -52,6 +54,7 @@ class Water implements IWater {
   private readonly material: ShaderMaterial;
   private readonly uniforms: Record<string, IUniform>;
   private readonly wake: Wake;
+  private readonly reflection: PlanarReflection;
   private readonly ripples: Ripple[] = [];
   private readonly rippleData = new Float32Array(MAX_RIPPLES * 4);
   private readonly rippleFoam = new Float32Array(MAX_RIPPLES);
@@ -99,6 +102,9 @@ class Water implements IWater {
       uLightRight: { value: new Vector3(1, 0, 0) },
       uLightUp: { value: new Vector3(0, 0, 1) },
       uShadowRange: { value: ctx.profile.shadowRange },
+      tReflect: { value: null },
+      uReflectMat: { value: new Matrix4() },
+      uReflectOn: { value: 0 },
     };
     const defines: Record<string, number | string> = { WATER_DETAIL: ctx.profile.waterDetail, MAX_RIPPLES };
     if (built.blend) defines.WATER_BLEND = '';
@@ -118,6 +124,16 @@ class Water implements IWater {
     this.mesh.receiveShadow = true;
     this.mesh.renderOrder = built.blend ? -5 : 0;
     this.object.add(this.mesh);
+
+    // planar reflection of the spot (refreshed right before the water is drawn)
+    this.reflection = new PlanarReflection(regions[0]?.level ?? 0);
+    this.reflection.setProfile(ctx.profile);
+    this.uniforms.tReflect.value = this.reflection.target.texture;
+    this.uniforms.uReflectMat.value = this.reflection.matrix;
+    this.mesh.onBeforeRender = (renderer, scene, camera) => {
+      this.reflection.render(renderer, scene, camera, this.object);
+      this.uniforms.uReflectOn.value = this.reflection.enabled ? 1 : 0;
+    };
 
     this.wake = new Wake(waves, ctx.profile.waterDetail);
     this.wake.uniforms.uSwell.value = this.uniforms.uSwell.value;
@@ -213,6 +229,7 @@ class Water implements IWater {
     this.uniforms.tWaves.value = waves;
     if (prev.waterDetail !== profile.waterDetail) this.lightingVersion = -1; // re-evaluates the shader detail
     this.wake.setDetail(profile.waterDetail, waves);
+    this.reflection.setProfile(profile);
     this.syncLighting();
   }
 
@@ -221,6 +238,7 @@ class Water implements IWater {
     this.mesh.geometry.dispose();
     this.material.dispose();
     this.wake.dispose();
+    this.reflection.dispose();
     this.shoreTex?.dispose();
     this.shoreTex = null;
   }

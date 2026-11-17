@@ -115,6 +115,8 @@ export class RunSession {
   private disposed = false;
   /** Endless canal state (null in every other mode). */
   endless: EndlessCarry | null = null;
+  /** 0..1 water on the camera lens. */
+  private lensDrops = 0;
   private outOfLives = false;
 
   // replay playback
@@ -174,6 +176,13 @@ export class RunSession {
       ),
       bus.on('sim:bail', (e) => this.markFx('bail', e.pos.x, e.pos.y, e.pos.z, 0.7 + 0.3 * e.intensity, e.surface === 'water')),
       bus.on('sim:bail', () => this.onEndlessBail()),
+      // splashes close to the camera wet the lens
+      bus.on('sim:land', (e) => {
+        if (e.onto === 'water' && e.impact > 4.5) this.lensDrops = Math.min(1, this.lensDrops + 0.35 + e.impact * 0.04);
+      }),
+      bus.on('sim:bail', (e) => {
+        if (e.surface === 'water') this.lensDrops = 1;
+      }),
     );
     if (config.mode === 'endless') {
       this.endless = { stage: 0, lives: ENDLESS_LIVES, score: 0, falls: 0, tricksLanded: 0, bestCombo: 0, bestTrick: null, distance: 0, runTime: 0 };
@@ -459,6 +468,11 @@ export class RunSession {
     fx.hero = replaying ? 0 : time.hero;
     fx.bloom = this.spot.env.bloom;
     fx.time = this.clock;
+    // lens drops dry off, speed feel follows the rider
+    this.lensDrops = Math.max(0, this.lensDrops - realDt * 0.55);
+    fx.drops = replaying ? 0 : this.lensDrops;
+    const sp = this.sim.state.speed;
+    fx.speed = replaying ? 0 : Math.max(0, Math.min(1, (sp - 9) / 8));
     engine.render(this.loaded.scene, this.deps.cameraRig.camera, fx, realDt);
   }
 

@@ -380,6 +380,12 @@ export class CameraRig {
       cam.translateX(wobble(t * 34, 1) * 0.16 * shake + wobble(t * 47, 4) * buzz);
       cam.translateY(wobble(t * 39, 2) * 0.16 * shake + wobble(t * 53, 5) * buzz);
     }
+    // Handheld filmer feel: slow, small breathing of the camera (never while the player aims a landing).
+    if (!waiting) {
+      cam.translateX(wobble(t * 0.9, 7) * 0.05);
+      cam.translateY(wobble(t * 1.1, 8) * 0.04);
+      cam.rotateY(wobble(t * 0.7, 9) * 0.006);
+    }
     // Bank a hair into carves.
     const leanRoll = mode === 'water' || mode === 'slide' ? -s.lean * 0.028 : 0;
     this.roll = expDamp(this.roll, leanRoll, 4, dt);

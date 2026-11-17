@@ -73,6 +73,9 @@ uniform vec4 uShoreRect;      // minX, minZ, 1/sizeX, 1/sizeZ
 #if WATER_DETAIL >= 1
 	uniform samplerCube tSky;
 	uniform float uSkyLod;
+	uniform sampler2D tReflect;
+	uniform mat4 uReflectMat;
+	uniform float uReflectOn;
 #endif
 uniform vec3 uSkyZenith;
 uniform vec3 uSkyHorizon;
@@ -148,6 +151,13 @@ void main() {
 	R.y = abs( R.y ) + 0.012;
 	#if WATER_DETAIL >= 1
 		vec3 sky = textureLod( tSky, R, uSkyLod ).rgb;
+		if ( uReflectOn > 0.5 ) {
+			// mirrored scene (houses, boats, rider), rippled by the wave normals
+			vec4 rp = uReflectMat * vec4( vWorld, 1.0 );
+			vec2 ruv = rp.xy / rp.w + N.xz * 0.05;
+			vec3 mirror = texture2D( tReflect, clamp( ruv, 0.001, 0.999 ) ).rgb;
+			sky = mirror;
+		}
 	#else
 		R = normalize( R );
 		vec3 sky = mix( uSkyHorizon, uSkyZenith, pow( R.y, 0.5 ) );
@@ -303,7 +313,8 @@ void main() {
 	// lacy leftovers between the arms
 	float lace = ( 1.0 - smoothstep( 0.0, halfW * 0.9, ad ) ) * exp( - t * 0.9 ) * 0.34;
 	float cover = clamp( ( core * 0.9 + arm * 0.8 + lace ) * S, 0.0, 0.86 );
-	float foam = smoothstep( 1.0 - cover, 1.2 - cover, n );
+	// soft-edged, lacy foam (a hard threshold reads as a painted white band)
+	float foam = smoothstep( 1.0 - cover, 1.38 - cover, n ) * 0.88;
 
 	// aerated, flattened water inside the V + the wave itself: bright crest, dark trough behind it
 	float life = 1.0 - smoothstep( WAKE_LIFE * 0.6, WAKE_LIFE, t );

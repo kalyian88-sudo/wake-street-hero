@@ -37,6 +37,10 @@ export interface FxParams {
   bloom: number;
   /** Seconds (real) for the animated grain / hero pulse. */
   time: number;
+  /** 0..1 water drops on the lens (splashes near the camera), fades by itself. */
+  drops?: number;
+  /** 0..1 rider speed feel (edge speed blur). */
+  speed?: number;
 }
 
 /**
@@ -66,6 +70,9 @@ const GRADE_FRAG = /* glsl */ `
   uniform float uHero;
   uniform float uTime;
   uniform float uVignette;
+  uniform float uDrops;
+  uniform float uSpeed;
+  uniform float uSeed;
   varying vec2 vUv;
 
   #include <tonemapping_pars_fragment>
@@ -77,23 +84,53 @@ const GRADE_FRAG = /* glsl */ `
     return fract((p3.x + p3.y) * p3.z);
   }
 
+  // Water drops on the lens: a sparse grid of round drops, each refracts (shifts) what is behind it.
+  vec2 dropOffset(vec2 uv, float amount) {
+    vec2 g = uv * vec2(9.0, 16.0);
+    vec2 cell = floor(g);
+    vec2 f = fract(g) - 0.5;
+    float h = hash12(cell + uSeed);
+    if (h > 0.34) return vec2(0.0);
+    vec2 jitter = (vec2(hash12(cell + 7.1 + uSeed), hash12(cell + 3.7 + uSeed)) - 0.5) * 0.5;
+    vec2 d = f - jitter;
+    float r = 0.18 + 0.22 * hash12(cell + 11.3);
+    float k = 1.0 - smoothstep(r * 0.55, r, length(d));
+    return -d * k * 0.06 * amount;
+  }
+
   void main() {
-    vec2 c = vUv - 0.5;
+    // Action-cam lens: a little barrel distortion, strongest in the corners.
+    vec2 c0 = vUv - 0.5;
+    float rr = dot(c0, c0);
+    vec2 uv = 0.5 + c0 * (1.0 - 0.06 * rr) / (1.0 - 0.06 * 0.5);
+    if (uDrops > 0.01) uv += dropOffset(vUv, uDrops);
+    vec2 c = uv - 0.5;
     float r2 = dot(c, c) * 2.0; // 0 centre … 1 corner
     float fx = max(uSlowMo, uHero * 0.6);
 
+    // Chromatic fringe at the edges: always a hint (real lenses), stronger in slow motion.
+    vec2 d = c * ((0.0028 + 0.012 * fx) * r2 * r2 + 0.004 * uDrops);
     vec3 col;
-    if (fx > 0.004) {
-      // Faint chromatic fringe that only lives near the edges of the frame.
-      vec2 d = c * (0.012 * fx * r2 * r2);
-      col.r = texture2D(tDiffuse, vUv + d).r;
-      col.g = texture2D(tDiffuse, vUv).g;
-      col.b = texture2D(tDiffuse, vUv - d).b;
-    } else {
-      col = texture2D(tDiffuse, vUv).rgb;
+    col.r = texture2D(tDiffuse, uv + d).r;
+    col.g = texture2D(tDiffuse, uv).g;
+    col.b = texture2D(tDiffuse, uv - d).b;
+    // Speed: a short radial smear towards the edges.
+    if (uSpeed > 0.02) {
+      vec2 dir = c * 0.022 * uSpeed * smoothstep(0.15, 1.0, r2);
+      col += texture2D(tDiffuse, uv - dir).rgb + texture2D(tDiffuse, uv - dir * 2.0).rgb;
+      col /= 3.0;
     }
 
     col = ACESFilmicToneMapping(max(col, vec3(0.0)));
+
+    // "Edited footage" grade: teal shadows, warm highlights, a bit more punch, soft lifted blacks.
+    float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
+    col = mix(vec3(lum), col, 1.1);
+    vec3 shadowTint = vec3(-0.012, 0.006, 0.02);
+    vec3 highTint = vec3(0.03, 0.012, -0.022);
+    col += shadowTint * (1.0 - smoothstep(0.0, 0.45, lum)) + highTint * smoothstep(0.45, 1.0, lum);
+    col = max(vec3(0.0), (col - 0.18) * 1.06 + 0.18);
+    col = col * 0.97 + 0.018;
 
     // Slow-motion grade: a touch less colour, a touch more contrast (display-linear, pivot = mid grey).
     float luma = dot(col, vec3(0.2126, 0.7152, 0.0722));
@@ -109,7 +146,12 @@ const GRADE_FRAG = /* glsl */ `
     float vig = uVignette + 0.26 * uSlowMo + 0.12 * uHero;
     col *= 1.0 - vig * smoothstep(0.12, 1.05, r2);
 
+    // Drops catch the light: a faint bright rim on the wet lens.
+    if (uDrops > 0.01) col += vec3(length(dropOffset(vUv, uDrops)) * 2.2);
     vec4 outc = sRGBTransferOETF(vec4(clamp(col, 0.0, 1.0), 1.0));
+    // Film grain (luma), finer than a pixel block, stronger in the dark.
+    float grain = hash12(gl_FragCoord.xy * 0.73 + fract(uTime * 7.3) * 113.0) - 0.5;
+    outc.rgb += grain * (0.028 * (1.0 - 0.6 * dot(outc.rgb, vec3(0.333))));
     // ±½ LSB of noise hides banding in sky gradients on 8-bit phone panels.
     outc.rgb += (hash12(gl_FragCoord.xy + fract(uTime) * 61.0) - 0.5) / 255.0;
     gl_FragColor = outc;
@@ -131,7 +173,10 @@ class GradePass extends Pass {
         uSlowMo: { value: 0 },
         uHero: { value: 0 },
         uTime: { value: 0 },
-        uVignette: { value: 0.2 },
+        uVignette: { value: 0.24 },
+        uDrops: { value: 0 },
+        uSpeed: { value: 0 },
+        uSeed: { value: 0 },
       },
       vertexShader: GRADE_VERT,
       fragmentShader: GRADE_FRAG,
@@ -147,6 +192,11 @@ class GradePass extends Pass {
     u.uSlowMo.value = p.slowMo;
     u.uHero.value = p.hero;
     u.uTime.value = p.time % 1000;
+    const drops = p.drops ?? 0;
+    // a new drop pattern for each splash
+    if (drops > u.uDrops.value + 0.2) u.uSeed.value = Math.floor(Math.random() * 97);
+    u.uDrops.value = drops;
+    u.uSpeed.value = p.speed ?? 0;
   }
 
   override render(renderer: WebGLRenderer, writeBuffer: WebGLRenderTarget, readBuffer: WebGLRenderTarget): void {
