@@ -365,7 +365,7 @@ describe('progress — shop', () => {
     expect(buyGear(save, 'tee_logo')).toEqual({ ok: true });
     expect(save.coins).toBe(1000 - cheap.price);
     expect(isOwned(save, 'tee_logo')).toBe(true);
-    expect(save.equipped.apparel).toBe('shorts_basic');
+    expect(save.equipped.apparel).toBe(STARTER_GEAR.apparel);
     expect(buyGear(save, 'tee_logo')).toEqual({ ok: false, reason: 'owned' });
     expect(save.coins).toBe(1000 - cheap.price);
     expect(save.ownedGear.filter((id) => id === 'tee_logo')).toHaveLength(1);

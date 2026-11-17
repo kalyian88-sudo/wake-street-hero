@@ -1,7 +1,12 @@
+import { preloadBrandImages } from './brand/images';
 import { createGame } from './core/Game';
 import { readUrlParams } from './core/urlParams';
 import { findSpot } from './data/spots';
 import { createUI } from './ui/UI';
+
+async function boot(): Promise<void> {
+// Official WHY NOT artwork is painted into the rider / board textures: load it first (local, ~200 KB, 2 s cap).
+await Promise.race([preloadBrandImages(), new Promise((r) => setTimeout(r, 2000))]);
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const hudRoot = document.getElementById('hud') as HTMLElement;
@@ -30,3 +35,6 @@ if (params.autostart) {
       .catch((err: unknown) => console.error('[main] autostart failed', err));
   }
 }
+}
+
+void boot();

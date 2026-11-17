@@ -5,7 +5,7 @@ import { computeStats, GEAR, GEAR_CATEGORIES, gearInCategory, gearUrl, getGear, 
 import type { EquippedGear, GearCategory, GearItem, GearLook } from '../../src/types';
 
 const STARTER: EquippedGear = { ...STARTER_GEAR };
-const GRAPHICS: GearLook['graphic'][] = ['logo', 'stripe', 'split', 'camo', 'wood', 'fade', 'checker', 'plain', 'flames', 'tape'];
+const GRAPHICS: GearLook['graphic'][] = ['logo', 'stripe', 'split', 'camo', 'wood', 'fade', 'checker', 'plain', 'flames', 'tape', 'mark'];
 
 describe('gear catalogue — integrity', () => {
   it('ids are unique', () => {
@@ -21,9 +21,9 @@ describe('gear catalogue — integrity', () => {
     expect(count('wakeskate')).toBe(3);
     expect(count('vest')).toBe(3);
     expect(count('helmet')).toBe(3);
-    expect(count('apparel')).toBe(4);
+    expect(count('apparel')).toBe(5);
     expect(GEAR.every((g) => GEAR_CATEGORIES.includes(g.category))).toBe(true);
-    expect(gearInCategory('apparel').map((g) => g.apparelKind).sort()).toEqual(['hoodie', 'shorts', 'tee', 'wetsuit']);
+    expect(gearInCategory('apparel').map((g) => g.apparelKind).sort()).toEqual(['hoodie', 'jersey', 'shorts', 'tee', 'wetsuit']);
     expect(gearInCategory('helmet').map((g) => g.headKind)).toEqual(expect.arrayContaining(['helmet', 'cap']));
   });
 

@@ -106,19 +106,29 @@ export const NEUTRAL_STATS: GearStats = { pop: 5, spin: 5, rail: 5, landing: 5, 
 export const SKIN_TONES: readonly number[] = [0xf6d7bd, 0xe9bd97, 0xd29a6c, 0xb47a4e, 0x8a5a36, 0x5b3a22];
 export const HAIR_COLORS: readonly number[] = [0x1b1512, 0x4a2f1c, 0x8a5a2b, 0xc9a35a, 0xe8d9a8, 0xb5382a, 0x9aa3ad, 0x2a5fd0, 0xe30613];
 
+/** Default rider = the WHY NOT team rider: pink ?! jersey, long navy boardshorts, black ?! helmet, no vest. */
 export const DEFAULT_APPEARANCE: RiderAppearance = {
   gender: 'male',
   skin: 1,
   hair: 'short',
   hairColor: 0x4a2f1c,
   headwear: 'helmet',
-  headwearColor: 0x1c1d21,
-  vest: true,
+  headwearColor: 0x101114,
+  vest: false,
   vestColor: 0xe30613,
   bottom: 'shorts',
+  bottomColor: 0x1f2a44,
+  topColor: 0xf3a3bd,
+};
+
+/** The pre-v4 default look — saves still wearing it are moved to the new team look by the v3→v4 migration. */
+export const LEGACY_DEFAULT_APPEARANCE_V3 = {
+  vest: true,
+  vestColor: 0xe30613,
   bottomColor: 0x1c1d21,
   topColor: 0xffffff,
-};
+  headwearColor: 0x1c1d21,
+} as const;
 
 export const DEFAULT_SETTINGS: Settings = {
   lang: 'auto',
@@ -138,8 +148,8 @@ export const STARTER_GEAR = {
   wakeskate: 'ws_plank',
   vest: 'vest_basic',
   helmet: 'helmet_basic',
-  apparel: 'shorts_basic',
+  apparel: 'jersey_pink',
 } as const;
 
 export const SAVE_KEY = 'whynot.wsh.save';
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;

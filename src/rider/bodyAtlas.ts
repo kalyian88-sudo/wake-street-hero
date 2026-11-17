@@ -2,6 +2,7 @@
  * Body atlas painter: face, base torso layer, impact vest, shorts legs, boot cuff, helmet / cap and
  * the flat swatches — one 1024² colour canvas + a quarter-size roughness canvas with the same layout.
  */
+import { drawBrandImage } from '../brand/images';
 import { CanvasTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, SRGBColorSpace, type Texture } from 'three';
 import { BRAND } from '../config';
 import { ATLAS, SWATCH_ROUGHNESS, type AtlasRect, type Outfit } from './rigDef';
@@ -282,9 +283,10 @@ function paintTorso(ctx: Ctx, rctx: Ctx, o: Outfit): void {
   const [w1, w2] = brandWords();
   const wet = o.bottom === 'wetsuit';
   const hoodie = o.top === 'hoodie';
+  const jersey = o.top === 'jersey';
   const bottom = o.bottomLook;
-  const top = hoodie || !wet ? o.topLook : bottom;
-  const hemY = hoodie ? 420 : wet ? 512 : 392; // where the top garment ends (px from the top)
+  const top = hoodie || jersey || !wet ? o.topLook : bottom;
+  const hemY = hoodie ? 420 : jersey ? 412 : wet ? 512 : 392; // where the top garment ends (px from the top)
 
   // bottoms (shorts seat / wetsuit)
   ctx.fillStyle = css(bottom.primary);
@@ -317,7 +319,7 @@ function paintTorso(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     ctx.stroke();
   }
 
-  if (wet && !hoodie) {
+  if (wet && !hoodie && !jersey) {
     // full suit: side panels, knee-to-chest piping, chest logo, back zip
     const second = contrast(bottom.primary, bottom.secondary);
     ctx.fillStyle = css(second);
@@ -360,6 +362,11 @@ function paintTorso(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     rctx.fillRect(0, 0, 512, hemY);
     paintGraphic(ctx, 0, 60, 512, hemY - 60, { ...top, graphic: top.graphic === 'logo' ? 'plain' : top.graphic }, 5);
     const ink = css(contrast(top.primary, top.accent));
+    if (top.graphic === 'mark') {
+      // WHY NOT "?!" print: big on the back, small on the chest, in the jersey's ink colour
+      drawBrandImage(ctx, 'mark', 384, hemY * 0.48, 190, 250, { tint: css(top.secondary), alpha: 0.92 });
+      drawBrandImage(ctx, 'mark', 152, hemY * 0.3, 54, 76, { tint: css(top.secondary), alpha: 0.92 });
+    }
     if (hoodie) {
       // rib hem, kangaroo pocket, drawstrings, big chest + back print
       ctx.fillStyle = css(shade(top.primary, -0.22));
@@ -397,11 +404,16 @@ function paintTorso(ctx: Ctx, rctx: Ctx, o: Outfit): void {
       ctx.fillRect(0, hemY - 5, 512, 5);
       ctx.fillStyle = css(shade(top.primary, luma(top.primary) > 0.5 ? -0.14 : 0.16));
       ctx.fillRect(0, 0, 512, 16);
-      drawWordmark(ctx, BRAND.name, 178, 150, 17, ink);
-      drawWordmark(ctx, w1, 380, 150, 52, ink);
-      drawWordmark(ctx, w2, 387, 216, 52, ink);
-      ctx.fillStyle = css(BRAND.colors.red);
-      if (top.primary !== BRAND.colors.red) ctx.fillRect(338, 256, 96, 6);
+      if (top.graphic !== 'mark') {
+        drawWordmark(ctx, BRAND.name, 178, 150, 17, ink);
+        drawWordmark(ctx, w1, 380, 150, 52, ink);
+        drawWordmark(ctx, w2, 387, 216, 52, ink);
+        ctx.fillStyle = css(BRAND.colors.red);
+        if (top.primary !== BRAND.colors.red) ctx.fillRect(338, 256, 96, 6);
+      } else {
+        // small WHY NOT under the ?! on the back
+        drawWordmark(ctx, BRAND.name, 384, hemY * 0.48 + 150, 22, css(top.secondary));
+      }
     }
   }
   // fake AO: under the arms and into the crotch
@@ -662,6 +674,11 @@ function paintHeadwear(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     ctx.fillRect(0, 184, 512, 8);
     drawWordmark(ctx, BRAND.name, 128, 138, 24, css(ink));
     drawWordmark(ctx, BRAND.name, 384, 140, 20, css(ink));
+    if (look.graphic === 'mark') {
+      // the "?!" mark on both sides of the shell, above the ear guards
+      const markInk = luma(look.primary) > 0.5 ? css(look.secondary) : '#ffffff';
+      for (const x of [256, 0, 512]) drawBrandImage(ctx, 'mark', x, 70, 64, 86, { tint: markInk });
+    }
   } else {
     rctx.fillStyle = grey(0.9);
     rctx.fillRect(0, 0, 512, 192);

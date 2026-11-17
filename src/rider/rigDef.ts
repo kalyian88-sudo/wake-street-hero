@@ -150,7 +150,7 @@ export interface Outfit {
   vest: GearLook | null;
   bottom: 'shorts' | 'wetsuit';
   bottomLook: GearLook;
-  top: 'tee' | 'hoodie';
+  top: 'tee' | 'hoodie' | 'jersey';
   topLook: GearLook;
   bindings: GearLook;
   wakeboard: GearLook;
@@ -203,7 +203,7 @@ export function resolveOutfit(look: RiderLook): Outfit {
     if (kind === 'wetsuit' || kind === 'shorts') {
       bottom = kind;
       bottomLook = apparel.look;
-    } else if (kind === 'tee' || kind === 'hoodie') {
+    } else if (kind === 'tee' || kind === 'hoodie' || kind === 'jersey') {
       top = kind;
       topLook = apparel.look;
     }

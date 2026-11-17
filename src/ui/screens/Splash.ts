@@ -2,9 +2,9 @@ import { version } from '../../../package.json';
 import { BRAND } from '../../config';
 import { i18n, t } from '../../i18n/i18n';
 import type { Lang } from '../../types';
+import { brandImageUrl } from '../../brand/images';
 import { LANGS } from '../../i18n/langs';
 import { select } from '../components/basic';
-import { wordmark } from '../components/game';
 import type { UICtx } from '../context';
 import { h, type Child } from '../dom';
 import { Screen, type NavDir } from '../screen';
@@ -35,7 +35,7 @@ export class SplashScreen extends Screen {
 
   protected build(): Child {
     const lang = select<Lang>(
-      LANGS.map((x) => ({ value: x.id, label: `${x.short} · ${x.label}` })),
+      LANGS.map((x) => ({ value: x.id, label: x.label })),
       i18n.lang,
       (v) => this.ctx.setLang(v),
       'wn-select--quiet wn-splash__lang',
@@ -65,7 +65,12 @@ export class SplashScreen extends Screen {
         'div',
         { class: 'wn-splash__brand' },
         h('div', { class: 'wn-splash__kicker wn-kicker' }, t('ui.splash.kicker')),
-        wordmark('wn-splash__wm'),
+        h(
+          'div',
+          { class: 'wn-splash__logos' },
+          h('img', { class: 'wn-splash__logo', src: brandImageUrl('whynot'), alt: 'WHY NOT', draggable: 'false' }),
+          h('img', { class: 'wn-splash__mark', src: brandImageUrl('mark'), alt: '', 'aria-hidden': 'true', draggable: 'false' }),
+        ),
         h('div', { class: 'wn-splash__title' }, h('i'), h('span', { class: 'wn-hd' }, 'Wake Street Hero'), h('i')),
         h('p', { class: 'wn-splash__tagline' }, t('ui.splash.tagline')),
       ),

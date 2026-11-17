@@ -76,7 +76,7 @@ export const GEAR: GearItem[] = [
     },
     price: 0,
     stats: {},
-    look: { primary: DARK, secondary: RED, accent: WHITE, graphic: 'logo' },
+    look: { primary: WHITE, secondary: DARK, accent: RED, graphic: 'logo' },
     url: SITE,
   },
   {
@@ -132,7 +132,7 @@ export const GEAR: GearItem[] = [
     },
     price: 0,
     stats: {},
-    look: { primary: RED, secondary: DARK, accent: WHITE, graphic: 'logo' },
+    look: { primary: 0x2c2f35, secondary: BLACK, accent: RED, graphic: 'logo' },
     url: SITE,
   },
   {
@@ -273,7 +273,7 @@ export const GEAR: GearItem[] = [
     },
     price: 0,
     stats: {},
-    look: { primary: DARK, secondary: GREY, accent: RED, graphic: 'logo' },
+    look: { primary: BLACK, secondary: GREY, accent: RED, graphic: 'mark' },
     url: SITE,
   },
   {
@@ -307,6 +307,20 @@ export const GEAR: GearItem[] = [
   },
 
   // ════════════════════════════════════════════════════════════════ ОДЕЖДА ══
+  {
+    id: 'jersey_pink',
+    category: 'apparel',
+    apparelKind: 'jersey',
+    name: { ru: 'Джерси WHY NOT ?! Pink', en: 'WHY NOT ?! Pink Jersey' },
+    desc: {
+      ru: 'Розовая джерси с длинным рукавом и принтом ?! на спине. В ней катается команда WHY NOT.',
+      en: 'Pink long-sleeve jersey with the ?! print on the back. What the WHY NOT crew rides in.',
+    },
+    price: 0,
+    stats: {},
+    look: { primary: 0xf3a3bd, secondary: 0x2a1d33, accent: RED, graphic: 'mark' },
+    url: SITE,
+  },
   {
     id: 'shorts_basic',
     category: 'apparel',

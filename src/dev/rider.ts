@@ -5,6 +5,7 @@
 // Dev-only page: labels are not localised on purpose.
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { preloadBrandImages } from '../brand/images';
 import { DEFAULT_APPEARANCE, QUALITY_PROFILES, STARTER_GEAR } from '../config';
 import { createRiderSimState } from '../core/riderState';
 import { createRiderRig } from '../rider/RiderRig';
@@ -25,6 +26,7 @@ interface PoseOpts {
   quality?: QualityLevel;
 }
 
+await preloadBrandImages();
 const qs = new URLSearchParams(location.search);
 const canvas = document.getElementById('c') as HTMLCanvasElement;
 const labels = document.getElementById('labels') as HTMLDivElement;

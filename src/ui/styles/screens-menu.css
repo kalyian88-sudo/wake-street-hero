@@ -1005,3 +1005,36 @@
     inset: 24px 28px 24px 12px;
   }
 }
+
+/* official WHY NOT stamp + ?! mark on the splash */
+.wn-splash__logos {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  margin: 6px 0 4px;
+}
+.wn-splash__logo {
+  width: min(52vw, 46vh, 250px);
+  height: auto;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
+  animation: wn-logo-in 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.wn-splash__mark {
+  position: absolute;
+  right: calc(50% - min(26vw, 23vh, 125px) - min(12vw, 10vh, 56px));
+  bottom: -6%;
+  width: min(15vw, 13vh, 70px);
+  height: auto;
+  transform: rotate(10deg);
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+  animation: wn-logo-in 0.6s 0.18s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes wn-logo-in {
+  from { opacity: 0; transform: scale(0.6) rotate(-6deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wn-splash__logo, .wn-splash__mark { animation: none; }
+}
+
+.wn-select.wn-splash__lang { width: auto; max-width: none; flex: none; }

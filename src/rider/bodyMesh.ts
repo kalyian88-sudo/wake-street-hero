@@ -74,9 +74,10 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
   const table = P.female ? TORSO_F : TORSO_M;
   const wet = o.bottom === 'wetsuit';
   const hoodie = o.top === 'hoodie';
-  const suit = wet && !hoodie;
+  const jersey = o.top === 'jersey';
+  const suit = wet && !hoodie && !jersey;
   const skin = o.skin;
-  const topC = hoodie || !wet ? o.topLook.primary : o.bottomLook.primary;
+  const topC = hoodie || jersey || !wet ? o.topLook.primary : o.bottomLook.primary;
   const suitC = o.bottomLook.primary;
   const sw = (k: number): void => {
     const uv = swatchUV(k);
@@ -155,11 +156,11 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
   for (const side of [1, -1]) {
     const L = side > 0;
     const x = side * P.shoulderHalf;
-    const sleeveLong = suit || hoodie;
-    const fat = hoodie ? 0.016 : suit ? 0.004 : 0;
+    const sleeveLong = suit || hoodie || jersey;
+    const fat = hoodie ? 0.016 : jersey ? 0.009 : suit ? 0.004 : 0;
     // upper arm
     b.bone(L ? B.uarmL : B.uarmR).color(sleeveLong ? topC : skin);
-    sw(sleeveLong ? (hoodie ? SWATCH.matte : SWATCH.rubber) : SWATCH.skin);
+    sw(sleeveLong ? (hoodie ? SWATCH.matte : jersey ? SWATCH.cloth : SWATCH.rubber) : SWATCH.skin);
     _a.set(x, P.shoulderY, 0);
     _b.set(x, P.shoulderY - P.uarm, 0);
     b.segment(_a, _b, FRONT).capsule(P.uarm, 0.054 * g + fat, 0.04 * g + fat, { radial: 16, mid: [[0.35, 0.05 * g + fat]] });
@@ -181,13 +182,13 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     }
     // forearm
     b.bone(L ? B.larmL : B.larmR).color(sleeveLong ? topC : skin);
-    sw(sleeveLong ? (hoodie ? SWATCH.matte : SWATCH.rubber) : SWATCH.skin);
+    sw(sleeveLong ? (hoodie ? SWATCH.matte : jersey ? SWATCH.cloth : SWATCH.rubber) : SWATCH.skin);
     _a.set(x, P.shoulderY - P.uarm, 0);
     _b.set(x, P.shoulderY - P.uarm - P.larm, 0);
     b.segment(_a, _b, FRONT).capsule(P.larm, 0.04 * g + fat, 0.03 * g + fat * 0.7, { radial: 16, mid: [[0.28, 0.044 * g + fat]] });
     if (sleeveLong) {
       // cuff
-      b.color(hoodie ? shade(topC, -0.2) : contrast(suitC, o.bottomLook.accent));
+      b.color(hoodie || jersey ? shade(topC, -0.2) : contrast(suitC, o.bottomLook.accent));
       b.loft(
         [
           { y: P.larm - 0.04, rx: 0.034 * g + fat, rz: 0.034 * g + fat },
@@ -214,7 +215,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
       // board-shorts leg: loose tube, open hem
       b.color(0xffffff);
       const r0 = 0.108 * g;
-      const len = P.thigh * 0.66;
+      const len = P.thigh * 0.84; // long boardshorts, just above the knee
       b.loft(
         [
           { y: -0.05, rx: r0 * 0.94, rz: r0 * 1.02 },

@@ -336,7 +336,7 @@ export interface GearLook {
   secondary: number;
   accent: number;
   /** Procedural graphic style drawn on the item (deck graphic, vest print…). */
-  graphic: 'logo' | 'stripe' | 'split' | 'camo' | 'wood' | 'fade' | 'checker' | 'plain' | 'flames' | 'tape';
+  graphic: 'logo' | 'stripe' | 'split' | 'camo' | 'wood' | 'fade' | 'checker' | 'plain' | 'flames' | 'tape' | 'mark';
 }
 
 export interface GearItem {
@@ -353,7 +353,7 @@ export interface GearItem {
   /** Rider reputation level needed to buy. */
   unlockLevel?: number;
   /** apparel sub-type for the rider rig */
-  apparelKind?: 'shorts' | 'wetsuit' | 'tee' | 'hoodie';
+  apparelKind?: 'shorts' | 'wetsuit' | 'tee' | 'hoodie' | 'jersey';
   /** helmet sub-type */
   headKind?: 'helmet' | 'cap';
 }

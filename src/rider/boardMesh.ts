@@ -4,6 +4,7 @@
  * Wakeskate: wooden concave deck with kick nose / tail and a grip top.
  * Textures are painted once per look and cached.
  */
+import { drawBrandImage } from '../brand/images';
 import {
   BufferGeometry,
   CanvasTexture,
@@ -426,7 +427,10 @@ function paintWakeboardTop(ctx: Ctx, look: GearLook): void {
     ctx.stroke();
   }
   // centre wordmark between the bindings + tip hits
-  drawWordmark(ctx, BRAND.name, TEX_W / 2, TOP_H / 2, 74, css(ink), { stroke: rgba(0x000000, 0.28), strokeW: 6 });
+  // official stamped WHY NOT block logo between the bindings (procedural wordmark as a fallback)
+  if (!drawBrandImage(ctx, 'whynot', TEX_W / 2, TOP_H / 2, TOP_H * 0.86, TOP_H * 0.86, { rotate: -Math.PI / 2 })) {
+    drawWordmark(ctx, BRAND.name, TEX_W / 2, TOP_H / 2, 74, css(ink), { stroke: rgba(0x000000, 0.28), strokeW: 6 });
+  }
   drawWordmark(ctx, w1.slice(0, 1) + (w2.slice(0, 1) || ''), 56, TOP_H / 2, 44, css(contrast(dark, look.accent)), { rot: -Math.PI / 2 });
   drawWordmark(ctx, w1.slice(0, 1) + (w2.slice(0, 1) || ''), TEX_W - 56, TOP_H / 2, 44, css(contrast(dark, look.accent)), { rot: Math.PI / 2 });
   // thin stringer

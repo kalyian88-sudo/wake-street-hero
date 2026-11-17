@@ -25,7 +25,7 @@
  * To add v4: bump SAVE_VERSION in src/config.ts, add `3: v3ToV4` to MIGRATIONS and extend sanitize().
  */
 import { LANG_IDS } from '../i18n/langs';
-import { DEFAULT_APPEARANCE, DEFAULT_SETTINGS, HAIR_COLORS, SAVE_VERSION, SKIN_TONES, STARTER_GEAR } from '../config';
+import { DEFAULT_APPEARANCE, DEFAULT_SETTINGS, HAIR_COLORS, LEGACY_DEFAULT_APPEARANCE_V3, SAVE_VERSION, SKIN_TONES, STARTER_GEAR } from '../config';
 import type { EquippedGear, L10n, RiderAppearance, SaveData, Settings, SpotProgress } from '../types';
 
 type Dict = Record<string, unknown>;
@@ -192,10 +192,28 @@ function v2ToV3(old: Dict): Dict {
   };
 }
 
+/**
+ * v3 → v4: the team jersey arrives. Everyone gets the pink ?! jersey (owned, and equipped if they still
+ * wore the starter shorts); riders who never touched the editor are moved to the new default look.
+ */
+function v3ToV4(old: Dict): Dict {
+  const owned = Array.isArray(old.ownedGear) ? (old.ownedGear as unknown[]).filter((x) => typeof x === 'string') : [];
+  if (!owned.includes('jersey_pink')) owned.push('jersey_pink');
+  if (!owned.includes('shorts_basic')) owned.push('shorts_basic');
+  const eq = dict(old.equipped);
+  const apparel = eq.apparel === undefined || eq.apparel === null || eq.apparel === 'shorts_basic' ? 'jersey_pink' : eq.apparel;
+  const a = dict(old.appearance);
+  const L = LEGACY_DEFAULT_APPEARANCE_V3;
+  const untouched = a.vest === L.vest && a.vestColor === L.vestColor && a.bottomColor === L.bottomColor && a.topColor === L.topColor && a.headwearColor === L.headwearColor;
+  const appearance = untouched ? { ...a, vest: false, bottomColor: DEFAULT_APPEARANCE.bottomColor, topColor: DEFAULT_APPEARANCE.topColor, headwearColor: DEFAULT_APPEARANCE.headwearColor } : a;
+  return { ...old, version: 4, ownedGear: owned, equipped: { ...eq, apparel }, appearance };
+}
+
 /** `MIGRATIONS[n]` upgrades a save of version n to version n + 1. */
 const MIGRATIONS: Record<number, (old: Dict) => Dict> = {
   1: v1ToV2,
   2: v2ToV3,
+  3: v3ToV4,
 };
 
 /** Schema version of a stored blob (v1 used the key `v`), or null when it carries none. */

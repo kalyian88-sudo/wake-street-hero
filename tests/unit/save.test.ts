@@ -170,7 +170,8 @@ describe('migrate v2 → v3', () => {
 
   it('moves gear, renames slots, keeps unknown string ids and drops invalid types', () => {
     const s = migrate(v2);
-    expect(s.equipped).toEqual({ wakeboard: 'wb_pro', bindings: 'bd_classic', wakeskate: 'ws_plank', vest: null, helmet: 'helmet_basic', apparel: 'shorts_basic' });
+    // v3 → v4 swaps the starter shorts for the team jersey
+    expect(s.equipped).toEqual({ wakeboard: 'wb_pro', bindings: 'bd_classic', wakeskate: 'ws_plank', vest: null, helmet: 'helmet_basic', apparel: 'jersey_pink' });
     expect(s.ownedGear).toContain('wb_pro');
     expect(s.ownedGear).toContain('retired_item_2023');
     expect(s.ownedGear.every((id) => typeof id === 'string')).toBe(true);
@@ -533,5 +534,35 @@ describe('createSaveStore', () => {
     expect(store.data.coins).toBe(60);
     expect(store.data.version).toBe(SAVE_VERSION);
     expect(storage.map.get(`${SAVE_KEY}.backup`)).toBe(future);
+  });
+});
+
+describe('migrate v3 → v4 (team jersey)', () => {
+  it('gives everyone the jersey, equips it over the starter shorts and moves untouched riders to the team look', () => {
+    const v3 = {
+      version: 3,
+      appearance: { gender: 'male', skin: 1, hair: 'short', hairColor: 0x4a2f1c, headwear: 'helmet', headwearColor: 0x1c1d21, vest: true, vestColor: 0xe30613, bottom: 'shorts', bottomColor: 0x1c1d21, topColor: 0xffffff },
+      ownedGear: ['wb_street', 'bd_classic', 'ws_plank', 'vest_basic', 'helmet_basic', 'shorts_basic'],
+      equipped: { wakeboard: 'wb_street', bindings: 'bd_classic', wakeskate: 'ws_plank', vest: 'vest_basic', helmet: 'helmet_basic', apparel: 'shorts_basic' },
+    };
+    const s = migrate(v3);
+    expect(s.version).toBe(SAVE_VERSION);
+    expect(s.ownedGear).toContain('jersey_pink');
+    expect(s.ownedGear).toContain('shorts_basic');
+    expect(s.equipped.apparel).toBe('jersey_pink');
+    expect(s.appearance.vest).toBe(false);
+    expect(s.appearance.topColor).toBe(DEFAULT_APPEARANCE.topColor);
+  });
+
+  it('keeps a customised rider and a non-starter outfit as they were', () => {
+    const s = migrate({
+      version: 3,
+      appearance: { gender: 'female', skin: 3, hair: 'long', hairColor: 0x1b1512, headwear: 'cap', headwearColor: 0x3a3c43, vest: true, vestColor: 0x2a5fd0, bottom: 'wetsuit', bottomColor: 0x1c1d21, topColor: 0xffffff },
+      ownedGear: ['hoodie_street'],
+      equipped: { apparel: 'hoodie_street' },
+    });
+    expect(s.equipped.apparel).toBe('hoodie_street');
+    expect(s.appearance.vest).toBe(true);
+    expect(s.appearance.vestColor).toBe(0x2a5fd0);
   });
 });
