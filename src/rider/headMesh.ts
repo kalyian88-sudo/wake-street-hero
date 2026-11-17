@@ -74,13 +74,13 @@ export function buildHead(o: Outfit, P: Proportions): HeadBuild {
     out[1] = fcy + uy * fw;
   };
   b.at(0, cy, 0).color(0xffffff);
-  b.loft(sphereRings(9, -Math.PI / 2 + Math.PI / 10, Math.PI / 2), {
-    radial: 16,
+  b.loft(sphereRings(26, -Math.PI / 2 + Math.PI / 10, Math.PI / 2), {
+    radial: 44,
     capStart: -1,
     capEnd: 1,
     warp: (p) => {
       _d.copy(p).normalize();
-      headPoint(_d, 0, p);
+      headPoint(_d, faceSculpt(_d, o.female), p);
     },
     uvFn: faceUV,
   });
@@ -92,16 +92,18 @@ export function buildHead(o: Outfit, P: Proportions): HeadBuild {
   _b.set(0, cy - 0.03, RZ - 0.001);
   b.segment(_a, _b, FRONT).loft(
     [
-      { y: 0, rx: 0.007, rz: 0.008 },
-      { y: 0.02, rx: 0.009, rz: 0.01 },
-      { y: 0.036, rx: 0.0135, rz: 0.012 },
-      { y: 0.043, rx: 0.012, rz: 0.009 },
+      { y: 0, rx: 0.0065, rz: 0.007 },
+      { y: 0.012, rx: 0.0075, rz: 0.009 },
+      { y: 0.024, rx: 0.0095, rz: 0.0108 },
+      { y: 0.033, rx: 0.0132, rz: 0.0125 },
+      { y: 0.039, rx: 0.0142, rz: 0.0115 },
+      { y: 0.044, rx: 0.0122, rz: 0.0088 },
     ],
-    { radial: 8, capStart: -0.006, capEnd: 0.048 },
+    { radial: 14, capStart: -0.006, capEnd: 0.048 },
   );
   if (o.headwear !== 'helmet') {
     for (const s of [1, -1]) {
-      b.at(s * (RX - 0.003), cy - 0.006, -0.01).ellipsoid(0.011, 0.027, 0.016, { radial: 6, rings: 4 });
+      b.at(s * (RX - 0.003), cy - 0.006, -0.01).ellipsoid(0.0105, 0.028, 0.017, { radial: 12, rings: 8 });
     }
   }
 
@@ -113,6 +115,47 @@ export function buildHead(o: Outfit, P: Proportions): HeadBuild {
 }
 
 type HeadPoint = (d: Vector3, extra: number, out: Vector3) => Vector3;
+
+function gauss(x: number, y: number): number {
+  return Math.exp(-(x * x + y * y));
+}
+
+/**
+ * Facial relief (m, along the skull direction) on top of the head ellipsoid. Feature positions are in
+ * skull-direction coordinates and match the painted face (eyes at |x| 0.354, y 0.09; mouth y −0.53).
+ */
+function faceSculpt(d: Vector3, female: boolean): number {
+  if (d.z <= 0.05) return 0;
+  const m = Math.min(1, (d.z - 0.05) / 0.4);
+  const x = d.x;
+  const ax = Math.abs(x);
+  const y = d.y;
+  const k = female ? 0.75 : 1;
+  let h = 0;
+  // brow ridge, eye sockets, the eyeball bulging back out of them
+  h += 0.0042 * k * gauss(x / 0.55, (y - 0.25) / 0.075);
+  h -= 0.0062 * gauss((ax - 0.35) / 0.15, (y - 0.1) / 0.11);
+  h += 0.0036 * gauss((ax - 0.354) / 0.085, (y - 0.09) / 0.06);
+  // nose bridge running down into the nose
+  h += 0.0058 * gauss(x / 0.075, (y + 0.02) / 0.2) * (y < 0.2 ? 1 : 0.5);
+  // cheekbones and the soft hollow under them
+  h += 0.0042 * gauss((ax - 0.5) / 0.16, (y + 0.1) / 0.11);
+  h -= 0.0028 * k * gauss((ax - 0.48) / 0.13, (y + 0.42) / 0.13);
+  // muzzle: philtrum, lips, the line between them, mentolabial crease, chin
+  h += 0.0034 * gauss(x / 0.26, (y + 0.44) / 0.14);
+  h += (female ? 0.0034 : 0.0024) * gauss(x / 0.17, (y + 0.49) / 0.04);
+  h += (female ? 0.0036 : 0.0028) * gauss(x / 0.15, (y + 0.575) / 0.045);
+  h -= 0.0016 * gauss(x / 0.2, (y + 0.528) / 0.016);
+  h -= 0.0022 * gauss(x / 0.14, (y + 0.66) / 0.04);
+  h += (female ? 0.003 : 0.0052) * gauss(x / 0.2, (y + 0.78) / 0.09);
+  // nasolabial folds
+  h += 0.0016 * gauss((ax - 0.2 + (y + 0.35) * 0.25) / 0.05, (y + 0.36) / 0.12);
+  // temples
+  h -= 0.0028 * gauss((ax - 0.78) / 0.12, (y - 0.2) / 0.22);
+  // jaw angle a touch squarer for him
+  if (!female) h += 0.003 * gauss((ax - 0.7) / 0.14, (y + 0.62) / 0.12);
+  return h * m;
+}
 
 /** Cap of the head surface: unit-sphere rings in a frame tilted about X by `tilt` (rad, − = rim higher in front). */
 function shell(
@@ -128,11 +171,12 @@ function shell(
 ): void {
   const c = Math.cos(tilt);
   const s = Math.sin(tilt);
-  b.at(0, cy, 0).loft(sphereRings(rings, minLat), {
-    radial: 14,
+  b.at(0, cy, 0).loft(sphereRings(rings * 2, minLat), {
+    radial: 32,
     capEnd: 1,
     ...opts,
-    warp: (p, ring) => {
+    warp: (p, ring2) => {
+      const ring = ring2 / 2;
       _d.copy(p).normalize();
       const y = _d.y * c - _d.z * s;
       const z = _d.y * s + _d.z * c;
@@ -281,7 +325,7 @@ function buildHelmet(b: MeshBuilder, o: Outfit, P: Proportions, cy: number, head
       return ring === 0 ? base - 0.014 : base;
     },
     {
-      radial: 16,
+      radial: 32,
       wrap,
       vOf: (_r, i, n) => Math.max(0, (i - 1) / (n - 2)),
     },
@@ -311,7 +355,7 @@ function buildCap(b: MeshBuilder, o: Outfit, P: Proportions, cy: number, headPoi
   const wrap = rectUV(ATLAS.headwear, 1);
   b.color(0xffffff);
   shell(b, cy, headPoint, -0.26, 0.16, 5, (d) => 0.012 + 0.012 * Math.max(0, d.y) * Math.max(0, d.z + 0.3), {
-    radial: 16,
+    radial: 32,
     wrap,
   });
   // flat-ish brim + top button

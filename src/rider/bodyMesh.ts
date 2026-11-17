@@ -143,10 +143,24 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
   }
 
   // ── neck (+ hood / collar) ──
-  const neckR = (P.female ? 0.046 : 0.055) * (suit ? 1.04 : 1);
+  const neckR = (P.female ? 0.047 : 0.06) * (suit ? 1.04 : 1);
   b.bone(B.neck).color(skin);
   sw(SWATCH.skin);
-  b.at(0, P.neckY - 0.03 * s, -0.004).capsule(0.115 * s, neckR * 1.08, neckR * 0.96, { radial: 10, capSeg: 1 });
+  b.at(0, P.neckY - 0.034 * s, -0.004).capsule(0.115 * s, neckR * 1.16, neckR * 1.0, { radial: 20, capSeg: 2, sz: 0.94, mid: [[0.3, neckR * 1.05]] });
+  if (jersey || (!hoodie && !wet)) {
+    // ribbed crew collar hiding the seam between neck and torso
+    b.bone(B.chest).color(shade(topC, -0.1));
+    sw(SWATCH.cloth);
+    const tmpC: number[] = [];
+    const band = [0.534, 0.546, 0.558, 0.566].map((h, i) => {
+      torsoAt(table, h, tmpC);
+      const grow = i === 0 ? 0.002 : i === 3 ? 0.001 : 0.006;
+      return { y: P.hipY + h * s, rx: tmpC[1] + grow, rz: tmpC[2] + grow, oz: tmpC[3], n: 2 };
+    });
+    band[3].rx = band[2].rx - 0.006;
+    band[3].rz = band[2].rz - 0.006;
+    b.identity().loft(band, { radial: 24 });
+  }
   if (hoodie) {
     b.bone(B.chest).color(shade(topC, -0.06));
     sw(SWATCH.matte);
@@ -291,7 +305,64 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
   }
 
   const geometry = b.build();
+  bakeAmbientOcclusion(geometry, P, table);
   return { geometry, triangles: b.triangleCount };
+}
+
+/**
+ * Soft contact shadows baked into the vertex colours: the body is approximated by spheres along the
+ * bones (bind pose) and every vertex is darkened by the spheres its normal faces (analytic sphere AO).
+ * Gives armpits, the crotch, the inner thighs, under the chin and the backs of the knees their shade.
+ */
+function bakeAmbientOcclusion(geo: BufferGeometry, P: Proportions, table: readonly (readonly number[])[]): void {
+  const s = P.scale;
+  const g = P.girth;
+  const sph: number[] = []; // x, y, z, r
+  const add = (x: number, y: number, z: number, r: number): void => {
+    sph.push(x, y, z, r);
+  };
+  const tmp: number[] = [];
+  for (let h = -0.06; h <= 0.56; h += 0.05) {
+    torsoAt(table, h, tmp);
+    add(0, P.hipY + h * s, tmp[3], Math.min(tmp[1], tmp[2]) * 1.05);
+  }
+  add(0, P.headCenterY, 0.01, P.headRy * 0.85);
+  add(0, P.neckY + 0.02, 0, 0.05);
+  for (const side of [1, -1]) {
+    const ax = side * P.shoulderHalf;
+    const arm = P.uarm + P.larm;
+    for (let t = 0; t <= arm; t += 0.05) add(ax, P.shoulderY - t, 0, (0.052 - (t / arm) * 0.018) * g);
+    const lx = side * P.hipHalf;
+    for (let y = P.hipY; y >= P.ankleY; y -= 0.05) add(lx, y, 0, (y > P.kneeY ? 0.075 + ((y - P.kneeY) / P.thigh) * 0.02 : 0.05) * g);
+  }
+  const pos = geo.getAttribute('position');
+  const nor = geo.getAttribute('normal');
+  const col = geo.getAttribute('color');
+  const n = sph.length / 4;
+  for (let i = 0; i < pos.count; i++) {
+    const px = pos.getX(i);
+    const py = pos.getY(i);
+    const pz = pos.getZ(i);
+    const nx = nor.getX(i);
+    const ny = nor.getY(i);
+    const nz = nor.getZ(i);
+    let occ = 0;
+    for (let k = 0; k < n; k++) {
+      const dx = sph[k * 4] - px;
+      const dy = sph[k * 4 + 1] - py;
+      const dz = sph[k * 4 + 2] - pz;
+      const r = sph[k * 4 + 3];
+      const d2 = dx * dx + dy * dy + dz * dz;
+      if (d2 < r * r * 1.1) continue; // the vertex sits on / in this sphere (its own part)
+      const d = Math.sqrt(d2);
+      const facing = (dx * nx + dy * ny + dz * nz) / d;
+      if (facing <= 0) continue;
+      occ += facing * ((r * r) / d2);
+    }
+    const ao = 1 - 0.55 * Math.min(1, occ * 0.9);
+    col.setXYZ(i, col.getX(i) * ao, col.getY(i) * ao, col.getZ(i) * ao);
+  }
+  col.needsUpdate = true;
 }
 
 /** Foot-shaped loft running heel → toes along +Z; `grow` inflates it (shoe / boot shells). */
