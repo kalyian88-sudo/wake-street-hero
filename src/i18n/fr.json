@@ -400,5 +400,19 @@
   "hud.goal.clip": "Clip pour le filmeur",
   "world.start": "DÉPART",
   "world.finish": "ARRIVÉE",
-  "world.rec": "REC"
+  "world.rec": "REC",
+  "hud.moves.water": "Sur l'eau",
+  "hud.moves.air": "En l'air",
+  "hud.moves.rail": "Sur le rail — slides & presses",
+  "hud.moves.aheadRail": "Rail devant — saute !",
+  "hud.moves.aheadKicker": "Kicker — garde le saut jusqu'au bout",
+  "hud.moves.pop": "maintiens et relâche — pop",
+  "hud.moves.spin": "rotation tant que tu tiens",
+  "hud.moves.catch": "encore — rattrape la planche",
+  "hud.moves.popoff": "sortie avec un trick",
+  "hud.moves.stick": "Stick",
+  "hud.el.noseslide": "Noseslide",
+  "hud.el.tailslide": "Tailslide",
+  "hud.el.noseblunt": "Nose blunt",
+  "hud.el.tailblunt": "Tail blunt"
 }

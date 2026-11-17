@@ -23,7 +23,6 @@
   "hud.bank": "В банк",
   "hud.combo.lost": "Комбо сгорело",
   "hud.coach": "Тренер",
-
   "hud.el.spin": "{deg}",
   "hud.el.shifty": "Шифти",
   "hud.el.backroll": "Бэкролл",
@@ -51,7 +50,6 @@
   "hud.el.nosepress": "Ноуз-пресс",
   "hud.el.tailpress": "Тейл-пресс",
   "hud.el.wallride": "Валлрайд",
-
   "hud.bail.underRotated.title": "Недокрут",
   "hud.bail.underRotated.sub": "Вода не прощает приход боком",
   "hud.bail.inverted.title": "Вниз головой",
@@ -72,7 +70,6 @@
   "hud.bail.stalled.sub": "По бетону без скорости не ездят",
   "hud.bail.outOfBounds.title": "Мимо спота",
   "hud.bail.outOfBounds.sub": "Туда канат не достаёт",
-
   "hud.toast.gap": "Гэп",
   "hud.toast.goal": "Цель выполнена",
   "hud.toast.goalNew": "Новая звезда",
@@ -87,11 +84,24 @@
   "hud.toast.heroReady": "Hero готов",
   "hud.toast.heroReadySub": "Жми и забирай ×2",
   "hud.toast.bonus": "Бонус",
-
   "hud.goal.score": "Набрать {n} очков",
   "hud.goal.trick": "Трюк: {name}",
   "hud.goal.trickAny": "Трюк по заданию",
   "hud.goal.letters": "Собрать W-H-Y-N-O-T",
   "hud.goal.line": "Линия спота одним комбо",
-  "hud.goal.clip": "Клип для филмера"
+  "hud.goal.clip": "Клип для филмера",
+  "hud.moves.water": "На воде",
+  "hud.moves.air": "В воздухе",
+  "hud.moves.rail": "На рейле — слайды и прессы",
+  "hud.moves.aheadRail": "Рейл впереди — прыгай!",
+  "hud.moves.aheadKicker": "Кикер — держи прыжок до края",
+  "hud.moves.pop": "держи и отпусти — поп",
+  "hud.moves.spin": "спин, пока держишь",
+  "hud.moves.catch": "ещё раз — поймать доску",
+  "hud.moves.popoff": "соскок с трюком",
+  "hud.moves.stick": "Стик",
+  "hud.el.noseslide": "Ноуз-слайд",
+  "hud.el.tailslide": "Тейл-слайд",
+  "hud.el.noseblunt": "Ноуз-блант",
+  "hud.el.tailblunt": "Тейл-блант"
 }

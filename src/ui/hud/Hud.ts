@@ -20,6 +20,7 @@ import { fmtInt, h, type HudCtx } from './dom';
 import { Feed } from './Feed';
 import { lacksCondensedFont, makeStreakTexture } from './fxTexture';
 import { Gauges } from './Gauges';
+import { MoveCard } from './MoveCard';
 import { bindHaptics } from './haptics';
 import { Toasts } from './Toasts';
 import { TopBar } from './TopBar';
@@ -57,6 +58,7 @@ class Hud implements IHud {
   private readonly toasts: Toasts;
   private readonly controls: Controls;
   private readonly gauges: Gauges;
+  private readonly moves: MoveCard;
 
   private on = false;
   private touch = true;
@@ -85,6 +87,7 @@ class Hud implements IHud {
 
     // build order = paint order (screen effects first, controls last)
     this.gauges = new Gauges(root, this.ctx);
+    this.moves = new MoveCard(root, this.ctx);
     this.top = new TopBar(root, this.ctx);
     this.feed = new Feed(root, this.ctx);
     this.toasts = new Toasts(root, this.ctx);
@@ -118,6 +121,7 @@ class Hud implements IHud {
     this.feed.reset();
     this.toasts.reset();
     this.controls.reset(cfg.board);
+    this.moves.reset(spot, cfg.board);
     this.gauges.reset();
     this.on = true;
     this.needLayout = true;
@@ -169,6 +173,7 @@ class Hud implements IHud {
     const state = view.state;
     const score = view.score;
     this.gauges.update(state, score, view.timeScale, realDt);
+    this.moves.update(state, realDt);
     this.top.update(score, state, view.objectives, realDt);
     this.feed.update(state, view.countdown, realDt);
     this.toasts.update(realDt);
@@ -212,6 +217,7 @@ class Hud implements IHud {
     this.top.relabel();
     this.controls.relabel();
     this.gauges.relabel();
+    this.moves.relabel();
   }
 
   private readonly onResize = (): void => {

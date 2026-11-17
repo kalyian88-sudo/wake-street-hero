@@ -400,5 +400,19 @@
   "hud.goal.clip": "คลิปให้ช่างภาพ",
   "world.start": "START",
   "world.finish": "FINISH",
-  "world.rec": "REC"
+  "world.rec": "REC",
+  "hud.moves.water": "บนน้ำ",
+  "hud.moves.air": "กลางอากาศ",
+  "hud.moves.rail": "บนเรล — สไลด์และเพรส",
+  "hud.moves.aheadRail": "เรลข้างหน้า — กระโดด!",
+  "hud.moves.aheadKicker": "คิกเกอร์ — กด JUMP ค้างจนถึงขอบ",
+  "hud.moves.pop": "กดค้างแล้วปล่อย — ป๊อป",
+  "hud.moves.spin": "หมุนตราบที่กดค้าง",
+  "hud.moves.catch": "กดอีกครั้ง — รับบอร์ด",
+  "hud.moves.popoff": "กระโดดลงพร้อมทริก",
+  "hud.moves.stick": "จอย",
+  "hud.el.noseslide": "Noseslide",
+  "hud.el.tailslide": "Tailslide",
+  "hud.el.noseblunt": "Nose blunt",
+  "hud.el.tailblunt": "Tail blunt"
 }

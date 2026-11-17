@@ -279,5 +279,19 @@
   "hud.tip.9": "HERO meter full? Hit HERO — 8 seconds of slow motion and double points.",
   "hud.tip.10": "The same trick twice in a row pays less and less. Mix it up to score more.",
   "hud.tip.11": "Collect W-H-Y-N-O-T in one run — it is one of the spot goals.",
-  "hud.tip.12": "Hold JUMP all the way to the lip of a kicker to fly noticeably higher."
+  "hud.tip.12": "Hold JUMP all the way to the lip of a kicker to fly noticeably higher.",
+  "hud.moves.water": "On the water",
+  "hud.moves.air": "In the air",
+  "hud.moves.rail": "On the rail — slides & presses",
+  "hud.moves.aheadRail": "Rail ahead — pop!",
+  "hud.moves.aheadKicker": "Kicker — hold jump to the lip",
+  "hud.moves.pop": "hold & release to pop",
+  "hud.moves.spin": "spin while held",
+  "hud.moves.catch": "again — catch the board",
+  "hud.moves.popoff": "pop off with a trick",
+  "hud.moves.stick": "Stick",
+  "hud.el.noseslide": "Noseslide",
+  "hud.el.tailslide": "Tailslide",
+  "hud.el.noseblunt": "Nose blunt",
+  "hud.el.tailblunt": "Tail blunt"
 }

@@ -400,5 +400,19 @@
   "hud.goal.clip": "カメラマンのクリップ",
   "world.start": "START",
   "world.finish": "FINISH",
-  "world.rec": "REC"
+  "world.rec": "REC",
+  "hud.moves.water": "水上",
+  "hud.moves.air": "空中",
+  "hud.moves.rail": "レール上 — スライドとプレス",
+  "hud.moves.aheadRail": "前方にレール — ジャンプ！",
+  "hud.moves.aheadKicker": "キッカー — 先端までジャンプ長押し",
+  "hud.moves.pop": "長押しして離す — ポップ",
+  "hud.moves.spin": "押している間スピン",
+  "hud.moves.catch": "もう一度 — ボードをキャッチ",
+  "hud.moves.popoff": "トリックで降りる",
+  "hud.moves.stick": "スティック",
+  "hud.el.noseslide": "ノーズスライド",
+  "hud.el.tailslide": "テールスライド",
+  "hud.el.noseblunt": "ノーズブラント",
+  "hud.el.tailblunt": "テールブラント"
 }

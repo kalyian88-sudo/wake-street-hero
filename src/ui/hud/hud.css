@@ -898,3 +898,93 @@
     --big: 1.5;
   }
 }
+
+/* ───────────────────────────────────────────────── context move card ── */
+/* right edge, between the top bar and the buttons: what you can do right now */
+.wsh-moves {
+  position: absolute;
+  right: calc(8px + var(--sar));
+  top: calc(150px + var(--sat));
+  width: 196px;
+  padding: 7px 9px 8px;
+  text-transform: none;
+  font-style: normal;
+  border-radius: 12px;
+  background: rgba(16, 17, 20, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translate3d(12px, 0, 0);
+  transition: opacity 0.18s, transform 0.18s;
+  pointer-events: none;
+}
+.wsh-moves.is-on {
+  opacity: 1;
+  transform: none;
+}
+.wsh-moves.is-hot {
+  border-color: rgba(227, 6, 19, 0.85);
+  box-shadow: 0 0 18px rgba(227, 6, 19, 0.45);
+  animation: wsh-moves-pulse 0.7s ease-in-out infinite alternate;
+}
+@keyframes wsh-moves-pulse {
+  to { box-shadow: 0 0 4px rgba(227, 6, 19, 0.2); }
+}
+.wsh-moves-title {
+  margin-bottom: 5px;
+  color: #fff;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+}
+.wsh-moves.is-hot .wsh-moves-title {
+  color: #ff5a63;
+  font-size: 13px;
+}
+.wsh-moves-list {
+  display: grid;
+  gap: 3px;
+}
+.wsh-move {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 18px;
+  padding: 1px 3px;
+  border-radius: 6px;
+  font: 600 11px/1.15 var(--font-ui);
+  color: rgba(255, 255, 255, 0.86);
+}
+.wsh-move.is-active {
+  background: var(--red);
+  color: #fff;
+}
+.wsh-move-btn {
+  flex: none;
+  padding: 2px 5px 1px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+.wsh-move-btn--jump { background: rgba(227, 6, 19, 0.75); }
+.wsh-move-dir {
+  flex: none;
+  min-width: 22px;
+  white-space: nowrap;
+  text-align: center;
+  font: 800 13px/1 var(--font-ui);
+  color: #ffd27a;
+}
+.wsh-move-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  .wsh-moves {
+    top: calc(64px + var(--sat));
+    right: calc(140px + var(--sar));
+  }
+}

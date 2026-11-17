@@ -400,5 +400,19 @@
   "hud.goal.clip": "Clipe para o filmmaker",
   "world.start": "LARGADA",
   "world.finish": "CHEGADA",
-  "world.rec": "REC"
+  "world.rec": "REC",
+  "hud.moves.water": "Na água",
+  "hud.moves.air": "No ar",
+  "hud.moves.rail": "No rail — slides e presses",
+  "hud.moves.aheadRail": "Rail à frente — pula!",
+  "hud.moves.aheadKicker": "Kicker — segura o pulo até a borda",
+  "hud.moves.pop": "segura e solta — pop",
+  "hud.moves.spin": "gira enquanto segura",
+  "hud.moves.catch": "de novo — pega a prancha",
+  "hud.moves.popoff": "sai com manobra",
+  "hud.moves.stick": "Analógico",
+  "hud.el.noseslide": "Noseslide",
+  "hud.el.tailslide": "Tailslide",
+  "hud.el.noseblunt": "Nose blunt",
+  "hud.el.tailblunt": "Tail blunt"
 }

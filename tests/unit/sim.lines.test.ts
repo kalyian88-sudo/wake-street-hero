@@ -245,3 +245,28 @@ describe('sim: grinding the canal edge', () => {
     expect(h.sim.state.mode).toBe('rail');
   });
 });
+
+describe('sim: forgiving rail entry', () => {
+  it('an early full pop lined up roughly with the rail still lands on it (magnet)', () => {
+    const h = createSimHarness({ spot: phuketOldTown, winchId: 'main' });
+    let popped = false;
+    h.run(
+      14,
+      (hh) => {
+        const s = hh.sim.state;
+        const held: { steer?: number; jump?: boolean } = {};
+        if (!popped) {
+          held.steer = s.pos.x > -2.8 ? 0.7 : s.pos.x < -3.2 ? -0.4 : 0;
+          if (s.pos.z > 34) held.jump = true;
+          if (s.pos.z > 40.2) {
+            held.jump = false;
+            popped = true;
+          }
+        }
+        return held;
+      },
+      (hh) => hh.sim.state.mode === 'rail',
+    );
+    expect(h.of('sim:railEnter')[0]?.obstacleId).toBe('rail_red');
+  });
+});

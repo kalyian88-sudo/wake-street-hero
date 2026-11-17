@@ -23,7 +23,6 @@
   "hud.bank": "Banked",
   "hud.combo.lost": "Combo burnt",
   "hud.coach": "Coach",
-
   "hud.el.spin": "{deg}",
   "hud.el.shifty": "Shifty",
   "hud.el.backroll": "Backroll",
@@ -51,7 +50,6 @@
   "hud.el.nosepress": "Nose press",
   "hud.el.tailpress": "Tail press",
   "hud.el.wallride": "Wallride",
-
   "hud.bail.underRotated.title": "Under-rotated",
   "hud.bail.underRotated.sub": "Water hates sideways landings",
   "hud.bail.inverted.title": "Head first",
@@ -72,7 +70,6 @@
   "hud.bail.stalled.sub": "Nobody rides concrete without speed",
   "hud.bail.outOfBounds.title": "Off the spot",
   "hud.bail.outOfBounds.sub": "The rope doesn't reach that far",
-
   "hud.toast.gap": "Gap",
   "hud.toast.goal": "Goal done",
   "hud.toast.goalNew": "New star",
@@ -87,11 +84,24 @@
   "hud.toast.heroReady": "Hero ready",
   "hud.toast.heroReadySub": "Hit it for double points",
   "hud.toast.bonus": "Bonus",
-
   "hud.goal.score": "Score {n} points",
   "hud.goal.trick": "Trick: {name}",
   "hud.goal.trickAny": "The called trick",
   "hud.goal.letters": "Collect W-H-Y-N-O-T",
   "hud.goal.line": "Spot line in one combo",
-  "hud.goal.clip": "Clip for the filmer"
+  "hud.goal.clip": "Clip for the filmer",
+  "hud.moves.water": "On the water",
+  "hud.moves.air": "In the air",
+  "hud.moves.rail": "On the rail — slides & presses",
+  "hud.moves.aheadRail": "Rail ahead — pop!",
+  "hud.moves.aheadKicker": "Kicker — hold jump to the lip",
+  "hud.moves.pop": "hold & release to pop",
+  "hud.moves.spin": "spin while held",
+  "hud.moves.catch": "again — catch the board",
+  "hud.moves.popoff": "pop off with a trick",
+  "hud.moves.stick": "Stick",
+  "hud.el.noseslide": "Noseslide",
+  "hud.el.tailslide": "Tailslide",
+  "hud.el.noseblunt": "Nose blunt",
+  "hud.el.tailblunt": "Tail blunt"
 }
