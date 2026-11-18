@@ -681,13 +681,16 @@ export class Animator {
         // the end is locked over the rail, the board stands up steeply, the rider stacked over that end
         const nose = stance === 'noseblunt' ? 1 : -1;
         const half = this.spec.kind === 'wakeboard' ? 0.62 : 0.5;
+        // weight sits on the BENT leg over the locked end; the other leg stretches out towards the
+        // raised end, that foot in the air — not over the rail
         T.bZ = -nose * half;
         T.bPivot = nose * half;
-        T.bPitch = -nose * 0.95;
-        T.hipZ = nose * 0.3;
-        T.hipY -= 0.1;
-        T.pRoll = -nose * 0.18;
-        T.kneeOut = 0.3;
+        T.bPitch = -nose * 0.62;
+        T.hipZ = nose * 0.42;
+        T.hipY -= 0.24;
+        T.pRoll = nose * 0.12;
+        T.pPitch = 0.42;
+        T.kneeOut = 0.34;
       } else if (stance === 'noseslide' || stance === 'tailslide') {
         // only the nose (tail) sits on the rail: the board slides back (forward) along itself,
         // weight over that end, the free end tipped up a little
