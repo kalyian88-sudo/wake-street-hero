@@ -548,23 +548,13 @@ function paintLegs(ctx: Ctx, rctx: Ctx, o: Outfit): void {
   ctx.fillRect(0, 0, 256, 256);
   rctx.fillStyle = grey(0.86);
   rctx.fillRect(0, 0, 256, 256);
-  paintGraphic(ctx, 0, 0, 256, 256, { ...look, graphic: look.graphic === 'logo' ? 'plain' : look.graphic }, 3);
-  const ink = contrast(look.primary, look.accent);
-  ctx.fillStyle = css(ink);
-  ctx.fillRect(-4, 0, 8, 256);
-  ctx.fillRect(252, 0, 8, 256);
-  ctx.fillRect(124, 0, 8, 256);
-  ctx.fillStyle = css(shade(look.primary, -0.3));
+  // solid, one-colour boardshorts: only a tonal hem band (no stripes, no prints)
+  ctx.fillStyle = css(shade(look.primary, -0.12));
   ctx.fillRect(0, 238, 256, 18);
-  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(0, 236);
-  ctx.lineTo(256, 236);
-  ctx.stroke();
   // cargo pockets on the side seams (u = 0/256 and 128): patch, flap, stitching
-  const pocket = shade(look.primary, luma(look.primary) > 0.35 ? -0.1 : 0.1);
-  const flap = shade(look.primary, luma(look.primary) > 0.35 ? -0.2 : 0.18);
+  // tone-on-tone cargo pockets: same colour, just a touch darker / lighter
+  const pocket = shade(look.primary, luma(look.primary) > 0.35 ? -0.05 : 0.05);
+  const flap = shade(look.primary, luma(look.primary) > 0.35 ? -0.09 : 0.09);
   for (const cx of [0, 128, 256]) {
     ctx.fillStyle = css(pocket);
     roundRect(ctx, cx - 34, 112, 68, 82, 8);
@@ -572,7 +562,7 @@ function paintLegs(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     ctx.fillStyle = css(flap);
     roundRect(ctx, cx - 37, 104, 74, 26, 6);
     ctx.fill();
-    ctx.strokeStyle = rgba(contrast(look.primary, 0xffffff), 0.35);
+    ctx.strokeStyle = rgba(contrast(look.primary, 0xffffff), 0.12);
     ctx.lineWidth = 1.6;
     ctx.setLineDash([4, 3]);
     roundRect(ctx, cx - 30, 116, 60, 74, 6);
@@ -585,8 +575,6 @@ function paintLegs(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     rctx.fillStyle = grey(0.9);
     rctx.fillRect(cx - 37, 104, 74, 92);
   }
-  drawWordmark(ctx, BRAND.name, 64, 206, 13, css(ink));
-  drawWordmark(ctx, BRAND.name, 192, 206, 13, css(ink));
   softShade(ctx, 0, 0, 256, 256, 0.16, true);
 }
 

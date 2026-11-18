@@ -10,7 +10,7 @@ import { contrast, shade } from './paint';
 import { ATLAS, B, SWATCH, rectUV, swatchUV, type Outfit, type Proportions } from './rigDef';
 
 /** Shorts length below the knee (m) and where the knee falls in the leg texture (v). */
-const SHORTS_BELOW_KNEE = 0.12;
+const SHORTS_BELOW_KNEE = 0.04;
 const SHORTS_KNEE_V = 0.22;
 
 const FRONT = new Vector3(0, 0, 1);
