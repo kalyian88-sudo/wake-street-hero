@@ -21,7 +21,7 @@ const PLATE_H = 900;
 const POSTER_H = 1672;
 /** Cut-outs: [x, y, w, h] in plate pixels + the pivot they bob around. */
 const RIDER_A = { rect: [3, 2, 938, 572], pivot: [260, 330] } as const;
-const RIDER_B = { rect: [483, 182, 458, 475], pivot: [690, 440] } as const;
+const RIDER_B = { rect: [483, 182, 458, 476], pivot: [690, 440] } as const;
 
 const VS = `
 attribute vec2 aPos;
