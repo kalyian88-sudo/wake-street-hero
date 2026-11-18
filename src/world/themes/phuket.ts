@@ -49,7 +49,7 @@ function faceUV(g: GB, x0: number, x1: number, y0: number, y1: number, z: number
 function pediment(g: GB, cx: number, y: number, z: number, w: number, h: number, d: number): void {
   const l = cx - w / 2;
   const r = cx + w / 2;
-  g.boxB(cx, y, z + d / 2, w + 0.06, 0.08, d);
+  g.boxB(cx, y, z + d / 2, w + 0.06, 0.08, d, 'z');
   const y0 = y + 0.08;
   const zf = z + d;
   g.tri([l, y0, zf], [r, y0, zf], [cx, y0 + h, zf]);
@@ -59,7 +59,7 @@ function pediment(g: GB, cx: number, y: number, z: number, w: number, h: number,
 
 /** Segmental hood (flat arc of n steps) over a window. */
 function hood(g: GB, cx: number, y: number, z: number, w: number, rise: number, d: number, n = 5): void {
-  g.boxB(cx, y, z + d / 2, w + 0.06, 0.07, d);
+  g.boxB(cx, y, z + d / 2, w + 0.06, 0.07, d, 'z');
   const zf = z + d;
   for (let i = 0; i < n; i++) {
     const t0 = i / n;
@@ -134,13 +134,12 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
     trimG.color(tc, fade);
     const colZ = arcade - 0.22;
     for (const px of [bx + 0.22, bx + bayW - 0.22]) {
-      trimG.color(tc, fade).boxB(px, 0, colZ, 0.42, groundH, 0.42);
-      // plinth (darker, scuffed) + base moulding
-      trimG.color(wc, 0.72).boxB(px, 0, colZ, 0.54, 0.42, 0.54);
-      trimG.color(tc, 0.92).chamferBox(px, 0.42, colZ, 0.5, 0.08, 0.5, 0.03);
+      trimG.color(tc, fade).boxB(px, 0.42, colZ, 0.42, archSpring - 0.56, 0.42, 'yY');
+      // plinth (darker, scuffed) with a bevelled top
+      trimG.color(wc, 0.72).chamferBox(px, 0, colZ, 0.54, 0.46, 0.54, 0.04);
       // capital: two steps
-      trimG.color(tc).boxB(px, archSpring - 0.14, colZ, 0.5, 0.14, 0.5);
-      trimG.boxB(px, archSpring, colZ, 0.58, 0.1, 0.58);
+      trimG.color(tc).boxB(px, archSpring - 0.14, colZ, 0.5, 0.14, 0.5, 'Y');
+      trimG.boxB(px, archSpring, colZ, 0.58, 0.1, 0.58, 'Y');
       // rising damp on the column front
       faceUV(grime, px - 0.21, px + 0.21, 0, 1.3, colZ + 0.215, GRIME_UV.damp);
     }
@@ -213,9 +212,9 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
       const y = groundH + f * floorH;
       const top = f === fl;
       trimG.color(tc, fade);
-      trimG.boxB(cx, y - 0.14, arcade + 0.06, bayW, 0.14, 0.12);
-      trimG.boxB(cx, y, arcade + 0.12, bayW, 0.1, 0.24);
-      if (top) trimG.boxB(cx, y + 0.1, arcade + 0.17, bayW + 0.04, 0.08, 0.34);
+      trimG.boxB(cx, y - 0.14, arcade + 0.06, bayW, 0.14, 0.12, 'zY');
+      trimG.boxB(cx, y, arcade + 0.12, bayW, 0.1, 0.24, 'z');
+      if (top) trimG.boxB(cx, y + 0.1, arcade + 0.17, bayW + 0.04, 0.08, 0.34, 'z');
       // dentils on the top cornice
       if (top) for (let d = 0; d < 9; d++) trimG.color(tc, 0.9).boxB(bx + 0.25 + d * ((bayW - 0.5) / 8), y - 0.24, arcade + 0.06, 0.12, 0.1, 0.1, 'yzxX');
       // rain streaks hanging off the cornice
@@ -223,7 +222,7 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
     }
     // frieze band under the top cornice
     faceUV(deco.white(), bx + 0.35, bx + bayW - 0.35, h - 0.72, h - 0.34, arcade + 0.012, PHUKET_UV.frieze);
-    for (const px of [bx + 0.18, bx + bayW - 0.18]) trimG.color(tc, fade).boxB(px, groundH, arcade + 0.03, 0.3, h - groundH, 0.08);
+    for (const px of [bx + 0.18, bx + bayW - 0.18]) trimG.color(tc, fade).boxB(px, groundH, arcade + 0.03, 0.3, h - groundH, 0.08, 'yYz');
 
     // ── upper windows ──
     const win = FACADE_UV.archLouvre[shutter];
@@ -258,12 +257,10 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
           faceUV(facade.white(), wx - w / 2, wx + w / 2, y, y + wh, zf, win);
         }
         // sill on consoles + hood
-        trimG.color(tc).boxB(wx, y - 0.1, arcade + 0.08, w + 0.3, 0.1, 0.18);
-        trimG.boxB(wx - w / 2 + 0.02, y - 0.3, arcade + 0.06, 0.1, 0.2, 0.12);
-        trimG.boxB(wx + w / 2 - 0.02, y - 0.3, arcade + 0.06, 0.1, 0.2, 0.12);
+        trimG.color(tc).boxB(wx, y - 0.1, arcade + 0.08, w + 0.3, 0.1, 0.18, 'z');
         if (hoodKind === 0) pediment(trimG, wx, y + wh + 0.02, arcade + 0.02, w + 0.32, 0.32, 0.12);
         else if (hoodKind === 1) hood(trimG, wx, y + wh + 0.02, arcade + 0.02, w + 0.3, 0.16, 0.12);
-        else trimG.boxB(wx, y + wh, arcade + 0.04, w + 0.24, 0.14, 0.1);
+        else trimG.boxB(wx, y + wh, arcade + 0.04, w + 0.24, 0.14, 0.1, 'z');
         // streaks from the sill
         if (rng() < 0.6) faceUV(grime, wx - w / 2 - 0.05, wx + w / 2 + 0.05, y - 0.2 - range(rng, 0.6, 1.2), y - 0.2, arcade + 0.006, GRIME_UV.streaks);
       }
@@ -297,7 +294,7 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
     // finials over the pilasters
     for (const px of [bx + 0.18, bx + bayW - 0.18]) {
       trimG.boxB(px, h + 0.18, arcade, 0.3, 0.72, 0.3);
-      trimG.cyl(px, h + 0.9, arcade, 0.12, 0.05, 0.26, 6);
+      trimG.cyl(px, h + 0.9, arcade, 0.12, 0.05, 0.26, 5);
     }
     if (pType < 0.45) {
       // raised name plate with scrolls
@@ -436,8 +433,8 @@ function quay(def: PropDef, ctx: PropContext): void {
   const k = new Kit(ctx);
   const deco = k.g('phuketDecor');
   const grime = k.g('grime');
-  const cope = k.g('granite');
-  const iron = k.g('paintedMetal');
+  const cope = k.g('stone', { cast: false });
+  const iron = k.g('flat');
   const z0 = -len / 2;
   const z1 = len / 2;
 
@@ -480,7 +477,7 @@ function quay(def: PropDef, ctx: PropContext): void {
 
   // coping: individual bevelled granite blocks with colour variation (covers the kerb)
   for (let z = z0; z < z1 - 0.05; ) {
-    const l = Math.min(z1 - z, range(rng, 0.8, 1.5));
+    const l = Math.min(z1 - z, range(rng, 1.1, 1.9));
     cope.color(pick(rng, [0xb9b2a6, 0xa8a196, 0xc4bdb0, 0x9e978c, 0xb2a998]), range(rng, 0.88, 1.06));
     cope.chamferBox(0.22, QUAY_TOP, z + l / 2, 0.44, 0.17, l - 0.012, 0.035);
     z += l;
@@ -490,7 +487,7 @@ function quay(def: PropDef, ctx: PropContext): void {
   if (bollards) {
     const geo = sharedGeo(ctx, 'phuket.bollard', () => new GB().white().cyl(0, 0, 0, 0.13, 0.1, 0.5, 8).cyl(0, 0.36, 0, 0.15, 0.15, 0.06, 8).sphere(0, 0.5, 0, 0.17, 0.09, 0.17, 8, 3, 0.5, 1).build());
     for (let z = z0 + 4; z < z1 - 2; z += range(rng, 8, 11)) {
-      ctx.addInstance('phuket.bollard', geo, ctx.mat('paintedMetal'), ctx.matrixAt([0.75, QUAY_TOP, z]), tint(0x2a2e30));
+      ctx.addInstance('phuket.bollard', geo, ctx.mat('flat'), ctx.matrixAt([0.75, QUAY_TOP, z]), tint(0x2a2e30));
     }
   }
 
@@ -556,20 +553,18 @@ function scooters(def: PropDef, ctx: PropContext): void {
   const spacing = num(ctx, def, 'spacing', 0.9);
   const rng = ctx.rng;
   const k = new Kit(ctx);
-  const body = k.g('plasticGloss');
-  const flat = k.g('flat');
-  const metal = k.g('metal');
+  const body = k.g('flat');
+  const flat = body;
+  const metal = body;
   for (let i = 0; i < count; i++) {
     const x = (i - (count - 1) / 2) * spacing;
     const yaw = range(rng, -0.25, 0.25);
     const col = pick(rng, SCOOTER_COLORS);
     body.push().translate(x, 0, 0).rotY(yaw);
-    flat.push().translate(x, 0, 0).rotY(yaw);
-    metal.push().translate(x, 0, 0).rotY(yaw);
     // local: scooter points along +Z, wheelbase 1.25 m
     for (const wz of [-0.62, 0.62]) {
-      flat.color(0x18181a).rod([-0.05, 0.24, wz], [0.05, 0.24, wz], 0.24, 10, true);
-      metal.color(0xb0b4b8).rod([-0.06, 0.24, wz], [0.06, 0.24, wz], 0.1, 6, true);
+      flat.color(0x18181a).rod([-0.05, 0.24, wz], [0.05, 0.24, wz], 0.24, 8, true);
+      metal.color(0xb0b4b8).rod([-0.06, 0.24, wz], [0.06, 0.24, wz], 0.1, 5, true);
     }
     body.color(col);
     body.chamferBox(0, 0.3, -0.25, 0.36, 0.42, 0.85, 0.08); // rear body
@@ -583,8 +578,6 @@ function scooters(def: PropDef, ctx: PropContext): void {
     flat.color(0xd02a1a).boxB(0, 0.6, -0.69, 0.16, 0.05, 0.02); // tail light
     if (rng() < 0.35) flat.color(pick(rng, [0x1c1c1e, 0xf2f0ea, 0xe23a2e])).sphere(0.05, 0.86, -0.2, 0.13, 0.12, 0.15, 7, 4); // helmet
     body.pop();
-    flat.pop();
-    metal.pop();
   }
   k.flush();
 }
@@ -597,7 +590,7 @@ function stall(def: PropDef, ctx: PropContext): void {
   const fab = k.g('fabric', undefined, { side: 'double' });
   const flat = k.g('flat');
   const wood = k.g('wood');
-  const bam = k.g('bamboo');
+  const bam = flat;
   const uc = def.params && typeof def.params.color === 'number' ? (def.params.color as number) : pick(rng, UMBRELLA_COLORS);
   // umbrella: pole + 8-panel canopy (alternating shade panels read as ribs)
   flat.color(0x6a5a48).cyl(0, 0, 0, 0.03, 0.03, 2.35, 5);
@@ -621,7 +614,7 @@ function stall(def: PropDef, ctx: PropContext): void {
     const bx = -0.45 + i * 0.3;
     bam.color(0xcaa860).cyl(bx, 0.8, 0.35, 0.13, 0.15, 0.1, 7);
     const fc = pick(rng, [0xf08a1e, 0xe8c22e, 0x3f9a3a, 0xd8323a, 0xf0a0a0, 0x7a3a8a]);
-    for (let j = 0; j < 3; j++) flat.color(fc, range(rng, 0.85, 1.1)).sphere(bx + range(rng, -0.06, 0.06), 0.93, 0.35 + range(rng, -0.06, 0.06), 0.06, 0.06, 0.06, 5, 3);
+    for (let j = 0; j < 3; j++) flat.color(fc, range(rng, 0.85, 1.1)).sphere(bx + range(rng, -0.06, 0.06), 0.93, 0.35 + range(rng, -0.06, 0.06), 0.06, 0.06, 0.06, 4, 3);
   }
   // cool box + stools
   flat.color(pick(rng, [0x2f7fc8, 0xe23a2e, 0xf2f2e6])).chamferBox(0.85, 0, -0.2, 0.5, 0.42, 0.36, 0.04, '');
