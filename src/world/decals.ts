@@ -1012,7 +1012,7 @@ function stoneQuay(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
     bx = x - off * (w / n);
     for (let i = 0; i <= n; i++) {
       const bw = (widths[i % n] / sum) * w;
-      const tone = 104 + Math.floor(rnd() * 56) - c * 8;
+      const tone = 138 + Math.floor(rnd() * 58) - c * 10;
       const warm = Math.floor(rnd() * 22);
       const base = `rgb(${tone + warm},${Math.round(tone + warm * 0.55)},${tone - 10})`;
       for (const sx of [0, w]) {
@@ -1048,8 +1048,8 @@ function stoneQuay(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   // water staining increasing towards the bottom
   const g = ctx.createLinearGradient(x, y, x, y + h);
   g.addColorStop(0, 'rgba(0,0,0,0)');
-  g.addColorStop(0.55, 'rgba(30,34,24,0.12)');
-  g.addColorStop(1, 'rgba(20,28,18,0.45)');
+  g.addColorStop(0.55, 'rgba(30,34,24,0.06)');
+  g.addColorStop(1, 'rgba(20,28,18,0.3)');
   ctx.fillStyle = g;
   ctx.fillRect(x, y, w, h);
   for (let i = 0; i < 60; i++) {
@@ -1426,9 +1426,9 @@ export function drawGrimeAtlas(seed: number): HTMLCanvasElement {
     const y0 = 256;
     const g = ctx.createLinearGradient(0, y0, 0, y0 + 128);
     g.addColorStop(0, 'rgba(40,58,30,0)');
-    g.addColorStop(0.45, 'rgba(46,64,32,0.35)');
-    g.addColorStop(0.8, 'rgba(34,48,24,0.75)');
-    g.addColorStop(1, 'rgba(24,34,18,0.9)');
+    g.addColorStop(0.3, 'rgba(52,72,34,0.4)');
+    g.addColorStop(0.7, 'rgba(38,56,26,0.8)');
+    g.addColorStop(1, 'rgba(24,36,18,0.95)');
     ctx.fillStyle = g;
     ctx.fillRect(0, y0, 512, 128);
     for (let i = 0; i < 70; i++) {

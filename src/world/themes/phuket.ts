@@ -470,7 +470,7 @@ function quay(def: PropDef, ctx: PropContext): void {
   for (let z = z0; z < z1 - 1e-3; z += 3.2) {
     const zb = Math.min(z1, z + 3.2);
     const u1 = al[0] + ((zb - z) / 3.2) * (al[2] - al[0]);
-    grime.white().quadUV([xf - 0.006, -0.05, z], [xf - 0.006, -0.05, zb], [xf - 0.006, 0.62, zb], [xf - 0.006, 0.62, z], al[0], al[1], u1, al[3]);
+    grime.white().quadUV([xf - 0.006, -0.02, z], [xf - 0.006, -0.02, zb], [xf - 0.006, 0.5, zb], [xf - 0.006, 0.5, z], al[0], al[1], u1, al[3]);
   }
   for (let z = z0 + range(rng, 0.5, 3); z < z1 - 1.5; z += range(rng, 2.5, 6)) {
     const w = range(rng, 0.6, 1.6);
