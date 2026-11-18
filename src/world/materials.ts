@@ -21,6 +21,9 @@
  *   Special   flat (untextured matte, vertex colour only) · neon (unlit, HDR: vertex colour × intensity → bloom) ·
  *             brand (WHY NOT decal atlas, see BRAND_UV) · signs (glyph sign atlas, SIGN_UV) ·
  *             facade (windows / doors atlas, FACADE_UV) · graffiti {seed, piece} (transparent wall piece) ·
+ *             phuketDecor (Sino-Portuguese detail atlas, PHUKET_UV: shop boards, stucco frames, quay masonry…) ·
+ *             phuketGlow (same atlas, unlit: lit interiors / lanterns, brightness = vertex colour, may be > 1) ·
+ *             grime (soft transparent dirt atlas, GRIME_UV: streaks, rising damp, algae, soot, rust drips) ·
  *             scrapes (grind wear decal) · paint (flat markings on top of surfaces, polygon-offset) ·
  *             waterFilm (thin running water) · rope
  *
@@ -46,7 +49,7 @@ import {
 } from 'three';
 import type { Material, Side, Texture } from 'three';
 import type { QualityProfile, SurfaceKind } from '../types';
-import { drawBrandAtlas, drawFacadeAtlas, drawGraffiti, drawScrapes, drawSignAtlas } from './decals';
+import { drawBrandAtlas, drawFacadeAtlas, drawGraffiti, drawGrimeAtlas, drawPhuketAtlas, drawScrapes, drawSignAtlas } from './decals';
 import { SURFACES } from './surfaces';
 import { dataTexture, normalPixels, ormPixels } from './textures';
 
@@ -219,9 +222,11 @@ export class MaterialLibrary {
   }
 
   /** Shared decal textures for modules that build their own materials (letters, preview…). */
-  texture(key: 'brand' | 'signs' | 'facade'): Texture {
+  texture(key: 'brand' | 'signs' | 'facade' | 'phuket' | 'grime'): Texture {
     if (key === 'brand') return this.canvasTex('brand', () => drawBrandAtlas(this.labels));
     if (key === 'signs') return this.canvasTex('signs', () => drawSignAtlas(4242));
+    if (key === 'phuket') return this.canvasTex('phuket', () => drawPhuketAtlas(2718));
+    if (key === 'grime') return this.canvasTex('grime', () => drawGrimeAtlas(577));
     return this.canvasTex('facade', () => drawFacadeAtlas(99));
   }
 
@@ -271,6 +276,25 @@ export class MaterialLibrary {
         m.roughnessMap = this.facadeRoughness();
         m.envMapIntensity = 1.6;
       }
+      if (side !== undefined) m.side = side;
+      m.userData.cast = false;
+      return m;
+    }
+    if (key === 'phuketDecor') {
+      const m = new MeshStandardMaterial({ map: this.texture('phuket'), vertexColors: true, alphaTest: 0.5, roughness: 0.72, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+      if (side !== undefined) m.side = side;
+      m.userData.cast = false;
+      return m;
+    }
+    if (key === 'phuketGlow') {
+      const m = new MeshBasicMaterial({ map: this.texture('phuket'), vertexColors: true, alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+      if (side !== undefined) m.side = side;
+      m.userData.cast = false;
+      m.userData.receive = false;
+      return m;
+    }
+    if (key === 'grime') {
+      const m = new MeshStandardMaterial({ map: this.texture('grime'), vertexColors: true, transparent: true, depthWrite: false, roughness: 0.9, metalness: 0, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
       if (side !== undefined) m.side = side;
       m.userData.cast = false;
       return m;

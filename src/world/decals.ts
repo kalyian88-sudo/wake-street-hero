@@ -840,3 +840,625 @@ export function drawGlow(size = 64): HTMLCanvasElement {
   ctx.fillRect(0, 0, size, size);
   return c;
 }
+
+// ──────────────────────────────────────────────────── Phuket Old Town atlas ──
+// Sino-Portuguese detail for the 'phuket' theme: Chinese-style shop boards, lit window interiors,
+// stucco window frames / reliefs / cartouches, quay masonry and peeling plaster patches.
+// Used by the 'phuketDecor' (lit, alpha-cut) and 'phuketGlow' (unlit HDR, alpha-cut) materials.
+
+const PW = 1024;
+const PH = 1024;
+export const PHUKET_UV = {
+  /** Horizontal shop boards 512×96 (≈ 5.3 : 1). */
+  hSign: [0, 1, 2, 3].map((i) => uvOf((i & 1) * 512, (i >> 1) * 96, 512, 96, PW, PH)),
+  /** Vertical blade boards 64×320 (1 : 5). */
+  vSign: [0, 1, 2, 3, 4, 5].map((i) => uvOf(i * 64, 192, 64, 320, PW, PH)),
+  /** Warm interiors behind an arched opening — same framing as FACADE_UV.archLouvre (glow material). */
+  litInterior: [0, 1, 2].map((i) => uvOf(384 + i * 128, 192, 128, 256, PW, PH)),
+  /** Stucco arch surround with an empty opening (sits in front of litInterior). */
+  archFrame: uvOf(768, 192, 128, 256, PW, PH),
+  /** Round stucco medallion and a framed cartouche. */
+  medallion: uvOf(896, 192, 128, 128, PW, PH),
+  cartouche: uvOf(896, 320, 128, 128, PW, PH),
+  /** Floral stucco frieze band (8 : 1). */
+  frieze: uvOf(384, 448, 512, 64, PW, PH),
+  /** Quay masonry: bevelled granite blocks, weathered (6 m × 1.5 m, tiles horizontally). */
+  quayStone: uvOf(0, 512, 1024, 256, PW, PH, 0),
+  /** Peeling plaster patches exposing brick (irregular, alpha cut). */
+  peel: [0, 1, 2, 3].map((i) => uvOf(i * 128, 768, 128, 128, PW, PH)),
+  /** Parapet name plate with scrolls (2 : 1). */
+  gablePlate: uvOf(512, 768, 256, 128, PW, PH),
+  /** Ventilation grille block (2 : 1). */
+  breeze: uvOf(768, 768, 256, 128, PW, PH),
+  /** Lit shop interiors (2 : 1, glow material). */
+  litShop: [0, 1].map((i) => uvOf(i * 256, 896, 256, 128, PW, PH)),
+  /** Red / gold paper lantern side view (glow material). */
+  lantern: uvOf(512, 896, 128, 128, PW, PH),
+} as const;
+
+const CN_BOARDS: readonly (readonly [string, string, string])[] = [
+  ['#8e1b16', '#f2c64b', '#e0a83a'],
+  ['#15161a', '#e8c35a', '#b8862e'],
+  ['#1f4f3e', '#f0d48a', '#d8b25a'],
+  ['#efe4c8', '#9e1d17', '#7a1a14'],
+  ['#5a1d12', '#f6dc90', '#d8a440'],
+  ['#1d3d62', '#f4e7c2', '#d8b25a'],
+];
+
+function cnBoard(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, rnd: () => number, pal: readonly [string, string, string]): void {
+  // lacquered board: bevelled border, gilt inner line, glyph row, weathered varnish
+  ctx.fillStyle = pal[0];
+  ctx.fillRect(x, y, w, h);
+  const g = ctx.createLinearGradient(x, y, x, y + h);
+  g.addColorStop(0, 'rgba(255,255,255,0.16)');
+  g.addColorStop(0.5, 'rgba(255,255,255,0)');
+  g.addColorStop(1, 'rgba(0,0,0,0.3)');
+  ctx.fillStyle = g;
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(x + 2.5, y + 2.5, w - 5, h - 5);
+  ctx.strokeStyle = pal[2];
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(x + 8, y + 8, w - 16, h - 16);
+  // corner ornaments
+  ctx.fillStyle = pal[2];
+  for (const [cx, cy] of [[x + 8, y + 8], [x + w - 8, y + 8], [x + 8, y + h - 8], [x + w - 8, y + h - 8]] as const) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.strokeStyle = pal[1];
+  ctx.fillStyle = pal[1];
+  const vertical = h > w;
+  if (vertical) {
+    const s = w - 24;
+    const n = Math.floor((h - 30) / (s + 6));
+    const y0 = y + (h - n * (s + 6)) / 2;
+    for (let i = 0; i < n; i++) hanGlyph(ctx, x + 12, y0 + i * (s + 6), s, rnd);
+  } else {
+    const s = h - 34;
+    const thai = rnd() < 0.3;
+    if (thai) {
+      const gw = s * 0.62;
+      const n = Math.floor((w - 60) / gw);
+      const x0 = x + (w - n * gw) / 2;
+      for (let i = 0; i < n; i++) loopGlyph(ctx, x0 + i * gw, y + 14, gw, s + 4, rnd);
+    } else {
+      const n = 3 + Math.floor(rnd() * 3);
+      const gap = (w - 70 - n * s) / Math.max(1, n - 1);
+      for (let i = 0; i < n; i++) hanGlyph(ctx, x + 35 + i * (s + gap), y + 17, s, rnd);
+      // small latin-free sub line of tiny glyph dashes
+    }
+  }
+  // sun-faded / chipped varnish
+  for (let i = 0; i < 26; i++) {
+    ctx.fillStyle = rnd() < 0.5 ? 'rgba(255,240,210,0.10)' : 'rgba(0,0,0,0.12)';
+    ctx.fillRect(x + rnd() * w, y + rnd() * h, 2 + rnd() * 10, 1 + rnd() * 3);
+  }
+}
+
+function interior(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, rnd: () => number, variant: number): void {
+  // warm lamp-lit room: back wall gradient, ceiling lamp, furniture silhouettes, curtain
+  const g = ctx.createRadialGradient(x + w * 0.5, y + h * 0.3, 2, x + w * 0.5, y + h * 0.45, h * 0.75);
+  const warm = [['#fff1c4', '#f2a64a', '#5a2a12'], ['#ffe2a8', '#e88a3a', '#4a2010'], ['#fff6dc', '#f0b860', '#6a3a1a']][variant % 3];
+  g.addColorStop(0, warm[0]);
+  g.addColorStop(0.45, warm[1]);
+  g.addColorStop(1, warm[2]);
+  ctx.fillStyle = g;
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = 'rgba(40,18,8,0.55)';
+  if (variant === 0) {
+    // shelf with jars
+    ctx.fillRect(x, y + h * 0.62, w, h * 0.05);
+    for (let k = 0; k < 5; k++) ctx.fillRect(x + 6 + k * (w / 5), y + h * 0.53, w / 9, h * 0.09);
+  } else if (variant === 1) {
+    // a person silhouette + chair
+    ctx.beginPath();
+    ctx.arc(x + w * 0.62, y + h * 0.5, w * 0.09, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(x + w * 0.52, y + h * 0.56, w * 0.2, h * 0.3);
+  } else {
+    // ceiling fan + hanging plant
+    ctx.fillRect(x + w * 0.2, y + h * 0.22, w * 0.6, 3);
+    ctx.fillRect(x + w * 0.49, y + h * 0.15, 3, h * 0.08);
+  }
+  // pendant lamp
+  ctx.fillStyle = 'rgba(255,255,240,0.95)';
+  ctx.beginPath();
+  ctx.arc(x + w * 0.5, y + h * 0.32, w * 0.06, 0, Math.PI * 2);
+  ctx.fill();
+  // curtain on one side
+  ctx.fillStyle = ['rgba(190,40,30,0.75)', 'rgba(240,220,180,0.7)', 'rgba(60,110,90,0.7)'][Math.floor(rnd() * 3)];
+  const left = rnd() < 0.5;
+  ctx.beginPath();
+  const cx0 = left ? x : x + w;
+  const cx1 = left ? x + w * 0.32 : x + w * 0.68;
+  ctx.moveTo(cx0, y);
+  ctx.lineTo(cx1, y);
+  ctx.quadraticCurveTo(left ? x + w * 0.12 : x + w * 0.88, y + h * 0.55, cx1 - (left ? 6 : -6), y + h);
+  ctx.lineTo(cx0, y + h);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function arch(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
+  const r = w / 2;
+  ctx.moveTo(x, y + h);
+  ctx.lineTo(x, y + r);
+  ctx.arc(x + r, y + r, r, Math.PI, 0);
+  ctx.lineTo(x + w, y + h);
+  ctx.closePath();
+}
+
+function stoneQuay(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, rnd: () => number): void {
+  // 4 courses of bevelled granite blocks; horizontally periodic (joints never cross the seam)
+  const courses = 4;
+  const ch = h / courses;
+  for (let c = 0; c < courses; c++) {
+    const cy = y + c * ch;
+    let bx = x;
+    const off = (c % 2) * 0.5;
+    const n = 7 + (c % 2);
+    const widths: number[] = [];
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+      const v = 0.75 + rnd() * 0.5;
+      widths.push(v);
+      sum += v;
+    }
+    bx = x - off * (w / n);
+    for (let i = 0; i <= n; i++) {
+      const bw = (widths[i % n] / sum) * w;
+      const tone = 128 + Math.floor(rnd() * 44) - c * 6;
+      const warm = Math.floor(rnd() * 14);
+      const base = `rgb(${tone + warm},${tone + warm * 0.5},${tone - 8})`;
+      for (const sx of [0, w]) {
+        const px = bx - sx;
+        if (px > x + w || px + bw < x) continue;
+        ctx.fillStyle = base;
+        ctx.fillRect(px + 3, cy + 3, bw - 6, ch - 6);
+        // bevels: light top/left, dark bottom/right
+        ctx.fillStyle = 'rgba(255,248,230,0.32)';
+        ctx.fillRect(px + 3, cy + 3, bw - 6, 5);
+        ctx.fillRect(px + 3, cy + 3, 4, ch - 6);
+        ctx.fillStyle = 'rgba(0,0,0,0.32)';
+        ctx.fillRect(px + 3, cy + ch - 9, bw - 6, 6);
+        ctx.fillRect(px + bw - 8, cy + 3, 5, ch - 6);
+        // pitting / lichen specks
+        for (let k = 0; k < 40; k++) {
+          ctx.fillStyle = rnd() < 0.5 ? 'rgba(0,0,0,0.14)' : 'rgba(255,255,255,0.08)';
+          ctx.fillRect(px + 6 + rnd() * (bw - 12), cy + 8 + rnd() * (ch - 18), 1 + rnd() * 3, 1 + rnd() * 2);
+        }
+        if (rnd() < 0.3) {
+          ctx.fillStyle = 'rgba(90,100,60,0.25)';
+          ctx.beginPath();
+          ctx.ellipse(px + bw * (0.2 + rnd() * 0.6), cy + ch * (0.3 + rnd() * 0.5), 6 + rnd() * 16, 3 + rnd() * 8, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      bx += bw;
+    }
+    // mortar line
+    ctx.fillStyle = 'rgba(40,36,30,0.85)';
+    ctx.fillRect(x, cy, w, 3);
+  }
+  // water staining increasing towards the bottom
+  const g = ctx.createLinearGradient(x, y, x, y + h);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(0.55, 'rgba(30,34,24,0.12)');
+  g.addColorStop(1, 'rgba(20,28,18,0.45)');
+  ctx.fillStyle = g;
+  ctx.fillRect(x, y, w, h);
+  for (let i = 0; i < 60; i++) {
+    const sx = x + rnd() * w;
+    const sw = 2 + rnd() * 7;
+    const sl = h * (0.2 + rnd() * 0.6);
+    const sg = ctx.createLinearGradient(sx, y, sx, y + sl);
+    sg.addColorStop(0, 'rgba(25,22,16,0.22)');
+    sg.addColorStop(1, 'rgba(25,22,16,0)');
+    ctx.fillStyle = sg;
+    ctx.fillRect(sx, y, sw, sl);
+  }
+}
+
+export function drawPhuketAtlas(seed: number): HTMLCanvasElement {
+  const [c, ctx] = canvas(PW, PH);
+  const rnd = seededRng(seed);
+  for (let i = 0; i < 4; i++) cnBoard(ctx, (i & 1) * 512, (i >> 1) * 96, 512, 96, rnd, CN_BOARDS[i]);
+  for (let i = 0; i < 6; i++) cnBoard(ctx, i * 64, 192, 64, 320, rnd, CN_BOARDS[(i + 2) % CN_BOARDS.length]);
+  // lit interiors, clipped to the arch opening used by FACADE_UV.archLouvre (17..111 × 17..239)
+  for (let i = 0; i < 3; i++) {
+    const x = 384 + i * 128;
+    ctx.save();
+    ctx.beginPath();
+    arch(ctx, x + 14, 192 + 14, 100, 228);
+    ctx.clip();
+    interior(ctx, x + 14, 192 + 14, 100, 228, rnd, i);
+    // window bars + glazing bars
+    ctx.strokeStyle = 'rgba(60,40,24,0.9)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x + 64, 192 + 14);
+    ctx.lineTo(x + 64, 192 + 242);
+    ctx.moveTo(x + 14, 192 + 66);
+    ctx.lineTo(x + 114, 192 + 66);
+    ctx.stroke();
+    ctx.restore();
+  }
+  // stucco arch surround with keystone, empty opening
+  {
+    const x = 768;
+    const y = 192;
+    ctx.fillStyle = '#f4efe4';
+    ctx.beginPath();
+    arch(ctx, x + 2, y + 2, 124, 252);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.13)';
+    ctx.beginPath();
+    arch(ctx, x + 10, y + 10, 108, 236);
+    ctx.fill();
+    ctx.fillStyle = '#ebe5d8';
+    ctx.beginPath();
+    arch(ctx, x + 13, y + 13, 102, 232);
+    ctx.fill();
+    // keystone
+    ctx.fillStyle = '#fbf7ee';
+    ctx.beginPath();
+    ctx.moveTo(x + 54, y + 2);
+    ctx.lineTo(x + 74, y + 2);
+    ctx.lineTo(x + 70, y + 24);
+    ctx.lineTo(x + 58, y + 24);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.fillRect(x + 58, y + 22, 12, 2);
+    // cut the opening
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    arch(ctx, x + 17, y + 17, 94, 222);
+    ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = '#e4dfd2';
+    ctx.fillRect(x + 2, y + 240, 124, 14);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(x + 2, y + 251, 124, 3);
+  }
+  // medallion
+  {
+    const cx = 960;
+    const cy = 256;
+    ctx.fillStyle = '#f4efe4';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 60, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 50, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2;
+      ctx.fillStyle = k % 2 ? 'rgba(0,0,0,0.16)' : 'rgba(255,255,255,0.4)';
+      ctx.beginPath();
+      ctx.ellipse(cx + Math.cos(a) * 28, cy + Math.sin(a) * 28, 14, 7, a, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#c9a44a';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 11, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // cartouche with a glyph pair
+  {
+    const x = 896;
+    const y = 320;
+    ctx.fillStyle = '#f4efe4';
+    ctx.beginPath();
+    ctx.ellipse(x + 64, y + 64, 60, 56, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2c6a5a';
+    ctx.beginPath();
+    ctx.ellipse(x + 64, y + 64, 46, 42, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#e8c35a';
+    ctx.fillStyle = '#e8c35a';
+    hanGlyph(ctx, x + 28, y + 40, 34, rnd);
+    hanGlyph(ctx, x + 66, y + 40, 34, rnd);
+  }
+  // floral frieze (tiles horizontally)
+  {
+    const x = 384;
+    const y = 448;
+    ctx.fillStyle = '#f1ece0';
+    ctx.fillRect(x, y, 512, 64);
+    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    ctx.fillRect(x, y + 6, 512, 3);
+    ctx.fillRect(x, y + 55, 512, 3);
+    for (let k = 0; k < 8; k++) {
+      const cx = x + 32 + k * 64;
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx - 32, y + 32);
+      ctx.bezierCurveTo(cx - 16, y + 12, cx - 8, y + 52, cx, y + 32);
+      ctx.bezierCurveTo(cx + 8, y + 12, cx + 16, y + 52, cx + 32, y + 32);
+      ctx.stroke();
+      ctx.fillStyle = k % 2 ? '#c9564a' : '#3f8f7a';
+      ctx.beginPath();
+      ctx.arc(cx, y + 32, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.beginPath();
+      ctx.arc(cx - 2, y + 30, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  // breeze / vent tiles (Phuket ceramic grille) beside: 896..1024 × 448..512 left empty
+  stoneQuay(ctx, 0, 512, 1024, 256, rnd);
+  // peeling plaster patches showing brick
+  for (let i = 0; i < 4; i++) {
+    const x = i * 128;
+    const y = 768;
+    ctx.save();
+    ctx.beginPath();
+    const n = 14;
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * Math.PI * 2;
+      const r = 34 + rnd() * 26;
+      const px = x + 64 + Math.cos(a) * r;
+      const py = y + 64 + Math.sin(a) * r * 0.8;
+      if (k === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#d9d2c2';
+    ctx.fill();
+    ctx.clip();
+    // brick courses
+    for (let r = 0; r < 10; r++) {
+      for (let b = -1; b < 6; b++) {
+        const bx = x + b * 26 + (r % 2) * 13;
+        const tone = 140 + Math.floor(rnd() * 40);
+        ctx.fillStyle = `rgb(${tone + 40},${tone - 30},${tone - 60})`;
+        ctx.fillRect(bx + 1, y + r * 13 + 1, 24, 11);
+      }
+    }
+    ctx.restore();
+    // ragged plaster edge (lighter rim + shadow)
+    ctx.strokeStyle = 'rgba(250,246,236,0.9)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+  // parapet name plate with scrolls
+  {
+    const x = 512;
+    const y = 768;
+    ctx.fillStyle = '#f4efe4';
+    ctx.beginPath();
+    ctx.moveTo(x + 8, y + 120);
+    ctx.lineTo(x + 8, y + 50);
+    ctx.quadraticCurveTo(x + 40, y + 50, x + 60, y + 24);
+    ctx.quadraticCurveTo(x + 128, y - 6, x + 196, y + 24);
+    ctx.quadraticCurveTo(x + 216, y + 50, x + 248, y + 50);
+    ctx.lineTo(x + 248, y + 120);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#9e2a22';
+    ctx.fillRect(x + 50, y + 52, 156, 52);
+    ctx.strokeStyle = '#e8c35a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 54, y + 56, 148, 44);
+    ctx.fillStyle = '#e8c35a';
+    ctx.strokeStyle = '#e8c35a';
+    for (let k = 0; k < 4; k++) hanGlyph(ctx, x + 62 + k * 36, y + 60, 32, rnd);
+    for (const sx of [x + 28, x + 228]) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(sx, y + 84, 12, 0, Math.PI * 1.6);
+      ctx.stroke();
+    }
+  }
+  // ceramic breeze-block grille
+  {
+    const x = 768;
+    const y = 768;
+    ctx.fillStyle = '#e9e3d3';
+    ctx.fillRect(x, y, 256, 128);
+    for (let r = 0; r < 4; r++) {
+      for (let k = 0; k < 8; k++) {
+        const cx = x + 16 + k * 32;
+        const cy = y + 16 + r * 32;
+        ctx.fillStyle = '#2a2420';
+        ctx.beginPath();
+        ctx.arc(cx, cy, 11, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#e9e3d3';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 11);
+        ctx.lineTo(cx + 3, cy);
+        ctx.lineTo(cx, cy + 11);
+        ctx.lineTo(cx - 3, cy);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+  }
+  // lit shop interiors
+  for (let i = 0; i < 2; i++) {
+    const x = i * 256;
+    const y = 896;
+    const g = ctx.createLinearGradient(x, y, x, y + 128);
+    g.addColorStop(0, '#ffe7b0');
+    g.addColorStop(0.5, '#e8a050');
+    g.addColorStop(1, '#6a3818');
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, 256, 128);
+    for (let s = 0; s < 3; s++) {
+      ctx.fillStyle = 'rgba(70,36,14,0.8)';
+      ctx.fillRect(x + 8, y + 40 + s * 30, 240, 4);
+      for (let k = 0; k < 14; k++) {
+        ctx.fillStyle = ['#c84a32', '#e9c25a', '#3d8a7a', '#f2ecdc', '#8a4a9a', '#d8702a'][Math.floor(rnd() * 6)];
+        const bh = 8 + rnd() * 16;
+        ctx.fillRect(x + 12 + k * 17, y + 40 + s * 30 - bh, 9 + rnd() * 5, bh);
+      }
+    }
+    for (let k = 0; k < 3; k++) {
+      ctx.fillStyle = 'rgba(255,255,236,1)';
+      ctx.beginPath();
+      ctx.arc(x + 48 + k * 80, y + 14, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (i === 1) {
+      // shopkeeper silhouette at the counter
+      ctx.fillStyle = 'rgba(30,14,6,0.8)';
+      ctx.beginPath();
+      ctx.arc(x + 170, y + 62, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(x + 158, y + 72, 24, 40);
+      ctx.fillRect(x + 110, y + 100, 120, 28);
+    }
+  }
+  // paper lantern
+  {
+    const cx = 576;
+    const cy = 960;
+    const g = ctx.createRadialGradient(cx - 10, cy - 10, 4, cx, cy, 56);
+    g.addColorStop(0, '#ffd27a');
+    g.addColorStop(0.5, '#f0401c');
+    g.addColorStop(1, '#9a1208');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 52, 44, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(120,20,6,0.6)';
+    ctx.lineWidth = 2;
+    for (let k = -3; k <= 3; k++) {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, Math.abs(k) * 15 + 2, 44, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#e8c35a';
+    ctx.fillRect(cx - 22, cy - 50, 44, 8);
+    ctx.fillRect(cx - 22, cy + 42, 44, 8);
+  }
+  return c;
+}
+
+// ───────────────────────────────────────────────────────── grime atlas ──
+// Soft, transparent dirt for the 'grime' material: rain streaks, damp bottom band, waterline algae,
+// soot blots and rust drips. Multiplies nothing — it is plain alpha-blended dark paint.
+
+const GW = 512;
+const GH = 512;
+export const GRIME_UV = {
+  /** Streaks hanging down from the top edge (under cornices / sills). */
+  streaks: uvOf(0, 0, 256, 256, GW, GH),
+  /** Rising damp: dark at the bottom, ragged edge fading upwards. */
+  damp: uvOf(256, 0, 256, 256, GW, GH),
+  /** Waterline algae band (tiles horizontally): dark green at the bottom, fading up. */
+  algae: uvOf(0, 256, 512, 128, GW, GH, 0),
+  /** Round soft soot blot. */
+  blot: uvOf(0, 384, 256, 128, GW, GH),
+  /** Rust drip trails (under air-cons / brackets). */
+  drip: uvOf(256, 384, 256, 128, GW, GH),
+} as const;
+
+export function drawGrimeAtlas(seed: number): HTMLCanvasElement {
+  const [c, ctx] = canvas(GW, GH);
+  const rnd = seededRng(seed);
+  // streaks
+  for (let i = 0; i < 46; i++) {
+    const x = rnd() * 250;
+    const w = 3 + rnd() * 16;
+    const l = 40 + rnd() * 210;
+    const a = 0.1 + rnd() * 0.25;
+    const g = ctx.createLinearGradient(0, 0, 0, l);
+    g.addColorStop(0, `rgba(42,36,28,${a})`);
+    g.addColorStop(1, 'rgba(42,36,28,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x, 0, w, l);
+  }
+  {
+    const g = ctx.createLinearGradient(0, 0, 0, 40);
+    g.addColorStop(0, 'rgba(36,30,24,0.4)');
+    g.addColorStop(1, 'rgba(36,30,24,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 256, 40);
+  }
+  // rising damp
+  {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(256, 0, 256, 256);
+    ctx.clip();
+    for (let layer = 0; layer < 3; layer++) {
+      ctx.beginPath();
+      ctx.moveTo(256, 256);
+      const base = 120 + layer * 40;
+      for (let x = 0; x <= 256; x += 8) {
+        const y = base + Math.sin(x * 0.05 + layer * 2 + rnd()) * 14 + rnd() * 18;
+        ctx.lineTo(256 + x, y);
+      }
+      ctx.lineTo(512, 256);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(48,40,30,${0.12 + layer * 0.1})`;
+      ctx.fill();
+    }
+    for (let i = 0; i < 20; i++) {
+      ctx.fillStyle = 'rgba(48,40,30,0.12)';
+      ctx.beginPath();
+      ctx.ellipse(256 + rnd() * 256, 150 + rnd() * 100, 8 + rnd() * 30, 4 + rnd() * 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+  // algae band (periodic in x)
+  {
+    const y0 = 256;
+    const g = ctx.createLinearGradient(0, y0, 0, y0 + 128);
+    g.addColorStop(0, 'rgba(40,58,30,0)');
+    g.addColorStop(0.45, 'rgba(46,64,32,0.35)');
+    g.addColorStop(0.8, 'rgba(34,48,24,0.75)');
+    g.addColorStop(1, 'rgba(24,34,18,0.9)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, y0, 512, 128);
+    for (let i = 0; i < 70; i++) {
+      const x = rnd() * 512;
+      const w = 4 + rnd() * 14;
+      const top = y0 + 20 + rnd() * 50;
+      const sg = ctx.createLinearGradient(0, top, 0, y0 + 128);
+      sg.addColorStop(0, 'rgba(30,46,22,0)');
+      sg.addColorStop(1, 'rgba(30,46,22,0.45)');
+      ctx.fillStyle = sg;
+      for (const off of [0, -512, 512]) ctx.fillRect(x + off, top, w, y0 + 128 - top);
+    }
+    // bright wet line
+    ctx.fillStyle = 'rgba(200,220,200,0.12)';
+    ctx.fillRect(0, y0 + 118, 512, 3);
+  }
+  // soot blot
+  {
+    const g = ctx.createRadialGradient(128, 448, 4, 128, 448, 62);
+    g.addColorStop(0, 'rgba(30,26,22,0.55)');
+    g.addColorStop(1, 'rgba(30,26,22,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 384, 256, 128);
+  }
+  // rust drips
+  for (let i = 0; i < 9; i++) {
+    const x = 270 + rnd() * 228;
+    const l = 40 + rnd() * 84;
+    const g = ctx.createLinearGradient(0, 384, 0, 384 + l);
+    g.addColorStop(0, 'rgba(120,62,28,0.55)');
+    g.addColorStop(1, 'rgba(120,62,28,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x, 384, 3 + rnd() * 6, l);
+  }
+  return c;
+}
