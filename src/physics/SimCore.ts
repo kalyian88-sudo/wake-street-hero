@@ -71,6 +71,8 @@ export interface RailRun {
   noiseT: number;
   /** Landing quality of the lock-on (scores the rail trick). */
   quality: LandingQuality;
+  /** Seconds the rope has been pulling across a quay edge (slides the rider off it). */
+  pullOff: number;
 }
 
 export interface WallRun {
@@ -174,6 +176,7 @@ export class SimCore {
     noiseTarget: 0,
     noiseT: 0,
     quality: 'clean',
+    pullOff: 0,
   };
   readonly railState: RailState = { obstacleId: '', kind: 'rail', stance: 'fifty', balance: 0, time: 0, tangent: new Vector3(0, 0, 1) };
   relockLine = -1;

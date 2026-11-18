@@ -85,6 +85,7 @@ export function lockRail(c: SimCore, dir: 1 | -1, quality: LandingQuality, fromA
   run.dir = dir;
   run.speed = Math.max(SIM.railMinSpeed, along);
   run.distance = 0;
+  run.pullOff = 0;
   run.pressTime = 0;
   run.stances.length = 0;
   run.trickStance = null;
@@ -304,6 +305,15 @@ export function stepRail(c: SimCore, dt: number): void {
     leaveRail(c, true, tx, ty, tz);
     return;
   }
+  // a quay edge is not a feature you ride forever: once the rope has been pulling across it for a
+  // moment (the line runs down the canal), the rider slides off into the water
+  if (!ended && line.id.includes('.edge.')) {
+    run.pullOff = Math.abs(side) > 0.12 ? run.pullOff + dt : Math.max(0, run.pullOff - dt * 2);
+    if (run.pullOff > 2.2 || run.distance > 28) {
+      leaveRail(c, false, tx, ty, tz);
+      return;
+    }
+  }
   if (ended) leaveRail(c, inp.jump.down && c.jumpArmed && c.charge > 0.05, tx, ty, tz);
 }
 
@@ -314,7 +324,19 @@ function leaveRail(c: SimCore, popped: boolean, tx: number, ty: number, tz: numb
   const power = c.charge;
   const up = popped ? popSpeed(c.tune, power) * c.mods.pop * SIM.railPopScale : SIM.railEndHop;
   const vy = Math.max(0, ty * run.speed) + up;
-  s.vel.set(tx * run.speed, vy, tz * run.speed);
+  // hop off SIDEWAYS, to the side the rope pulls (towards the line / the water): otherwise a pop on a
+  // long quay edge lands straight back on the same edge and the rider never gets off it
+  const across = (c.rope.ax * tz - c.rope.az * tx) / SIM.maxPull;
+  let sideSign = Math.abs(across) > 0.05 ? Math.sign(across) : run.stanceYaw >= 0 ? 1 : -1;
+  const edge = line.id.includes('.edge.');
+  // the water side wins: on a quay edge one side is the canal, the other the pavement
+  const waterAt = (sg: number): boolean => c.world.sampleInto(c.smp2, s.pos.x + tz * 1.3 * sg, s.pos.z - tx * 1.3 * sg, s.pos.y + 0.5, 0).kind === 'water';
+  const wp = waterAt(1);
+  const wn = waterAt(-1);
+  if (wp !== wn) sideSign = wp ? 1 : -1;
+  const lat = popped ? (edge ? 3.2 : 1.6) : edge ? 1.8 : 0;
+  // across = rope pull dotted with (tz, −tx): push along that same direction
+  s.vel.set(tx * run.speed + tz * lat * sideSign, vy, tz * run.speed - tx * lat * sideSign);
   const tanYaw = Math.atan2(tx, tz);
   if (popped) c.bus.emit('sim:pop', { power, pos: c.p3(), surface: railSurface(line) });
   // the board swings back to straight during the first moments of the air

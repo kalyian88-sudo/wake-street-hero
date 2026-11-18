@@ -255,6 +255,47 @@ describe('sim: grinding the canal edge', () => {
     expect(enter?.pos.y).toBeCloseTo(1.05, 3);
     expect(h.sim.state.mode).toBe('rail');
   });
+
+  function lockOnEdge(): ReturnType<typeof createSimHarness> {
+    const h = createSimHarness({ spot: phuketOldTown, winchId: 'main' });
+    let popped = false;
+    h.run(
+      25,
+      (hh) => {
+        const s = hh.sim.state;
+        const held: { steer?: number; jump?: boolean } = {};
+        if (s.time > 1.5 && !popped) {
+          held.steer = s.pos.x < 3.5 ? -1 : -0.2;
+          held.jump = s.pos.x > 1.0;
+          if (s.pos.x > 4.8 && s.crouch > 0.95) {
+            held.jump = false;
+            popped = true;
+          }
+        }
+        return held;
+      },
+      (hh) => hh.count('sim:railEnter') > 0 || hh.count('sim:bail') > 0,
+    );
+    expect(h.sim.state.mode).toBe('rail');
+    return h;
+  }
+
+  it('a pop on the quay edge hops off SIDEWAYS into the canal (does not re-lock onto the same edge)', () => {
+    const h = lockOnEdge();
+    const enters = h.count('sim:railEnter');
+    // a quick tap-pop
+    h.run(0.2, () => ({ jump: true }));
+    h.run(3, () => ({}), (hh) => hh.sim.state.mode === 'water');
+    expect(h.sim.state.mode).toBe('water');
+    expect(h.count('sim:railEnter')).toBe(enters);
+    expect(Math.abs(h.sim.state.pos.x)).toBeLessThan(6.8);
+  });
+
+  it('left alone on the quay edge the rope slides the rider off into the water', () => {
+    const h = lockOnEdge();
+    h.run(5, () => ({}), (hh) => hh.sim.state.mode === 'water' || hh.sim.state.mode === 'bail');
+    expect(h.sim.state.mode).toBe('water');
+  });
 });
 
 describe('sim: forgiving rail entry', () => {
