@@ -17,6 +17,7 @@
  *   phuket.stall        { }                              market umbrella + table with goods.
  *   phuket.trestles     { length=8 }                     two timber trestles for a hauled-out boat.
  */
+import { TRIM_TOP } from '../../data/geometry';
 import type { PropContext, PropDef } from '../../types';
 import { wetShade } from '../build';
 import { FACADE_UV, GRIME_UV, PHUKET_UV, SIGN_UV } from '../decals';
@@ -68,7 +69,10 @@ function hood(g: GB, cx: number, y: number, z: number, w: number, rise: number, 
     const x1 = cx - w / 2 + w * t1;
     const y0 = y + 0.07 + rise * Math.sin(Math.PI * t0);
     const y1 = y + 0.07 + rise * Math.sin(Math.PI * t1);
-    g.quad([x0, y + 0.07, zf], [x1, y + 0.07, zf], [x1, y1, zf], [x0, y0, zf]);
+    // start the quad at a corner whose two edges are non-degenerate (end segments taper to a point),
+    // otherwise its face normal comes out zero → NaN in the shader → black bloom specks
+    if (i < n / 2) g.quad([x1, y + 0.07, zf], [x1, y1, zf], [x0, y0, zf], [x0, y + 0.07, zf]);
+    else g.quad([x0, y + 0.07, zf], [x1, y + 0.07, zf], [x1, y1, zf], [x0, y0, zf]);
     g.quad([x0, y0, zf], [x1, y1, zf], [x1, y1, z], [x0, y0, z]);
   }
 }
@@ -475,11 +479,12 @@ function quay(def: PropDef, ctx: PropContext): void {
     grime.quadUV([xf - 0.008, range(rng, 0, 0.4), z], [xf - 0.008, 0.2, z + w], [xf - 0.008, QUAY_TOP, z + w], [xf - 0.008, QUAY_TOP, z], s[0], s[1], s[2], s[3]);
   }
 
-  // coping: individual bevelled granite blocks with colour variation (covers the kerb)
+  // coping: individual bevelled stone blocks with colour variation, exactly over the kerb the rider
+  // grinds (height TRIM_TOP.kerb, centred 0.14 m in from the edge) so the board sits on the stone
   for (let z = z0; z < z1 - 0.05; ) {
     const l = Math.min(z1 - z, range(rng, 1.1, 1.9));
     cope.color(pick(rng, [0xb9b2a6, 0xa8a196, 0xc4bdb0, 0x9e978c, 0xb2a998]), range(rng, 0.88, 1.06));
-    cope.chamferBox(0.22, QUAY_TOP, z + l / 2, 0.44, 0.17, l - 0.012, 0.035);
+    cope.chamferBox(0.14, QUAY_TOP, z + l / 2, 0.36, TRIM_TOP.kerb, l - 0.012, 0.03);
     z += l;
   }
 
