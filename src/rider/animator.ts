@@ -697,9 +697,11 @@ export class Animator {
         const nose = stance === 'noseslide' ? 1 : -1;
         const half = this.spec.kind === 'wakeboard' ? 0.5 : 0.42;
         T.bZ = -nose * half;
-        T.hipZ = nose * 0.16;
+        // stacked over the sliding end: that leg bent and loaded, the other one straight
+        T.hipZ = nose * 0.36;
+        T.hipY -= 0.12;
         T.bPitch = -nose * 0.12;
-        T.pRoll = -nose * 0.1;
+        T.pRoll = nose * 0.08;
       }
       T.hipY -= 0.03;
       T.kneeOut = 0.24;
@@ -710,17 +712,18 @@ export class Animator {
     } else {
       T.wYaw = fold;
       if (stance === 'nosepress') {
+        // weight on the bent front leg over the nose, back leg straight with the tail up
         T.bPitch = -0.27;
         T.bPivot = this.spec.kind === 'wakeboard' ? this.P.stanceWakeboard : this.P.stanceWakeskate;
-        T.hipZ = 0.17;
-        T.pRoll = -0.12;
-        T.hipY -= 0.02;
+        T.hipZ = 0.3;
+        T.pRoll = 0.08;
+        T.hipY -= 0.1;
       } else if (stance === 'tailpress') {
         T.bPitch = 0.27;
         T.bPivot = -(this.spec.kind === 'wakeboard' ? this.P.stanceWakeboard : this.P.stanceWakeskate);
-        T.hipZ = -0.17;
-        T.pRoll = 0.14;
-        T.hipY -= 0.02;
+        T.hipZ = -0.3;
+        T.pRoll = -0.08;
+        T.hipY -= 0.1;
       }
     }
     this.lookYaw = along;
