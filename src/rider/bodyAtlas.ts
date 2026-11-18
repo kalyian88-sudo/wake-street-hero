@@ -286,7 +286,7 @@ function paintTorso(ctx: Ctx, rctx: Ctx, o: Outfit): void {
   const jersey = o.top === 'jersey';
   const bottom = o.bottomLook;
   const top = hoodie || jersey || !wet ? o.topLook : bottom;
-  const hemY = hoodie ? 420 : jersey ? 412 : wet ? 512 : 392; // where the top garment ends (px from the top)
+  const hemY = hoodie ? 420 : jersey ? 512 : wet ? 512 : 392; // where the top garment ends (px from the top)
 
   // bottoms (shorts seat / wetsuit)
   ctx.fillStyle = css(bottom.primary);
@@ -364,8 +364,9 @@ function paintTorso(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     const ink = css(contrast(top.primary, top.accent));
     if (top.graphic === 'mark') {
       // WHY NOT "?!" print: big on the back, small on the chest, in the jersey's ink colour
-      drawBrandImage(ctx, 'mark', 384, hemY * 0.48, 190, 250, { tint: css(top.secondary), alpha: 0.92 });
-      drawBrandImage(ctx, 'mark', 152, hemY * 0.3, 54, 76, { tint: css(top.secondary), alpha: 0.92 });
+      // (positions are fixed: the long jersey runs to the bottom of the wrap)
+      drawBrandImage(ctx, 'mark', 384, 200, 190, 250, { tint: css(top.secondary), alpha: 0.92 });
+      drawBrandImage(ctx, 'mark', 128, 150, 118, 160, { tint: css(top.secondary), alpha: 0.92 });
     }
     if (hoodie) {
       // rib hem, kangaroo pocket, drawstrings, big chest + back print
@@ -400,8 +401,10 @@ function paintTorso(ctx: Ctx, rctx: Ctx, o: Outfit): void {
       drawWordmark(ctx, w2, 388, 232, 64, ink);
     } else {
       // tee hem line, collar, chest hit + back print
-      ctx.fillStyle = rgba(0x000000, 0.2);
-      ctx.fillRect(0, hemY - 5, 512, 5);
+      if (!jersey) {
+        ctx.fillStyle = rgba(0x000000, 0.2);
+        ctx.fillRect(0, hemY - 5, 512, 5);
+      }
       ctx.fillStyle = css(shade(top.primary, luma(top.primary) > 0.5 ? -0.14 : 0.16));
       ctx.fillRect(0, 0, 512, 16);
       if (top.graphic !== 'mark') {
@@ -412,7 +415,7 @@ function paintTorso(ctx: Ctx, rctx: Ctx, o: Outfit): void {
         if (top.primary !== BRAND.colors.red) ctx.fillRect(338, 256, 96, 6);
       } else {
         // small WHY NOT under the ?! on the back
-        drawWordmark(ctx, BRAND.name, 384, hemY * 0.48 + 150, 22, css(top.secondary));
+        drawWordmark(ctx, BRAND.name, 384, 350, 22, css(top.secondary));
       }
     }
   }
@@ -426,7 +429,7 @@ function paintTorso(ctx: Ctx, rctx: Ctx, o: Outfit): void {
   }
   const cg = ctx.createLinearGradient(0, 440, 0, 512);
   cg.addColorStop(0, 'rgba(0,0,0,0)');
-  cg.addColorStop(1, 'rgba(0,0,0,0.3)');
+  cg.addColorStop(1, jersey ? 'rgba(0,0,0,0.06)' : 'rgba(0,0,0,0.3)');
   ctx.fillStyle = cg;
   ctx.fillRect(0, 440, 512, 72);
 }

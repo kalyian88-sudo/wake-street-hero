@@ -36,7 +36,7 @@ float wshCloth(vec3 p, float px, out float fold) {
   // folds come and go along the limb instead of ringing it evenly
   float pm = smoothstep(0.35, 0.75, wshNoise(p * 7.0 + 11.0));
   fold = mix(1.0, f, pm);
-  float h = f * 0.0034 * pm;
+  float h = f * 0.0056 * pm;
   // medium crumple
   h += (wshNoise(p * 55.0) - 0.5) * 0.0018 * smoothstep(0.012, 0.004, px);
   // knit rows (1.6 mm) — only when the pixel is small enough to resolve them
@@ -64,7 +64,7 @@ export function addClothDetail(mat: Material): void {
           float px = length(fwidth(vWshBind));
           wshH = wshCloth(vWshBind, px, wshFold) * wshClothM;
           // crease cavity: darker in the valleys of the folds
-          diffuseColor.rgb *= 1.0 - wshClothM * 0.2 * (1.0 - wshFold) * smoothstep(0.03, 0.006, px);
+          diffuseColor.rgb *= 1.0 - wshClothM * 0.34 * (1.0 - wshFold) * smoothstep(0.03, 0.006, px);
         }`,
       )
       .replace(
@@ -91,6 +91,6 @@ export function addClothDetail(mat: Material): void {
         #include <opaque_fragment>`,
       );
   };
-  mat.customProgramCacheKey = () => 'wsh-cloth-1';
+  mat.customProgramCacheKey = () => 'wsh-cloth-2';
   mat.needsUpdate = true;
 }

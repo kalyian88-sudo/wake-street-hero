@@ -2,7 +2,7 @@
  * Procedural rider body (torso, limbs, hands, feet, clothes, boots) as ONE skinned geometry in bind
  * space: character faces +Z, left = +X, soles on y = 0, arms and legs hanging straight down.
  */
-import { BufferGeometry, Color, Vector3 } from 'three';
+import { BufferGeometry, Vector3 } from 'three';
 import { BRAND } from '../config';
 import type { BoardKind } from '../types';
 import { MeshBuilder, capsuleRings, ringsOf, type Ring } from './geo';
@@ -118,20 +118,33 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     capStart: yBot - 0.016,
   });
 
-  // ── oversize jersey: a longer, looser hem that hangs over the top of the shorts ──
+  // ── oversize jersey: the body of the shirt carries on below the hips as one loose tube (same
+  //    wrap texture as the torso, so there is no seam or "belt"), ending in a soft hem over the shorts ──
   if (jersey) {
-    const hemC = new Color().setHex(shade(topC, -0.14));
-    b.bone(B.pelvis).color(topC);
-    sw(SWATCH.cloth);
-    const g0 = 0.188;
-    const hem: Ring[] = [
-      { y: P.hipY + 0.02 * s, rx: g0, rz: 0.13, oz: -0.01, n: 2.4 },
-      { y: P.hipY - 0.05 * s, rx: g0 + 0.016, rz: 0.142, oz: -0.012, n: 2.3 },
-      { y: P.hipY - 0.09 * s, rx: g0 + 0.026, rz: 0.15, oz: -0.012, n: 2.2 },
-      { y: P.hipY - 0.12 * s, rx: g0 + 0.032, rz: 0.155, oz: -0.012, n: 2.2 },
-    ];
-    // loft builds bottom → top
-    b.identity().loft(hem.slice().reverse(), { radial: 28, colorFn: (_p, i, c) => (i === 0 ? c.copy(hemC) : c) });
+    const tmpJ: number[] = [];
+    const ringAt = (h: number, grow: number): Ring => {
+      torsoAt(table, Math.max(h, 0.0), tmpJ);
+      const p = pad(Math.max(h, 0.0));
+      return { y: P.hipY + h * s, rx: tmpJ[1] + p + grow, rz: tmpJ[2] + p + grow * 1.15, oz: tmpJ[3] - 0.004, n: 2.3 };
+    };
+    // starts just inside the torso surface (hidden), widens a touch as it falls
+    const tube: Ring[] = [ringAt(-0.135, 0.028), ringAt(-0.11, 0.027), ringAt(-0.06, 0.02), ringAt(-0.02, 0.012), ringAt(0.05, 0.004), ringAt(0.11, -0.002)];
+    const uvT = rectUV(ATLAS.torso, 1);
+    // texture v: reuse the plain lower band of the torso wrap (below the prints)
+    const vBand = (i: number, n: number): number => 0.02 + 0.1 * (i / (n - 1));
+    b.identity().color(0xffffff);
+    b.skinFn = (p: Vector3, out: [number, number, number]): void => {
+      out[0] = B.pelvis;
+      out[1] = B.spine;
+      out[2] = 1 - smooth(0.04, 0.17, (p.y - P.hipY) / s);
+    };
+    b.loft(tube, {
+      radial: 28,
+      wrap: uvT,
+      vOf: (_r, i, n) => vBand(i, n),
+      colorFn: (_p, i, c) => (i === 0 ? c.multiplyScalar(0.8) : c),
+    });
+    b.skinFn = null;
   }
 
   // ── impact vest shell ──
