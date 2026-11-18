@@ -307,7 +307,7 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
     roof.color(0xc8704a, range(rng, 0.8, 1.05));
     roof.quad([bx, ry0, arcade - 0.3], [bx + bayW, ry0, arcade - 0.3], [bx + bayW, ry1, -depth / 2], [bx, ry1, -depth / 2]);
     roof.quad([bx + bayW, ry0, -depth - 0.2], [bx, ry0, -depth - 0.2], [bx, ry1, -depth / 2], [bx + bayW, ry1, -depth / 2]);
-    roof.color(0x9a4a30).boxB(cx, ry1 - 0.04, -depth / 2, bayW, 0.14, 0.3);
+    roof.color(0x9a4a30).boxB(cx, ry1 - 0.04, -depth / 2, bayW, 0.14, 0.3, 'yxX');
     wall.color(wc, 0.8).tri([bx, ry0, arcade - 0.3], [bx, ry1, -depth / 2], [bx, ry0, -depth - 0.2]);
     wall.tri([bx + bayW, ry0, -depth - 0.2], [bx + bayW, ry1, -depth / 2], [bx + bayW, ry0, arcade - 0.3]);
 
@@ -587,8 +587,8 @@ const UMBRELLA_COLORS = [0xe0342a, 0x2f8fd0, 0xf0c030, 0x36a85a, 0xf2f2e6, 0xf07
 function stall(def: PropDef, ctx: PropContext): void {
   const rng = ctx.rng;
   const k = new Kit(ctx);
-  const fab = k.g('fabric', undefined, { side: 'double' });
   const flat = k.g('flat');
+  const fab = flat;
   const wood = k.g('wood');
   const bam = flat;
   const uc = def.params && typeof def.params.color === 'number' ? (def.params.color as number) : pick(rng, UMBRELLA_COLORS);
@@ -601,11 +601,16 @@ function stall(def: PropDef, ctx: PropContext): void {
     const a1 = ((i + 1) / seg) * Math.PI * 2;
     const am = (a0 + a1) / 2;
     const c = i % 2 ? 0xf6f2e8 : uc;
-    fab.color(c);
-    fab.tri([0, 2.6, 0], [Math.sin(a1) * R, 2.15, Math.cos(a1) * R], [Math.sin(a0) * R, 2.15, Math.cos(a0) * R]);
-    // valance flap
-    fab.quad([Math.sin(a0) * R, 2.15, Math.cos(a0) * R], [Math.sin(a1) * R, 2.15, Math.cos(a1) * R], [Math.sin(a1) * R, 2.0, Math.cos(a1) * R], [Math.sin(a0) * R, 2.0, Math.cos(a0) * R]);
+    const p0: P3 = [Math.sin(a0) * R, 2.15, Math.cos(a0) * R];
+    const p1: P3 = [Math.sin(a1) * R, 2.15, Math.cos(a1) * R];
+    const q0: P3 = [p0[0], 2.0, p0[2]];
+    const q1: P3 = [p1[0], 2.0, p1[2]];
     void am;
+    // canopy panel + valance flap, both windings (lit from above, seen from below)
+    fab.color(c).tri([0, 2.6, 0], p1, p0);
+    fab.quad(p0, p1, q1, q0);
+    fab.color(c, 0.72).tri([0, 2.6, 0], p0, p1);
+    fab.quad(q0, q1, p1, p0);
   }
   // table with goods (fruit / bowls / bottles)
   wood.color(0x8a6040).boxB(0, 0, 0.35, 1.3, 0.78, 0.7, 'y');
