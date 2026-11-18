@@ -73,6 +73,22 @@ uniform vec3 wshWallShade;
 uniform float wshBake;
 uniform float wshGain;        // Preetham radiance → scene units (the raw sky is ~4× too bright for our sun)
 uniform vec3 fogColor;
+uniform vec4 wshPoster;      // strength, zenith → horizon gradient below
+uniform vec3 wshPosterZen;
+uniform vec3 wshPosterMid;
+uniform vec3 wshPosterHor;
+
+vec3 wshPaint( vec3 col, vec3 dir, float cosSun ) {
+	if ( wshPoster.x <= 0.0 ) return col;
+	float y = max( dir.y, 0.0 );
+	vec3 g = mix( wshPosterHor, wshPosterMid, smoothstep( 0.0, 0.16, y ) );
+	g = mix( g, wshPosterZen, smoothstep( 0.14, 0.62, y ) );
+	// warmer and brighter towards the sun
+	g = mix( g, wshPosterHor * 1.4, pow( max( cosSun, 0.0 ), 6.0 ) * 0.7 );
+	float l = dot( col, vec3( 0.2126, 0.7152, 0.0722 ) );
+	vec3 painted = g * ( 0.35 + 0.65 * l / max( wshPoster.y, 1e-4 ) );
+	return mix( col, painted, wshPoster.x * smoothstep( -0.02, 0.02, dir.y ) );
+}
 
 float wshHash1( float n ) { return fract( sin( n * 12.9898 ) * 43758.5453 ); }
 float wshHash2( vec2 p ) {
@@ -224,13 +240,14 @@ function sharedUniforms(def: EnvDef, sunDir: Vector3): Record<string, IUniform> 
       wallShade.setRGB(0.1, 0.12, 0.16);
       break;
     case 'golden':
-      lit.copy(sun).multiplyScalar(0.5).add(new Color(0.1, 0.1, 0.14));
-      shade.setRGB(0.4, 0.37, 0.48);
+      lit.copy(sun).multiplyScalar(0.5).add(new Color(0.16, 0.08, 0.12));
+      shade.setRGB(0.36, 0.28, 0.48);
       wallShade.setRGB(0.085, 0.08, 0.1);
       break;
     case 'sunset':
-      lit.copy(sun).multiplyScalar(0.62);
-      shade.setRGB(0.15, 0.12, 0.21);
+      // poster sunset: clouds under-lit hot pink / orange, violet in their shade
+      lit.copy(sun).multiplyScalar(0.55).add(new Color(0.55, 0.12, 0.22));
+      shade.setRGB(0.2, 0.11, 0.3);
       wallShade.setRGB(0.04, 0.035, 0.055);
       hazeDensity = 7;
       break;
@@ -273,6 +290,7 @@ function sharedUniforms(def: EnvDef, sunDir: Vector3): Record<string, IUniform> 
     wshWallLit: { value: wallLit },
     wshWallShade: { value: wallShade },
     wshBake: { value: 0 },
+    ...posterUniforms(def),
     wshGain: { value: SKY_GAIN[def.timeOfDay] },
     // refreshed by the renderer from scene.fog (material.fog = true) in the right colour space
     fogColor: { value: fog.clone() },
@@ -287,6 +305,23 @@ function insert(src: string, anchor: string, code: string, where: 'before' | 'af
   if (i < 0) return null;
   const at = where === 'before' ? i : i + anchor.length;
   return src.slice(0, at) + code + src.slice(at);
+}
+
+/**
+ * WHY NOT poster sky for golden hour / sunset: the physical sky's brightness, repainted with a violet
+ * zenith → magenta → orange horizon gradient (the key-art palette). Day / overcast / night stay physical.
+ */
+function posterUniforms(def: EnvDef): Record<string, IUniform> {
+  const on = def.timeOfDay === 'sunset' ? 0.85 : def.timeOfDay === 'golden' ? 0.55 : 0;
+  // typical sky radiance (after wshGain) the gradient is normalised to
+  const ref = def.timeOfDay === 'sunset' ? 0.9 : 1.4;
+  const k = def.timeOfDay === 'sunset' ? 1 : 1.35;
+  return {
+    wshPoster: { value: new Vector4(on, ref, 0, 0) },
+    wshPosterZen: { value: new Color(0.16, 0.13, 0.42).multiplyScalar(k) },
+    wshPosterMid: { value: new Color(0.62, 0.22, 0.48).multiplyScalar(k) },
+    wshPosterHor: { value: new Color(1.15, 0.5, 0.2).multiplyScalar(k) },
+  };
 }
 
 let warnedPatch = false;
@@ -313,7 +348,7 @@ function createDayDome(def: EnvDef, sunDir: Vector3): SkyDome {
     insert(
       frag,
       'gl_FragColor = vec4( texColor, 1.0 );',
-      'texColor = wshSurround( wshClouds( texColor * wshGain, direction, cosTheta ), direction );\n\t\t\t',
+      'texColor = wshSurround( wshClouds( wshPaint( texColor * wshGain, direction, cosTheta ), direction, cosTheta ), direction );\n\t\t\t',
       'before',
     );
   frag =

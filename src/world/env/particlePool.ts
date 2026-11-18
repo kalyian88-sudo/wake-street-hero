@@ -102,7 +102,17 @@ void main() {
 	float puff = exp( - d * d * 3.4 ) * ( 1.0 - smoothstep( 0.72, 1.0, d ) );
 	float a = mix( crisp, puff, vSoft ) * vColor.a;
 	if ( a < 0.004 ) discard;
-	gl_FragColor = vec4( vColor.rgb, a );
+	vec3 col = vColor.rgb;
+	#ifndef PARTICLES_ADDITIVE
+		// droplets read as little lenses (the key-art look): see-through middle, darker rim, a hard
+		// specular dot up-left; puffs (vSoft → 1) stay soft
+		float lens = ( 1.0 - vSoft ) * step( vUv.z, 1.6 );
+		float rim = smoothstep( 0.45, 0.95, d );
+		float spec = smoothstep( 0.32, 0.05, length( vec2( vUv.x + 0.32, vUv.y * vUv.z - 0.34 ) ) );
+		col = mix( col, mix( col * 1.12, col * 0.5, rim ) + vec3( 1.6, 1.5, 1.35 ) * spec * max( 0.6, dot( col, vec3( 0.333 ) ) ), lens );
+		a *= mix( 1.0, mix( 0.5, 1.0, rim ) + spec * 0.5, lens );
+	#endif
+	gl_FragColor = vec4( col, min( a, 1.0 ) );
 	#include <tonemapping_fragment>
 	#include <colorspace_fragment>
 	#include <fog_fragment>

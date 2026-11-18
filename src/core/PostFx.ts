@@ -41,6 +41,8 @@ export interface FxParams {
   drops?: number;
   /** 0..1 rider speed feel (edge speed blur). */
   speed?: number;
+  /** 0..1 WHY NOT poster grade (vibrance, split toning, S-curve); default 1. */
+  poster?: number;
 }
 
 /**
@@ -68,6 +70,7 @@ const GRADE_FRAG = /* glsl */ `
   uniform sampler2D tDiffuse;
   uniform float uSlowMo;
   uniform float uHero;
+  uniform float uPoster;
   uniform float uTime;
   uniform float uVignette;
   uniform float uDrops;
@@ -132,6 +135,17 @@ const GRADE_FRAG = /* glsl */ `
     col = max(vec3(0.0), (col - 0.18) * 1.06 + 0.18);
     col = col * 0.97 + 0.018;
 
+    // WHY NOT poster look: vibrant colour, violet-magenta shadows, hot orange highlights, deep S-curve.
+    if (uPoster > 0.0) {
+      float pl = dot(col, vec3(0.2126, 0.7152, 0.0722));
+      float sat = max(col.r, max(col.g, col.b)) - min(col.r, min(col.g, col.b));
+      // vibrance: lift muted colours more than already saturated ones
+      col = mix(vec3(pl), col, 1.0 + uPoster * (0.3 - 0.25 * sat));
+      col += uPoster * (vec3(-0.012, 0.004, 0.04) * (1.0 - smoothstep(0.0, 0.4, pl)) + vec3(0.035, 0.008, -0.03) * smoothstep(0.5, 1.0, pl));
+      vec3 sc = clamp(col, 0.0, 1.0);
+      col = mix(col, sc * sc * (3.0 - 2.0 * sc), 0.32 * uPoster);
+    }
+
     // Slow-motion grade: a touch less colour, a touch more contrast (display-linear, pivot = mid grey).
     float luma = dot(col, vec3(0.2126, 0.7152, 0.0722));
     col = mix(col, vec3(luma), 0.2 * uSlowMo);
@@ -172,6 +186,7 @@ class GradePass extends Pass {
         toneMappingExposure: { value: 1 },
         uSlowMo: { value: 0 },
         uHero: { value: 0 },
+        uPoster: { value: 1 },
         uTime: { value: 0 },
         uVignette: { value: 0.24 },
         uDrops: { value: 0 },
@@ -191,6 +206,7 @@ class GradePass extends Pass {
     const u = this.material.uniforms;
     u.uSlowMo.value = p.slowMo;
     u.uHero.value = p.hero;
+    u.uPoster.value = p.poster ?? 1;
     u.uTime.value = p.time % 1000;
     const drops = p.drops ?? 0;
     // a new drop pattern for each splash
