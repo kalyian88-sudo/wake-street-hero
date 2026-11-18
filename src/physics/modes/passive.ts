@@ -15,6 +15,17 @@ export function stepWaiting(c: SimCore, dt: number): void {
   if (c.rope.takeUp(dt)) {
     c.rope.startPull(SIM.reelRamp);
     s.mode = s.surface === 'water' ? 'water' : 'slide';
+    if (c.bankSide !== 0 && s.mode === 'slide') {
+      // street start: hop off the bank straight into the canal (on the ground the rope would only
+      // drag the board along the quay edge)
+      const yaw = c.lineYaw + c.bankSide * 0.75;
+      c.boardDir = yaw;
+      s.heading = s.boardYaw = yaw;
+      s.vel.set(Math.sin(yaw) * 4.2, 0, Math.cos(yaw) * 4.2);
+      s.speed = 4.2;
+      c.noGrindT = 1.2;
+      c.takeoff('drop', undefined, 2.3);
+    }
   }
 }
 

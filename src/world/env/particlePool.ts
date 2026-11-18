@@ -81,7 +81,9 @@ void main() {
 		// droplets flare up when the sun is behind them
 		float back = pow( max( dot( normalize( pos - cameraPosition ), uSunDir ), 0.0 ), 6.0 );
 		vec3 light = uAmbient * 1.15 + uSunLight * ( 0.3 + 1.5 * back * ( 1.0 - iD.z ) );
-		vColor = vec4( mix( uColorA, uColorB, iD.w ) * light * iE.y, iD.x * fade );
+		// drops right in front of the lens would read as big rings: fade them out up close
+		float near = smoothstep( 1.2, 3.5, - mvPosition.z );
+		vColor = vec4( mix( uColorA, uColorB, iD.w ) * light * iE.y, iD.x * fade * mix( 1.0, near, 1.0 - iD.z ) );
 	#endif
 	#include <fog_vertex>
 }
@@ -109,7 +111,7 @@ void main() {
 		float lens = ( 1.0 - vSoft ) * step( vUv.z, 1.6 );
 		float rim = smoothstep( 0.45, 0.95, d );
 		float spec = smoothstep( 0.32, 0.05, length( vec2( vUv.x + 0.32, vUv.y * vUv.z - 0.34 ) ) );
-		col = mix( col, mix( col * 1.12, col * 0.5, rim ) + vec3( 1.6, 1.5, 1.35 ) * spec * max( 0.6, dot( col, vec3( 0.333 ) ) ), lens );
+		col = mix( col, mix( col * 1.12, col * 0.72, rim ) + vec3( 1.6, 1.5, 1.35 ) * spec * max( 0.6, dot( col, vec3( 0.333 ) ) ), lens );
 		a *= mix( 1.0, mix( 0.5, 1.0, rim ) + spec * 0.5, lens );
 	#endif
 	gl_FragColor = vec4( col, min( a, 1.0 ) );

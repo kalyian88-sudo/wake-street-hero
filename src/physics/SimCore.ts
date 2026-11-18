@@ -324,14 +324,6 @@ export class SimCore {
   go(): void {
     if (this.state.mode !== 'waiting') return;
     this.going = true;
-    if (this.bankSide !== 0) {
-      // push off the bank towards the water: the rope does the rest
-      const s = this.state;
-      const yaw = s.heading;
-      s.vel.set(Math.sin(yaw) * 3.2, 0, Math.cos(yaw) * 3.2);
-      s.speed = 3.2;
-      this.noGrindT = 2.2;
-    }
   }
 
   /**

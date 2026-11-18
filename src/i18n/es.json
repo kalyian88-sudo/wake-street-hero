@@ -449,5 +449,7 @@
   "hud.tut.rail.classic": "Dirígete al rail y salta justo delante.",
   "hud.tut.slide.swipe": "En el rail, desliza a la izquierda — ¡boardslide!",
   "hud.tut.slide.classic": "En el rail, mantén el stick a la izquierda — ¡boardslide!",
-  "hud.tut.done.all": "Ya sabes lo básico. ¡Recoge W-H-Y-N-O-T y cumple los objetivos!"
+  "hud.tut.done.all": "Ya sabes lo básico. ¡Recoge W-H-Y-N-O-T y cumple los objetivos!",
+  "hud.big.spin": "gira",
+  "hud.big.slide": "slide"
 }

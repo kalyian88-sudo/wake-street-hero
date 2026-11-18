@@ -240,7 +240,8 @@ class Hud implements IHud {
       // the stick / button tips do not apply: explain the gestures instead
       this.tipText = this.ctx.t('hud.tip.swipe');
       this.setHint(this.tipText);
-      this.tipLeft = 7;
+      // short: the big in-run prompts take over once the rider is on the water
+      this.tipLeft = 3;
     }
   }
 

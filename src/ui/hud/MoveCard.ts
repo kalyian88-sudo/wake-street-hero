@@ -93,6 +93,10 @@ export class MoveCard {
   private board: BoardKind = 'wakeboard';
   private aheadT = 0;
   private swipe = false;
+  /** Big centre prompt for the one move that matters right now (swipe scheme). */
+  private readonly big: HTMLElement;
+  private readonly bigGlyph: Text;
+  private readonly bigText: Text;
 
   setSwipe(on: boolean): void {
     if (on === this.swipe) return;
@@ -107,6 +111,17 @@ export class MoveCard {
     this.el = h('div', 'wsh-moves', root);
     this.title = txt(h('div', 'wsh-moves-title wsh-x', this.el));
     this.list = h('div', 'wsh-moves-list', this.el);
+    this.big = h('div', 'wsh-bigmove', root);
+    this.bigGlyph = txt(h('b', 'wsh-bigmove-glyph', this.big));
+    this.bigText = txt(h('span', 'wsh-bigmove-text wsh-x', this.big));
+  }
+
+  private bigPrompt(glyph: string, text: string): void {
+    this.bigGlyph.data = glyph;
+    this.bigText.data = text;
+    this.big.classList.remove('is-on');
+    void this.big.offsetWidth;
+    this.big.classList.add('is-on');
   }
 
   reset(spot: SpotDef, board: BoardKind): void {
@@ -115,7 +130,11 @@ export class MoveCard {
     this.ctxKey = '';
     this.stance = null;
     this.el.classList.remove('is-on');
+    this.big.classList.remove('is-on');
+    this.firstWater = true;
   }
+
+  private firstWater = true;
 
   /** Language changed: rebuild on the next update. */
   relabel(): void {
@@ -139,7 +158,8 @@ export class MoveCard {
   private context(s: RiderSimState, dt: number): Ctx {
     switch (s.mode) {
       case 'air':
-        return 'air';
+        // the hop off the bank at the start is not a trick moment
+        return s.air.takeoff === 'drop' && s.time < 3 ? 'water' : 'air';
       case 'rail':
         return 'rail';
       case 'water':
@@ -225,6 +245,15 @@ export class MoveCard {
         break;
       default:
         rows = [];
+    }
+    if (this.swipe) {
+      if (c === 'aheadKicker' || c === 'aheadRail') this.bigPrompt('↑', t('hud.moves.jump'));
+      else if (c === 'air') this.bigPrompt('← →', t('hud.big.spin'));
+      else if (c === 'rail') this.bigPrompt('← ↑ → ↓', t('hud.big.slide'));
+      else if (c === 'water' && this.firstWater) {
+        this.firstWater = false;
+        this.bigPrompt('← ●  →', t('hud.moves.lane'));
+      }
     }
     this.title.data = title;
     this.el.classList.toggle('is-on', rows.length > 0);

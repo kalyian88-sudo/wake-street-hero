@@ -63,7 +63,7 @@ describe.each(list.map((s) => [s.id, s] as const))('spot %s', (_id, spot) => {
 });
 
 describe('street start from the side bank', () => {
-  it('every line starts on a bank and the rider is on the water within 3 s of GO', () => {
+  it('every line starts on a bank and the rider hops into the water within 1.6 s of GO (never slides along the quay)', () => {
     for (const spot of list) {
       for (const wp of spot.winchPoints) {
         const h = createSimHarness({ spot, winchId: wp.id, bankStart: true });
@@ -71,10 +71,13 @@ describe('street start from the side bank', () => {
         expect(s.surface, `${spot.id}/${wp.id}`).not.toBe('water');
         h.sim.go();
         let onWater = false;
-        for (let i = 0; i < 60 * 3 && !onWater; i++) {
+        let slid = 0;
+        for (let i = 0; i < 60 * 1.6 && !onWater; i++) {
           h.sim.step(h.dt, bot0(), 1);
           onWater = s.mode === 'water';
+          if (s.mode === 'slide') slid += h.dt;
         }
+        expect(slid, `${spot.id}/${wp.id} slid on the bank`).toBeLessThan(0.2);
         expect(onWater, `${spot.id}/${wp.id}`).toBe(true);
         expect(h.count('sim:bail'), `${spot.id}/${wp.id}`).toBe(0);
       }

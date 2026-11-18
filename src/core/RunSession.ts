@@ -178,10 +178,11 @@ export class RunSession {
       bus.on('sim:bail', () => this.onEndlessBail()),
       // splashes close to the camera wet the lens
       bus.on('sim:land', (e) => {
-        if (e.onto === 'water' && e.impact > 4.5) this.lensDrops = Math.min(1, this.lensDrops + 0.35 + e.impact * 0.04);
+        // only a big splash; never the hop off the bank at the start
+        if (e.onto === 'water' && e.impact > 7 && this.sim.state.time > 3) this.lensDrops = Math.min(0.6, this.lensDrops + 0.25 + e.impact * 0.02);
       }),
       bus.on('sim:bail', (e) => {
-        if (e.surface === 'water') this.lensDrops = 1;
+        if (e.surface === 'water') this.lensDrops = 0.7;
       }),
     );
     if (config.mode === 'endless') {
@@ -469,7 +470,7 @@ export class RunSession {
     fx.bloom = this.spot.env.bloom;
     fx.time = this.clock;
     // lens drops dry off, speed feel follows the rider
-    this.lensDrops = Math.max(0, this.lensDrops - realDt * 0.55);
+    this.lensDrops = Math.max(0, this.lensDrops - realDt * 0.9);
     fx.drops = replaying ? 0 : this.lensDrops;
     const sp = this.sim.state.speed;
     fx.speed = replaying ? 0 : Math.max(0, Math.min(1, (sp - 9) / 8));

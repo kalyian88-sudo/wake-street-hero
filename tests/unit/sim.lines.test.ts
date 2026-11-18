@@ -154,13 +154,13 @@ describe('sim: full runs on phuket_oldtown', () => {
     expect(s.mode).toBe('waiting');
     expect(s.time).toBe(0);
     expect(s.pos.x).toBeCloseTo(-4, 6);
-    expect(s.pos.z).toBeCloseTo(0, 6);
+    expect(s.pos.z).toBeCloseTo(-9, 6);
     expect(s.speed).toBe(0);
     // waiting until go()
     for (let i = 0; i < 60; i++) h.step();
     expect(s.mode).toBe('waiting');
     expect(s.time).toBe(0);
-    expect(s.pos.z).toBeCloseTo(0, 6);
+    expect(s.pos.z).toBeCloseTo(-9, 6);
     h.sim.go();
     h.run(60, null, (hh) => hh.sim.state.mode === 'finished');
     expect(s.mode).toBe('finished');
@@ -267,7 +267,8 @@ describe('sim: forgiving rail entry', () => {
         const s = hh.sim.state;
         const held: { steer?: number; jump?: boolean } = {};
         if (!popped) {
-          held.steer = s.pos.x > -2.8 ? 0.7 : s.pos.x < -3.2 ? -0.4 : 0;
+          // line up smoothly with the rail (x ≈ −3): proportional steering, damped by the heading
+          held.steer = Math.max(-0.7, Math.min(0.7, (s.pos.x + 3) * 0.8 + s.heading * 1.5));
           if (s.pos.z > 34) held.jump = true;
           if (s.pos.z > 40.2) {
             held.jump = false;

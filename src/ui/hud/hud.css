@@ -1114,3 +1114,44 @@
 @media (prefers-reduced-motion: reduce) {
   .wsh-tut-finger { animation: none !important; }
 }
+
+/* big centre prompt: the one move that matters right now (swipe scheme) */
+.wsh-bigmove {
+  position: absolute;
+  left: 50%;
+  bottom: calc(12% + var(--sab));
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  opacity: 0;
+  color: #fff;
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.65);
+}
+.wsh-bigmove.is-on { animation: wsh-bigmove 1.7s ease-out both; }
+.wsh-bigmove-glyph {
+  font: italic 900 clamp(38px, 12vw, 64px) / 1 var(--font-head, sans-serif);
+  letter-spacing: 0.08em;
+  color: #fff;
+}
+.wsh-bigmove-text {
+  font: italic 900 clamp(16px, 5vw, 24px) / 1 var(--font-head, sans-serif);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  background: var(--red, #e30613);
+  border-radius: 5px;
+  transform: skewX(-12deg);
+}
+@keyframes wsh-bigmove {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.7); }
+  12% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+  22% { transform: translateX(-50%) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wsh-bigmove.is-on { animation-duration: 2.2s; }
+}

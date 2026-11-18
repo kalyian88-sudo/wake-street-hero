@@ -163,7 +163,10 @@ export function createRiderSim(config: SimConfig, bus: EventBus): IRiderSim {
         const t = predictTouchdown(c);
         a.timeToLand = t;
         if (c.tricks.busy && t > SIM.slowMoCutoff) want = 1;
-      }
+      } else if (s.mode === 'rail' && s.rail) {
+        // slides get the same cinematic slow-mo: a touch on a 50-50, more on a stance trick
+        want = s.rail.stance === 'fifty' ? 0.45 : 0.8;
+      } else if (s.mode === 'wall') want = 0.6;
       // exponential ease plus a small constant step so it actually arrives at 0 / 1
       const rate = (want > s.slowMo ? SIM.slowMoIn : SIM.slowMoOut) * realDt;
       s.slowMo += (want - s.slowMo) * (rate > 1 ? 1 : rate);

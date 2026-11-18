@@ -328,5 +328,7 @@
   "hud.tut.rail.classic": "Steer to the rail and pop right in front of it.",
   "hud.tut.slide.swipe": "On the rail, swipe left — boardslide!",
   "hud.tut.slide.classic": "On the rail, hold the stick left — boardslide!",
-  "hud.tut.done.all": "You know the basics. Collect W-H-Y-N-O-T and complete the spot goals!"
+  "hud.tut.done.all": "You know the basics. Collect W-H-Y-N-O-T and complete the spot goals!",
+  "hud.big.spin": "spin",
+  "hud.big.slide": "slide"
 }

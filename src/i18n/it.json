@@ -449,5 +449,7 @@
   "hud.tut.rail.classic": "Punta al rail e salta subito prima.",
   "hud.tut.slide.swipe": "Sul rail scorri a sinistra — boardslide!",
   "hud.tut.slide.classic": "Sul rail tieni lo stick a sinistra — boardslide!",
-  "hud.tut.done.all": "Sai le basi. Raccogli W-H-Y-N-O-T e completa gli obiettivi!"
+  "hud.tut.done.all": "Sai le basi. Raccogli W-H-Y-N-O-T e completa gli obiettivi!",
+  "hud.big.spin": "gira",
+  "hud.big.slide": "slide"
 }

@@ -449,5 +449,7 @@
   "hud.tut.rail.classic": "Podjedź do raila i skocz tuż przed nim.",
   "hud.tut.slide.swipe": "Na railu przesuń w lewo — boardslide!",
   "hud.tut.slide.classic": "Na railu trzymaj gałkę w lewo — boardslide!",
-  "hud.tut.done.all": "Znasz podstawy. Zbieraj W-H-Y-N-O-T i wykonuj cele spotu!"
+  "hud.tut.done.all": "Znasz podstawy. Zbieraj W-H-Y-N-O-T i wykonuj cele spotu!",
+  "hud.big.spin": "kręć",
+  "hud.big.slide": "slide"
 }

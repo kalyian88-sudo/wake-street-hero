@@ -449,5 +449,7 @@
   "hud.tut.rail.classic": "Dirige-toi vers le rail et saute juste devant.",
   "hud.tut.slide.swipe": "Sur le rail, swipe à gauche — boardslide !",
   "hud.tut.slide.classic": "Sur le rail, tiens le stick à gauche — boardslide !",
-  "hud.tut.done.all": "Tu connais l’essentiel. Récupère W-H-Y-N-O-T et remplis les objectifs !"
+  "hud.tut.done.all": "Tu connais l’essentiel. Récupère W-H-Y-N-O-T et remplis les objectifs !",
+  "hud.big.spin": "tourne",
+  "hud.big.slide": "slide"
 }

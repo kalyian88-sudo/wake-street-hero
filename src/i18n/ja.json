@@ -449,5 +449,7 @@
   "hud.tut.rail.classic": "レールに向かい、直前でジャンプ。",
   "hud.tut.slide.swipe": "レール上で左にスワイプ — ボードスライド！",
   "hud.tut.slide.classic": "レール上でスティックを左に — ボードスライド！",
-  "hud.tut.done.all": "基本はOK。W-H-Y-N-O-Tを集めてスポットの目標をクリアしよう！"
+  "hud.tut.done.all": "基本はOK。W-H-Y-N-O-Tを集めてスポットの目標をクリアしよう！",
+  "hud.big.spin": "スピン",
+  "hud.big.slide": "スライド"
 }
