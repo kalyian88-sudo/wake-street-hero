@@ -715,9 +715,10 @@ function paintHeadwear(ctx: Ctx, rctx: Ctx, o: Outfit): void {
   ctx.fillStyle = css(look.primary);
   ctx.fillRect(0, 0, 512, 192);
   if (o.headwear === 'helmet') {
-    rctx.fillStyle = grey(0.26);
+    const plain = look.graphic === 'plain';
+    rctx.fillStyle = grey(plain ? 0.38 : 0.26);
     rctx.fillRect(0, 0, 512, 192);
-    paintGraphic(ctx, 0, 0, 512, 192, { ...look, graphic: look.graphic === 'logo' || look.graphic === 'wood' ? 'plain' : look.graphic }, 23);
+    if (!plain) paintGraphic(ctx, 0, 0, 512, 192, { ...look, graphic: look.graphic === 'logo' || look.graphic === 'wood' ? 'plain' : look.graphic }, 23);
     // vents: two rings of slots
     ctx.fillStyle = '#08090a';
     for (const [y, xs, w] of [
@@ -730,7 +731,11 @@ function paintHeadwear(ctx: Ctx, rctx: Ctx, o: Outfit): void {
       }
     }
     // ear guards (sides) with hearing holes
-    const guard = luma(look.primary) > 0.45 ? shade(mix(look.primary, look.secondary, 0.35), -0.12) : shade(mix(look.primary, look.secondary, 0.35), 0.16);
+    const guard = plain
+      ? shade(look.primary, luma(look.primary) > 0.45 ? -0.06 : 0.06)
+      : luma(look.primary) > 0.45
+        ? shade(mix(look.primary, look.secondary, 0.35), -0.12)
+        : shade(mix(look.primary, look.secondary, 0.35), 0.16);
     ctx.fillStyle = css(guard);
     for (const x of [0, 256, 512]) {
       ctx.beginPath();
@@ -757,8 +762,10 @@ function paintHeadwear(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     // rim edge + brand hits front / back
     ctx.fillStyle = 'rgba(0,0,0,0.45)';
     ctx.fillRect(0, 184, 512, 8);
-    drawWordmark(ctx, BRAND.name, 128, 138, 24, css(ink));
-    drawWordmark(ctx, BRAND.name, 384, 140, 20, css(ink));
+    if (!plain) {
+      drawWordmark(ctx, BRAND.name, 128, 138, 24, css(ink));
+      drawWordmark(ctx, BRAND.name, 384, 140, 20, css(ink));
+    }
     if (look.graphic === 'mark') {
       // the "?!" mark on both sides of the shell, above the ear guards
       const markInk = luma(look.primary) > 0.5 ? css(look.secondary) : '#ffffff';

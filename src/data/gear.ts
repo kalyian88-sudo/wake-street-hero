@@ -274,7 +274,7 @@ export const GEAR: GearItem[] = [
     },
     price: 0,
     stats: {},
-    look: { primary: BLACK, secondary: GREY, accent: RED, graphic: 'mark' },
+    look: { primary: BLACK, secondary: BLACK, accent: RED, graphic: 'plain' },
     url: SITE,
   },
   {

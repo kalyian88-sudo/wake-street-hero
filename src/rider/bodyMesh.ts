@@ -2,7 +2,7 @@
  * Procedural rider body (torso, limbs, hands, feet, clothes, boots) as ONE skinned geometry in bind
  * space: character faces +Z, left = +X, soles on y = 0, arms and legs hanging straight down.
  */
-import { BufferGeometry, Vector3 } from 'three';
+import { BufferGeometry, Color, Vector3 } from 'three';
 import { BRAND } from '../config';
 import type { BoardKind } from '../types';
 import { MeshBuilder, capsuleRings, ringsOf, type Ring } from './geo';
@@ -102,7 +102,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
       out[2] = 1 - smooth(0.22, 0.37, h);
     }
   };
-  const pad = (h: number): number => (hoodie ? (h > 0.02 ? 0.02 : 0.012) : wet ? 0.004 : h < 0.11 ? 0.012 : 0.005);
+  const pad = (h: number): number => (hoodie ? (h > 0.02 ? 0.02 : 0.012) : jersey ? (h < 0.11 ? 0.03 : 0.022) : wet ? 0.004 : h < 0.11 ? 0.012 : 0.005);
   const yBot = P.hipY - 0.082 * s;
   const yTop = P.hipY + 0.572 * s;
   const torso: Ring[] = table.map((r) => {
@@ -117,6 +117,22 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     vOf: (r) => (r.y - yBot) / (yTop - yBot),
     capStart: yBot - 0.016,
   });
+
+  // ── oversize jersey: a longer, looser hem that hangs over the top of the shorts ──
+  if (jersey) {
+    const hemC = new Color().setHex(shade(topC, -0.14));
+    b.bone(B.pelvis).color(topC);
+    sw(SWATCH.cloth);
+    const g0 = 0.188;
+    const hem: Ring[] = [
+      { y: P.hipY + 0.02 * s, rx: g0, rz: 0.13, oz: -0.01, n: 2.4 },
+      { y: P.hipY - 0.05 * s, rx: g0 + 0.016, rz: 0.142, oz: -0.012, n: 2.3 },
+      { y: P.hipY - 0.09 * s, rx: g0 + 0.026, rz: 0.15, oz: -0.012, n: 2.2 },
+      { y: P.hipY - 0.12 * s, rx: g0 + 0.032, rz: 0.155, oz: -0.012, n: 2.2 },
+    ];
+    // loft builds bottom → top
+    b.identity().loft(hem.slice().reverse(), { radial: 28, colorFn: (_p, i, c) => (i === 0 ? c.copy(hemC) : c) });
+  }
 
   // ── impact vest shell ──
   if (o.vest) {
@@ -176,7 +192,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     const L = side > 0;
     const x = side * P.shoulderHalf;
     const sleeveLong = suit || hoodie || jersey;
-    const fat = hoodie ? 0.016 : jersey ? 0.009 : suit ? 0.004 : 0;
+    const fat = hoodie ? 0.016 : jersey ? 0.02 : suit ? 0.004 : 0;
     // upper arm
     b.bone(L ? B.uarmL : B.uarmR).color(sleeveLong ? topC : skin);
     sw(sleeveLong ? (hoodie ? SWATCH.matte : jersey ? SWATCH.cloth : SWATCH.rubber) : SWATCH.skin);
