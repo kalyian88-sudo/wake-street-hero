@@ -221,7 +221,7 @@ describe('collision: canal edges', () => {
     // the low slab across the canal (0.12 m above the water) is not a canal edge
     expect(ids.some((id) => id.startsWith('slab_gap'))).toBe(false);
     for (const e of edges.filter((x) => /^quay_(left|right)/.test(x.label ?? ''))) {
-      expect(e.points[1]).toBeCloseTo(0.9, 5);
+      expect(e.points[1]).toBeCloseTo(1.05, 5) // quay top 0.9 + the 0.15 m kerb the board slides on;
       // runs along the canal just inside the quay top (quay faces at |x| = 7)
       expect(Math.abs(Math.abs(e.points[0]) - 7.14)).toBeLessThan(0.05);
       expect(Math.abs(e.points[5] - e.points[2])).toBeGreaterThan(100);
@@ -252,7 +252,7 @@ describe('sim: grinding the canal edge', () => {
     );
     const enter = h.of('sim:railEnter')[0];
     expect(enter?.obstacleId).toBe('quay_left.edge.0');
-    expect(enter?.pos.y).toBeCloseTo(0.9, 3);
+    expect(enter?.pos.y).toBeCloseTo(1.05, 3);
     expect(h.sim.state.mode).toBe('rail');
   });
 });

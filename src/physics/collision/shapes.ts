@@ -2,7 +2,7 @@
  * Collider primitives built from a SpotDef. Every shape comes from src/data/geometry.ts so the
  * hitboxes match what the world builder draws.
  */
-import { DEG, footprintBounds, footprintContains, ledgeBox, ledgeEdges, stairsLayout, wallNormal } from '../../data/geometry';
+import { DEG, footprintBounds, footprintContains, ledgeBox, ledgeEdges, stairsLayout, TRIM_TOP, wallNormal } from '../../data/geometry';
 import type { Footprint, GapDef, KickerDef, LedgeDef, RailDef, SpotDef, StairsDef, SurfaceKind, V3, WallDef } from '../../types';
 
 export interface Aabb {
@@ -367,7 +367,7 @@ function addQuayEdges(spot: SpotDef, g: SpotDef['ground'][number], out: SpotColl
           const lx = a[0] + (b[0] - a[0]) * t - nrm[0] * inset;
           const lz = a[1] + (b[1] - a[1]) * t - nrm[1] * inset;
           const [x, z] = toWorld(lx, lz);
-          return [x, g.top, z];
+          return [x, g.top + TRIM_TOP[g.trim ?? 'none'], z];
         };
         // a little more forgiving than a ledge: coming down on the first ~0.9 m of the quay top locks onto its edge
         makeGrind(out.grinds, `${g.id}.edge.${n++}`, 'ledge', surfaceMaterial(g.surface), 0, [p(t0), p(t1)], 0, 0.9);

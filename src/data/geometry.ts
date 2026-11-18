@@ -256,3 +256,17 @@ export function lerp(a: number, b: number, t: number): number {
 export function damp(rate: number, dt: number): number {
   return 1 - Math.exp(-rate * dt);
 }
+
+/**
+ * Height (m) of the visual waterfront trim above a ground's top — the stone the rider actually slides
+ * on when he grinds the quay edge. Shared by the world builder (src/world/ground.ts) and the physics
+ * edge lines (src/physics/collision/shapes.ts) so the board sits ON the kerb, never inside it.
+ */
+export const TRIM_TOP: Record<'none' | 'granite' | 'coping' | 'kerb' | 'brick' | 'bamboo', number> = {
+  none: 0,
+  kerb: 0.15,
+  coping: 0.06,
+  granite: 0.62,
+  brick: 0.035,
+  bamboo: 0.1,
+};
