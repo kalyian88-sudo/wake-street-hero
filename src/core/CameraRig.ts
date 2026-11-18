@@ -292,6 +292,19 @@ export class CameraRig {
       dist -= 0.45 * trick;
       if (mode === 'air') orbit += this.side * 0.18 * trick;
       orbitTime = 0.5;
+      // Slow-mo close-up, like the filmer in a clip: swing round to the rider's side, drop low to the
+      // water, come in close and look UP at him — the rider fills the frame while the time is slowed.
+      const cu = mode === 'air' || mode === 'rail' || mode === 'wall' ? trick : 0;
+      if (cu > 0) {
+        const h = Math.max(0, s.air.height);
+        dist = MathUtils.lerp(dist, MathUtils.lerp(2.9, 3.4, p) + (mode === 'air' ? Math.min(h * 0.35, 1.2) : 0), cu);
+        height = MathUtils.lerp(height, mode === 'air' ? 0.5 : 0.35, cu);
+        lookAhead = MathUtils.lerp(lookAhead, 0.3, cu);
+        lookY = MathUtils.lerp(lookY, (mode === 'air' ? h * 0.45 : 0) + 0.95, cu);
+        orbit = MathUtils.lerp(orbit, this.side * 1.05, cu);
+        fov = MathUtils.lerp(fov, MathUtils.lerp(56, 64, p), cu);
+        orbitTime = MathUtils.lerp(0.5, 0.32, cu);
+      }
     }
 
     // ── smooth the shot numbers ──
@@ -315,8 +328,9 @@ export class CameraRig {
       } else {
         this.orbit = smoothDampAngle(this.orbit, orbit, this.orbitSpring, orbitTime, dt);
       }
-      this.dist = expDamp(this.dist, dist, 3.5, dt);
-      this.height = expDamp(this.height, height, 3.5, dt);
+      const rate = 3.5 + 3 * clamp01(s.slowMo);
+      this.dist = expDamp(this.dist, dist, rate, dt);
+      this.height = expDamp(this.height, height, rate, dt);
       this.lookAhead = expDamp(this.lookAhead, lookAhead, 3, dt);
       this.lookY = expDamp(this.lookY, lookY, 3, dt);
       this.fov = expDamp(this.fov, fov, 5, dt);
