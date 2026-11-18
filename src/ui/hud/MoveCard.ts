@@ -55,9 +55,8 @@ const RAIL: Row[] = [
 
 // one-finger scheme (src/input/Swipe.ts)
 const S_WATER: Row[] = [
+  { btn: 'hold', dir: '←/→', label: '@hud.moves.lane' },
   { btn: 'swipe', dir: '↑', label: '@hud.moves.jump' },
-  { btn: 'swipe', dir: '←/→', label: '@hud.moves.lane' },
-  { btn: 'swipe', dir: '↓', label: 'surface180' },
 ];
 const S_AIR_WAKEBOARD: Row[] = [
   { btn: 'swipe', dir: '←/→', label: '@hud.moves.spin180' },

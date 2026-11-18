@@ -1,7 +1,8 @@
 /**
  * SIMPLE (swipe) CONTROLS — one finger anywhere on the screen, no joystick and no buttons.
  *
- *   on the water   swipe ←/→  step one lane (3.5 m) left / right — the board carves there by itself
+ *   on the water   hold + drag ←/→  steer like a wheel: the further from where the finger went
+ *                             down, the harder the carve; let go and the board straightens up
  *                  swipe ↑    pop (instant, full; off a kicker it is a perfect lip release)
  *                  tap        small hop          swipe ↓  surface 180
  *   in the air     swipe ←/→  spin 180 more      swipe ↑ backroll   swipe ↓ frontroll
@@ -25,6 +26,11 @@ const SWIPE_MS = 420;
 const TAP_PX = 14;
 const TAP_MS = 260;
 const HOLD_MS = 200;
+/** Drag steering: finger offset (CSS px) for full lock, and the dead zone round the touch point. */
+const STEER_PX = 90;
+const STEER_DEAD = 8;
+/** Steering response time (s): the board eases into a carve instead of snapping. */
+const STEER_TAU = 0.16;
 
 export interface SwipeHint {
   /** Lane offset the board is steering to (−1 left … +1 right, in lanes). */
@@ -41,6 +47,14 @@ export class SwipeControls {
   private st = 0;
   private fired = false;
   private holding = false;
+  private downX = 0;
+  private downY = 0;
+  // drag steering (water): live finger x, smoothed steer, last apply() time
+  private curX = 0;
+  private steerOut = 0;
+  private lastApply = 0;
+  private touchEl: HTMLDivElement | null = null;
+  private touchDot: HTMLDivElement | null = null;
   // lane steering, in the frame of the rope direction at the start of the run
   private laneCenter = 0;
   private laneTarget = 0;
@@ -55,6 +69,18 @@ export class SwipeControls {
 
   attach(surface: HTMLElement): void {
     this.surface = surface;
+    // finger feedback: a ring where the finger went down and a dot that follows it (steering)
+    const ring = document.createElement('div');
+    ring.style.cssText =
+      'position:fixed;left:0;top:0;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;border:2px solid rgba(255,255,255,.55);' +
+      'box-shadow:0 0 12px rgba(0,0,0,.35);pointer-events:none;opacity:0;transition:opacity .15s;z-index:5';
+    const dot = document.createElement('div');
+    dot.style.cssText =
+      'position:fixed;left:0;top:0;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:rgba(255,255,255,.85);' +
+      'box-shadow:0 0 10px rgba(227,6,19,.6);pointer-events:none;opacity:0;transition:opacity .15s;z-index:5';
+    document.body.append(ring, dot);
+    this.touchEl = ring;
+    this.touchDot = dot;
     // capture phase on window: the classic joystick never sees these touches while swipe mode is on
     window.addEventListener('pointerdown', this.onDown, { capture: true, passive: false });
     window.addEventListener('pointermove', this.onMove, { capture: true, passive: false });
@@ -67,6 +93,9 @@ export class SwipeControls {
     window.removeEventListener('pointermove', this.onMove, { capture: true });
     window.removeEventListener('pointerup', this.onUp, { capture: true });
     window.removeEventListener('pointercancel', this.onUp, { capture: true });
+    this.touchEl?.remove();
+    this.touchDot?.remove();
+    this.touchEl = this.touchDot = null;
     this.surface = null;
   }
 
@@ -77,6 +106,12 @@ export class SwipeControls {
     this.queue.length = 0;
     this.pointer = -1;
     this.holding = false;
+    this.showTouch(false);
+  }
+
+  private showTouch(on: boolean): void {
+    if (this.touchEl) this.touchEl.style.opacity = on ? '1' : '0';
+    if (this.touchDot) this.touchDot.style.opacity = on ? '1' : '0';
   }
 
   /** New run / respawn: the current position becomes the centre lane. */
@@ -103,6 +138,11 @@ export class SwipeControls {
     e.preventDefault();
     if (this.pointer !== -1) return;
     this.pointer = e.pointerId;
+    this.downX = this.curX = e.clientX;
+    this.downY = e.clientY;
+    if (this.touchEl && this.touchDot) {
+      this.touchEl.style.transform = this.touchDot.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+    }
     this.sx = e.clientX;
     this.sy = e.clientY;
     this.st = performance.now();
@@ -114,7 +154,21 @@ export class SwipeControls {
     if (!this.enabled || e.pointerId !== this.pointer) return;
     e.stopImmediatePropagation();
     e.preventDefault();
+    this.curX = e.clientX;
+    if (this.touchDot) {
+      const off = Math.max(-STEER_PX, Math.min(STEER_PX, e.clientX - this.downX));
+      this.touchDot.style.transform = `translate(${this.downX + off}px, ${this.downY}px)`;
+      if (Math.abs(e.clientX - this.downX) > STEER_DEAD) this.showTouch(true);
+    }
     if (this.fired) return;
+    // sliding window: after a slow steering drag, a quick flick (↑ = pop) is still recognised
+    if (performance.now() - this.st > SWIPE_MS) {
+      this.sx = e.clientX;
+      this.sy = e.clientY;
+      this.st = performance.now();
+      this.holding = false;
+      return;
+    }
     const dx = e.clientX - this.sx;
     const dy = e.clientY - this.sy;
     const dist = Math.hypot(dx, dy);
@@ -136,13 +190,23 @@ export class SwipeControls {
     const dt = performance.now() - this.st;
     const dist = Math.hypot(e.clientX - this.sx, e.clientY - this.sy);
     if (!this.fired && !this.holding && dt <= TAP_MS && dist <= TAP_PX) this.queue.push('tap');
+    else if (!this.fired && dt <= SWIPE_MS && dist >= SWIPE_PX) {
+      // a fast flick whose moves arrived coalesced with the release
+      const dx = e.clientX - this.sx;
+      const dy = e.clientY - this.sy;
+      this.queue.push(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down');
+    }
     this.pointer = -1;
     this.holding = false;
+    this.showTouch(false);
   };
 
   /** Edit the polled frame for this sim state (call once per frame before sim.step). */
   apply(f: InputFrame, s: RiderSimState): void {
     f.popNow = 0;
+    const now = performance.now();
+    const dt = Math.min(0.1, Math.max(0, (now - (this.lastApply || now)) / 1000));
+    this.lastApply = now;
     if (!this.enabled) return;
     if (this.pointer !== -1 && !this.fired && performance.now() - this.st >= HOLD_MS) this.holding = true;
 
@@ -167,22 +231,28 @@ export class SwipeControls {
       case 'water':
       case 'slide': {
         this.railLast = null;
-        if (g === 'left' || g === 'right') {
-          const step = g === 'right' ? LANE : -LANE;
-          this.laneTarget = Math.max(this.laneCenter - LANE_SPAN, Math.min(this.laneCenter + LANE_SPAN, this.laneTarget + step));
-        } else if (g === 'up') f.popNow = 1;
+        if (g === 'up') f.popNow = 1;
         else if (g === 'tap') f.popNow = 0.45;
         else if (g === 'down') {
           f.trick.down = f.trick.pressed = true;
           f.steer = 1;
           break;
         }
-        // carve towards the lane: proportional on the offset, damped by the heading relative to the rope
+        // steering wheel: finger offset from where it went down → carve; no finger → straighten up
         const lineYaw = Math.atan2(dx, dz);
         let rel = s.heading - lineYaw;
         rel = Math.atan2(Math.sin(rel), Math.cos(rel));
-        const err = this.laneTarget - lateral;
-        f.steer = Math.max(-1, Math.min(1, err * 0.55 + rel * 1.6));
+        let target: number;
+        if (this.pointer !== -1) {
+          const off = this.curX - this.downX;
+          const k = Math.max(0, Math.abs(off) - STEER_DEAD) / (STEER_PX - STEER_DEAD);
+          target = Math.sign(off) * Math.min(1, k) ** 1.3;
+          // never carve past ~55° off the rope line
+          if (Math.abs(rel) > 0.95 && Math.sign(target) === Math.sign(-rel)) target *= 0.3;
+        } else target = Math.max(-0.6, Math.min(0.6, rel * 1.1));
+        const a = 1 - Math.exp(-dt / STEER_TAU);
+        this.steerOut += (target - this.steerOut) * a;
+        f.steer = this.steerOut;
         break;
       }
       case 'air': {
@@ -226,6 +296,7 @@ export class SwipeControls {
         break;
       }
       default:
+        this.steerOut = 0;
         this.railSteer = this.railPitch = 0;
         this.railLast = null;
     }
