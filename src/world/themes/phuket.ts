@@ -175,7 +175,7 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
     if (rng() < 0.6) {
       const ly = groundH - 1.15;
       dark.color(0x221a14).rod([cx, groundH - 0.01, arcade - 0.6], [cx, ly + 0.22, arcade - 0.6], 0.008, 3);
-      lamp.color(rng() < 0.75 ? 0xe5251a : 0xff9a2e, glowLvl * 0.9).sphere(cx, ly, arcade - 0.6, 0.2, 0.25, 0.2, 7, 5);
+      lamp.color(rng() < 0.75 ? 0xe5251a : 0xff9a2e, glowLvl * 0.9).sphere(cx, ly, arcade - 0.6, 0.2, 0.25, 0.2, 6, 4);
       lamp.color(0xffd27a, glowLvl * 0.5).cyl(cx, ly - 0.36, arcade - 0.6, 0.025, 0.04, 0.12, 4);
       dark.color(0x1a1a1a).cyl(cx, ly + 0.2, arcade - 0.6, 0.08, 0.08, 0.08, 6);
     }
@@ -217,7 +217,7 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
       trimG.boxB(cx, y, arcade + 0.12, bayW, 0.1, 0.24);
       if (top) trimG.boxB(cx, y + 0.1, arcade + 0.17, bayW + 0.04, 0.08, 0.34);
       // dentils on the top cornice
-      if (top) for (let d = 0; d < 9; d++) trimG.color(tc, 0.9).boxB(bx + 0.25 + d * ((bayW - 0.5) / 8), y - 0.24, arcade + 0.06, 0.12, 0.1, 0.1);
+      if (top) for (let d = 0; d < 9; d++) trimG.color(tc, 0.9).boxB(bx + 0.25 + d * ((bayW - 0.5) / 8), y - 0.24, arcade + 0.06, 0.12, 0.1, 0.1, 'yzxX');
       // rain streaks hanging off the cornice
       if (f > 0 || rng() < 0.5) faceUV(grime, bx + range(rng, 0, 0.6), bx + bayW - range(rng, 0, 0.6), y - 0.14 - range(rng, 0.9, 1.6), y - 0.14, arcade + 0.004, GRIME_UV.streaks);
     }
@@ -227,6 +227,8 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
 
     // ── upper windows ──
     const win = FACADE_UV.archLouvre[shutter];
+    // air-con goes between the windows of one floor (replacing that floor's ornament)
+    const acFloor = rng() < 0.55 ? Math.floor(rng() * fl) : -1;
     const hoodKind = Math.floor(rng() * 3);
     for (let f = 0; f < fl; f++) {
       const y = groundH + f * floorH + 0.55;
@@ -234,7 +236,7 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
         const w = 0.95;
         const wh = 1.95;
         const zf = arcade + 0.02;
-        const open = rng() < 0.3;
+        const open = rng() < 0.36;
         if (open) {
           // lamp-lit interior behind an empty stucco frame, shutter leaves folded back
           const it = PHUKET_UV.litInterior[Math.floor(rng() * 3)];
@@ -266,8 +268,18 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
         if (rng() < 0.6) faceUV(grime, wx - w / 2 - 0.05, wx + w / 2 + 0.05, y - 0.2 - range(rng, 0.6, 1.2), y - 0.2, arcade + 0.006, GRIME_UV.streaks);
       }
       // ornament between the windows
-      const orn = rng();
+      const orn = f === acFloor ? 1 : rng();
       const my = groundH + f * floorH + 1.35;
+      if (f === acFloor) {
+        const ax = cx;
+        const ay = groundH + f * floorH + 0.95;
+        dark.color(0xdedbd2).boxB(ax, ay, arcade + 0.24, 0.8, 0.55, 0.32, 'Z');
+        faceUV(facade.white(), ax - 0.4, ax + 0.4, ay, ay + 0.55, arcade + 0.4, FACADE_UV.aircon);
+        dark.color(0x5a5650).beam([ax - 0.3, ay - 0.04, arcade + 0.02], [ax - 0.3, ay - 0.04, arcade + 0.4], 0.035);
+        dark.beam([ax + 0.3, ay - 0.04, arcade + 0.02], [ax + 0.3, ay - 0.04, arcade + 0.4], 0.035);
+        faceUV(grime, ax - 0.4, ax + 0.4, ay - 1.1, ay - 0.04, arcade + 0.006, GRIME_UV.drip);
+        dark.color(0xe8e6e0).rod([ax + 0.42, ay + 0.1, arcade + 0.06], [ax + 0.42, ay - 0.9, arcade + 0.06], 0.018, 4);
+      }
       if (orn < 0.35) faceUV(deco.white(), cx - 0.3, cx + 0.3, my, my + 0.6, arcade + 0.012, PHUKET_UV.medallion);
       else if (orn < 0.55) faceUV(deco.white(), cx - 0.3, cx + 0.3, my, my + 0.6, arcade + 0.012, PHUKET_UV.cartouche);
       else if (orn < 0.75) faceUV(deco.white(), cx - 0.34, cx + 0.34, my - 0.2, my + 0.48, arcade + 0.012, PHUKET_UV.peel[Math.floor(rng() * 4)]);
@@ -325,17 +337,6 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
       g.white().quadUV([px, sy0, zs0], [px, sy0, zs1], [px, sy1, zs1], [px, sy1, zs0], s[0], s[1], s[2], s[3]);
       g.quadUV([px, sy0, zs1], [px, sy0, zs0], [px, sy1, zs0], [px, sy1, zs1], s[0], s[1], s[2], s[3]);
       dark.color(0x2a2622).beam([px, sy1 + 0.08, arcade - 0.02], [px, sy1 + 0.08, zs1 + 0.05], 0.03);
-    }
-    // air-con unit with brackets, condensate pipe and a rust drip below
-    if (rng() < 0.55) {
-      const ax = rng() < 0.5 ? cx : bx + (rng() < 0.5 ? 0.75 : bayW - 0.75);
-      const ay = groundH + floorH * Math.floor(rng() * fl) + range(rng, 0.2, 0.35) + (ax === cx ? 0 : 2.1);
-      dark.color(0xdedbd2).boxB(ax, ay, arcade + 0.24, 0.8, 0.55, 0.32, 'Z');
-      faceUV(facade.white(), ax - 0.4, ax + 0.4, ay, ay + 0.55, arcade + 0.4, FACADE_UV.aircon);
-      dark.color(0x5a5650).beam([ax - 0.3, ay - 0.04, arcade + 0.02], [ax - 0.3, ay - 0.04, arcade + 0.4], 0.035);
-      dark.beam([ax + 0.3, ay - 0.04, arcade + 0.02], [ax + 0.3, ay - 0.04, arcade + 0.4], 0.035);
-      faceUV(grime, ax - 0.4, ax + 0.4, ay - 1.2, ay - 0.04, arcade + 0.006, GRIME_UV.drip);
-      dark.color(0xe8e6e0).rod([ax + 0.42, ay + 0.1, arcade + 0.06], [ax + 0.42, ay - 1.6, arcade + 0.06], 0.018, 4);
     }
     // drain pipe at the party wall
     if (rng() < 0.5) {

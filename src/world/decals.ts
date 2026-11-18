@@ -995,6 +995,8 @@ function stoneQuay(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   // 4 courses of bevelled granite blocks; horizontally periodic (joints never cross the seam)
   const courses = 4;
   const ch = h / courses;
+  ctx.fillStyle = '#4a443a';
+  ctx.fillRect(x, y, w, h);
   for (let c = 0; c < courses; c++) {
     const cy = y + c * ch;
     let bx = x;
@@ -1010,9 +1012,9 @@ function stoneQuay(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
     bx = x - off * (w / n);
     for (let i = 0; i <= n; i++) {
       const bw = (widths[i % n] / sum) * w;
-      const tone = 128 + Math.floor(rnd() * 44) - c * 6;
-      const warm = Math.floor(rnd() * 14);
-      const base = `rgb(${tone + warm},${tone + warm * 0.5},${tone - 8})`;
+      const tone = 104 + Math.floor(rnd() * 56) - c * 8;
+      const warm = Math.floor(rnd() * 22);
+      const base = `rgb(${tone + warm},${Math.round(tone + warm * 0.55)},${tone - 10})`;
       for (const sx of [0, w]) {
         const px = bx - sx;
         if (px > x + w || px + bw < x) continue;
@@ -1116,6 +1118,7 @@ export function drawPhuketAtlas(seed: number): HTMLCanvasElement {
     // cut the opening
     ctx.save();
     ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = '#000';
     ctx.beginPath();
     arch(ctx, x + 17, y + 17, 94, 222);
     ctx.fill();
@@ -1407,7 +1410,7 @@ export function drawGrimeAtlas(seed: number): HTMLCanvasElement {
       }
       ctx.lineTo(512, 256);
       ctx.closePath();
-      ctx.fillStyle = `rgba(48,40,30,${0.12 + layer * 0.1})`;
+      ctx.fillStyle = `rgba(48,40,30,${0.08 + layer * 0.07})`;
       ctx.fill();
     }
     for (let i = 0; i < 20; i++) {
