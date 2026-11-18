@@ -127,6 +127,7 @@ class RiderRig implements IRiderRig {
     this.bodyMat = new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
     if (profile.post) addClothDetail(this.bodyMat);
     this.boardMat = new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
+    this.patchBoardFlex();
     this.handleMat = new MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0 });
     const handle = buildHandle();
     this.stats.handle = handle.triangles;
@@ -288,7 +289,62 @@ class RiderRig implements IRiderRig {
     this.rebuild();
   }
 
+  /** Board flex (deck bends where it slides): nose curl, tail curl, body sag — board-local metres. */
+  private readonly flex = { nose: { value: 0 }, tail: { value: 0 }, body: { value: 0 }, half: { value: 0.7 } };
+
+  private patchBoardFlex(): void {
+    const f = this.flex;
+    this.boardMat.onBeforeCompile = (sh) => {
+      sh.uniforms.uFlexNose = f.nose;
+      sh.uniforms.uFlexTail = f.tail;
+      sh.uniforms.uFlexBody = f.body;
+      sh.uniforms.uFlexHalf = f.half;
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nuniform float uFlexNose;\nuniform float uFlexTail;\nuniform float uFlexBody;\nuniform float uFlexHalf;')
+        .replace(
+          '#include <begin_vertex>',
+          `#include <begin_vertex>
+          {
+            float zt = clamp(position.z / uFlexHalf, -1.0, 1.0);
+            float n = max(0.0, zt - 0.3) / 0.7;
+            float t = max(0.0, -zt - 0.3) / 0.7;
+            // ends curl up over the obstacle, the body sags between the feet / ends droop off a centre rail
+            transformed.y += uFlexNose * n * n + uFlexTail * t * t - uFlexBody * (1.0 - zt * zt);
+          }`,
+        );
+    };
+    this.boardMat.customProgramCacheKey = () => 'wsh-board-flex';
+  }
+
+  /** Flex targets from the rail stance; eased so the deck loads and springs back. */
+  private updateFlex(state: RiderSimState, dt: number): void {
+    const f = this.flex;
+    f.half.value = this.spec.length / 2;
+    const k = this.spec.kind === 'wakeboard' ? 1 : 0.45; // wood flexes far less than a wakeboard
+    let nose = 0;
+    let tail = 0;
+    let body = 0;
+    if (state.mode === 'rail' && state.rail) {
+      const st = state.rail.stance;
+      if (st === 'noseslide' || st === 'noseblunt' || st === 'nosepress') {
+        nose = 0.075;
+        body = 0.02;
+      } else if (st === 'tailslide' || st === 'tailblunt' || st === 'tailpress') {
+        tail = 0.075;
+        body = 0.02;
+      } else {
+        // centre on the rail (50-50, board- / lipslide): the ends droop, the middle is held up
+        body = -0.032;
+      }
+    }
+    const a = dt > 0 ? 1 - Math.exp(-dt * 10) : 1;
+    f.nose.value += (nose * k - f.nose.value) * a;
+    f.tail.value += (tail * k - f.tail.value) * a;
+    f.body.value += (body * k - f.body.value) * a;
+  }
+
   update(state: RiderSimState, dt: number): void {
+    this.updateFlex(state, dt);
     this.root.position.copy(state.pos);
     this.root.quaternion.setFromAxisAngle(UP, state.boardYaw);
     this.animator.compute(state, this.target, this.direct, this.input, null);
