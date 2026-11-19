@@ -141,9 +141,12 @@ const GRADE_FRAG = /* glsl */ `
       float sat = max(col.r, max(col.g, col.b)) - min(col.r, min(col.g, col.b));
       // vibrance: lift muted colours more than already saturated ones
       col = mix(vec3(pl), col, 1.0 + uPoster * (0.3 - 0.25 * sat));
-      col += uPoster * (vec3(-0.012, 0.004, 0.04) * (1.0 - smoothstep(0.0, 0.4, pl)) + vec3(0.035, 0.008, -0.03) * smoothstep(0.5, 1.0, pl));
+      // bright and sunny: warm highlights only (no cold shadow tint), a gentle S-curve, then lift the
+      // mids so shaded water / walls stay light and cheerful instead of sinking to navy
+      col += uPoster * vec3(0.03, 0.01, -0.02) * smoothstep(0.5, 1.0, pl);
       vec3 sc = clamp(col, 0.0, 1.0);
-      col = mix(col, sc * sc * (3.0 - 2.0 * sc), 0.32 * uPoster);
+      col = mix(col, sc * sc * (3.0 - 2.0 * sc), 0.12 * uPoster);
+      col = mix(col, pow(max(col, vec3(0.0)), vec3(0.8)), uPoster);
     }
 
     // Slow-motion grade: a touch less colour, a touch more contrast (display-linear, pivot = mid grey).
@@ -188,7 +191,7 @@ class GradePass extends Pass {
         uHero: { value: 0 },
         uPoster: { value: 1 },
         uTime: { value: 0 },
-        uVignette: { value: 0.24 },
+        uVignette: { value: 0.1 },
         uDrops: { value: 0 },
         uSpeed: { value: 0 },
         uSeed: { value: 0 },

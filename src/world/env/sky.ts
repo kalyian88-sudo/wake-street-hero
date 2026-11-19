@@ -312,15 +312,17 @@ function insert(src: string, anchor: string, code: string, where: 'before' | 'af
  * zenith → magenta → orange horizon gradient (the key-art palette). Day / overcast / night stay physical.
  */
 function posterUniforms(def: EnvDef): Record<string, IUniform> {
-  const on = def.timeOfDay === 'sunset' ? 0.85 : def.timeOfDay === 'golden' ? 0.55 : 0;
+  const sunset = def.timeOfDay === 'sunset';
+  const on = sunset ? 0.8 : def.timeOfDay === 'golden' ? 0.45 : 0;
   // typical sky radiance (after wshGain) the gradient is normalised to
-  const ref = def.timeOfDay === 'sunset' ? 0.9 : 1.4;
-  const k = def.timeOfDay === 'sunset' ? 1 : 1.35;
+  const ref = sunset ? 0.9 : 1.4;
+  // golden hour stays a bright, friendly sky (blue up top, peach at the horizon); only the sunset
+  // goes violet / magenta like the key art
   return {
     wshPoster: { value: new Vector4(on, ref, 0, 0) },
-    wshPosterZen: { value: new Color(0.16, 0.13, 0.42).multiplyScalar(k) },
-    wshPosterMid: { value: new Color(0.62, 0.22, 0.48).multiplyScalar(k) },
-    wshPosterHor: { value: new Color(1.15, 0.5, 0.2).multiplyScalar(k) },
+    wshPosterZen: { value: sunset ? new Color(0.22, 0.2, 0.55) : new Color(0.42, 0.62, 1.15) },
+    wshPosterMid: { value: sunset ? new Color(0.75, 0.3, 0.55) : new Color(0.95, 0.8, 0.95) },
+    wshPosterHor: { value: sunset ? new Color(1.25, 0.6, 0.25) : new Color(1.6, 1.15, 0.75) },
   };
 }
 
