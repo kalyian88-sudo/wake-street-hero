@@ -15,6 +15,7 @@ import {
   Skeleton,
   SkinnedMesh,
   Vector3,
+  Vector4,
   type BufferGeometry,
 } from 'three';
 import { createRiderSimState } from '../core/riderState';
@@ -107,6 +108,8 @@ class RiderRig implements IRiderRig {
   private lastJerk = 0;
   private disposed = false;
   private readonly tmpQ = new Quaternion();
+  /** Bind-space heights the fabric shader bunches its folds around: elbow, waist, armpit, knee. */
+  private readonly clothJoints = { value: new Vector4() };
 
   /** Triangle counts of the current build (sandbox / perf checks). */
   readonly stats = { body: 0, head: 0, board: 0, handle: 0 };
@@ -125,7 +128,7 @@ class RiderRig implements IRiderRig {
       this.root.add(bone);
     }
     this.bodyMat = new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
-    if (profile.post) addClothDetail(this.bodyMat);
+    if (profile.post) addClothDetail(this.bodyMat, this.clothJoints);
     this.boardMat = new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
     this.patchBoardFlex();
     this.handleMat = new MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0 });
@@ -160,6 +163,7 @@ class RiderRig implements IRiderRig {
 
     if (this.female !== o.female || !this.skeleton) {
       this.female = o.female;
+      this.clothJoints.value.set(P.shoulderY - P.uarm, P.hipY + 0.17 * P.scale, P.shoulderY - 0.07 * P.scale, P.kneeY);
       const joints = bindJoints(P);
       const inverses = joints.map((j) => new Matrix4().makeTranslation(-j.x, -j.y, -j.z));
       this.skeleton?.dispose();

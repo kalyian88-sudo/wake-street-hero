@@ -5,7 +5,7 @@
 import { drawBrandImage } from '../brand/images';
 import { CanvasTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, SRGBColorSpace, type Texture } from 'three';
 import { BRAND } from '../config';
-import { ATLAS, SWATCH_ROUGHNESS, type AtlasRect, type Outfit } from './rigDef';
+import { ATLAS, SWATCH, SWATCH_ROUGHNESS, type AtlasRect, type Outfit } from './rigDef';
 import { brandWords, contrast, css, drawWordmark, luma, mix, paintGraphic, rgba, roundRect, shade, softShade, type Ctx } from './paint';
 
 export interface BodyAtlas {
@@ -72,6 +72,14 @@ function paintBodyAtlas(o: Outfit, anisotropy: number): BodyAtlas {
     rctx.fillRect(sw[0] + k * 64, sw[1], 64, 64);
   }
 
+  // skin mask for the shader (subsurface warmth): blue channel of the roughness atlas, which only reads green
+  rctx.save();
+  rctx.globalCompositeOperation = 'lighter';
+  rctx.fillStyle = 'rgb(0,0,255)';
+  rctx.fillRect(ATLAS.face[0], ATLAS.face[1], ATLAS.face[2] - 8, ATLAS.face[3] - 8);
+  rctx.fillRect(sw[0] + SWATCH.skin * 64 + 4, sw[1] + 4, 56, 56);
+  rctx.restore();
+
   const map = new CanvasTexture(canvas);
   map.colorSpace = SRGBColorSpace;
   map.anisotropy = anisotropy;
@@ -113,7 +121,7 @@ function paintFace(ctx: Ctx, rctx: Ctx, o: Outfit): void {
 
   // soft modelling: warm cheeks, lighter brow / nose bridge, darker under the jaw
   const blush = ctx.createRadialGradient(0, 0, 0, 0, 0, 62);
-  blush.addColorStop(0, rgba(mix(skin, 0xd8473a, 0.55), o.female ? 0.4 : 0.26));
+  blush.addColorStop(0, rgba(mix(skin, 0xd8473a, 0.55), o.female ? 0.4 : 0.16));
   blush.addColorStop(1, rgba(mix(skin, 0xd8473a, 0.55), 0));
   for (const s of [-1, 1]) {
     ctx.save();
@@ -153,7 +161,7 @@ function paintFace(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     // eye white (almond)
     ctx.save();
     ctx.translate(ex, eyeY);
-    ctx.scale(1.16, 1.2);
+    ctx.scale(o.female ? 1.12 : 0.98, o.female ? 1.16 : 0.9);
     ctx.beginPath();
     ctx.moveTo(-27, 2);
     ctx.quadraticCurveTo(-4 * s, -21, 27, 0);
@@ -211,7 +219,7 @@ function paintFace(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     // eyebrow: tapered stroke, slightly raised outside
     ctx.strokeStyle = css(brow);
     ctx.lineCap = 'round';
-    ctx.lineWidth = o.female ? 7 : 12;
+    ctx.lineWidth = o.female ? 7 : 9.5;
     ctx.beginPath();
     ctx.moveTo(ex - s * 32, eyeY - 40);
     ctx.quadraticCurveTo(ex + s * 2, eyeY - (o.female ? 58 : 54), ex + s * 40, eyeY - 43);
@@ -252,8 +260,8 @@ function paintFace(ctx: Ctx, rctx: Ctx, o: Outfit): void {
     ctx.quadraticCurveTo(cx, my + 16, cx - 30, my - 1);
     ctx.fill();
   }
-  ctx.strokeStyle = css(shade(lip, -0.55));
-  ctx.lineWidth = 3.4;
+  ctx.strokeStyle = rgba(shade(lip, -0.55), o.female ? 1 : 0.8);
+  ctx.lineWidth = o.female ? 3.4 : 2.6;
   ctx.beginPath();
   ctx.moveTo(cx - 37, my - 5);
   ctx.quadraticCurveTo(cx, my + 9, cx + 37, my - 5);
@@ -719,7 +727,7 @@ function paintHeadwear(ctx: Ctx, rctx: Ctx, o: Outfit): void {
   ctx.fillRect(0, 0, 512, 192);
   if (o.headwear === 'helmet') {
     const plain = look.graphic === 'plain';
-    rctx.fillStyle = grey(plain ? 0.38 : 0.26);
+    rctx.fillStyle = grey(plain ? 0.5 : 0.4);
     rctx.fillRect(0, 0, 512, 192);
     if (!plain) paintGraphic(ctx, 0, 0, 512, 192, { ...look, graphic: look.graphic === 'logo' || look.graphic === 'wood' ? 'plain' : look.graphic }, 23);
     // vents: two rings of slots

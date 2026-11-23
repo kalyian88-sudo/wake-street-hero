@@ -5,7 +5,7 @@
 import { BufferGeometry, Vector3 } from 'three';
 import { BRAND } from '../config';
 import type { BoardKind } from '../types';
-import { MeshBuilder, capsuleRings, ringsOf, type Ring } from './geo';
+import { MeshBuilder, ringsOf, type Ring } from './geo';
 import { contrast, shade } from './paint';
 import { ATLAS, B, SWATCH, rectUV, swatchUV, type Outfit, type Proportions } from './rigDef';
 
@@ -35,10 +35,10 @@ const TORSO_M: readonly (readonly number[])[] = [
   [0.31, 0.152, 0.108, 0.008, 2.5],
   [0.39, 0.16, 0.116, 0.01, 2.6],
   [0.455, 0.16, 0.108, 0.004, 2.4],
-  [0.505, 0.146, 0.094, -0.004, 2.15],
-  [0.528, 0.128, 0.084, -0.008, 2.0],
-  [0.552, 0.096, 0.07, -0.008, 2.1],
-  [0.572, 0.062, 0.06, -0.006, 2],
+  [0.505, 0.156, 0.094, -0.004, 2.15],
+  [0.528, 0.146, 0.083, -0.008, 2.1],
+  [0.552, 0.108, 0.07, -0.01, 2.1],
+  [0.572, 0.062, 0.06, -0.008, 2],
 ];
 const TORSO_F: readonly (readonly number[])[] = [
   [-0.082, 0.058, 0.064, 0, 2],
@@ -51,8 +51,8 @@ const TORSO_F: readonly (readonly number[])[] = [
   [0.31, 0.134, 0.104, 0.014, 2.4],
   [0.39, 0.14, 0.112, 0.018, 2.5],
   [0.455, 0.138, 0.098, 0.006, 2.5],
-  [0.505, 0.128, 0.084, -0.004, 2.4],
-  [0.545, 0.09, 0.066, -0.008, 2.2],
+  [0.505, 0.134, 0.084, -0.004, 2.2],
+  [0.545, 0.096, 0.066, -0.008, 2.0],
   [0.572, 0.054, 0.052, -0.006, 2],
 ];
 
@@ -102,43 +102,97 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
       out[2] = 1 - smooth(0.22, 0.37, h);
     }
   };
-  const pad = (h: number): number => (hoodie ? (h > 0.02 ? 0.02 : 0.012) : jersey ? (h < 0.11 ? 0.03 : 0.022) : wet ? 0.004 : h < 0.11 ? 0.012 : 0.005);
+  const pad = (h: number): number => (hoodie ? (h > 0.02 ? 0.02 : 0.012) : jersey ? 0.014 : wet ? 0.004 : h < 0.11 ? 0.012 : 0.005);
+  /** Clothed torso section at height h: [rx, rz, oz, n]. A loose jersey hangs straight from the chest instead of hugging the waist. */
+  const tmpS: number[] = [];
+  const sect = (h: number, out: number[]): number[] => {
+    torsoAt(table, h, tmpS);
+    const p = pad(h) * (h > 0.52 ? 0.3 : 1);
+    let rx = tmpS[1] + p;
+    let rz = tmpS[2] + p;
+    let oz = tmpS[3];
+    if (!suit && h > 0.42) {
+      // yoke: the shirt spans from the neck to the points of the shoulders
+      rx += (P.female ? 0.012 : 0.02) * smooth(0.42, 0.5, h) * smooth(0.572, 0.54, h);
+    }
+    if (jersey && h < 0.39 && h > -0.06) {
+      const k = smooth(0.39, 0.3, h);
+      const lx = (P.female ? 0.136 : 0.154) + p;
+      const lz = (P.female ? 0.1 : 0.104) + p;
+      if (lx > rx) rx += (lx - rx) * k;
+      if (lz > rz) {
+        // the back of the shirt falls off the shoulder blades, the front off the chest
+        rz += (lz - rz) * k;
+        oz += 0.004 * k;
+      }
+    }
+    out[0] = rx;
+    out[1] = rz;
+    out[2] = oz;
+    out[3] = tmpS[4];
+    return out;
+  };
   const yBot = P.hipY - 0.082 * s;
   const yTop = P.hipY + 0.572 * s;
+  const tmpT: number[] = [];
   const torso: Ring[] = table.map((r) => {
-    const p = pad(r[0]) * (r[0] > 0.52 ? 0.3 : 1);
-    return { y: P.hipY + r[0] * s, rx: (r[1] + p) * (P.female ? 1 : 1), rz: r[2] + p, oz: r[3], n: r[4] };
+    sect(r[0], tmpT);
+    return { y: P.hipY + r[0] * s, rx: tmpT[0], rz: tmpT[1], oz: tmpT[2], n: r[4] };
   });
+  // loose jersey: long hanging drapes that deepen towards the hem (real geometry, so the hem silhouette waves)
+  const drape = jersey
+    ? (p: Vector3): void => {
+        const h = (p.y - P.hipY) / s;
+        const k = smooth(0.34, -0.02, h);
+        if (k <= 0) return;
+        const phi = Math.atan2(p.z, p.x);
+        const w = 0.6 * Math.sin(6 * phi + 0.8) + 0.4 * Math.sin(3 * phi + 2 + h * 5) + 0.25;
+        const a = 0.0085 * k * w;
+        p.x += Math.cos(phi) * a;
+        p.z += Math.sin(phi) * a;
+      }
+    : undefined;
   b.identity().color(0xffffff);
   b.skinFn = torsoSkin;
   b.loft(torso, {
-    radial: 24,
+    warp: drape,
+    radial: 28,
     wrap: rectUV(ATLAS.torso, 1),
     vOf: (r) => (r.y - yBot) / (yTop - yBot),
     capStart: yBot - 0.016,
   });
 
   // ── oversize jersey: the body of the shirt carries on below the hips as one loose tube (same
-  //    wrap texture as the torso, so there is no seam or "belt"), ending in a soft hem over the shorts ──
+  //    wrap texture as the torso, so there is no seam or "belt"), ending in a soft hem over the shorts.
+  //    The hem is partly carried by the thighs, so it rides up over a lifted knee instead of ballooning ──
   if (jersey) {
     const tmpJ: number[] = [];
     const ringAt = (h: number, grow: number): Ring => {
-      torsoAt(table, Math.max(h, 0.0), tmpJ);
-      const p = pad(Math.max(h, 0.0));
-      return { y: P.hipY + h * s, rx: tmpJ[1] + p + grow, rz: tmpJ[2] + p + grow * 1.15, oz: tmpJ[3] - 0.004, n: 2.3 };
+      sect(Math.max(h, 0.0), tmpJ);
+      // wider at the sides than front / back: the hem has to clear the legs of the shorts
+      return { y: P.hipY + h * s, rx: tmpJ[0] + grow * 2.3, rz: tmpJ[1] + grow, oz: tmpJ[2] - 0.004, n: 2.3 };
     };
-    // starts just inside the torso surface (hidden), widens a touch as it falls
-    const tube: Ring[] = [ringAt(-0.135, 0.028), ringAt(-0.11, 0.027), ringAt(-0.06, 0.02), ringAt(-0.02, 0.012), ringAt(0.05, 0.004), ringAt(0.11, -0.002)];
+    // starts just inside the torso surface (hidden), widens a touch as it falls; the last ring folds under
+    const tube: Ring[] = [ringAt(-0.12, 0.007), ringAt(-0.108, 0.013), ringAt(-0.085, 0.014), ringAt(-0.045, 0.011), ringAt(0.0, 0.007), ringAt(0.05, 0.003), ringAt(0.11, -0.002)];
     const uvT = rectUV(ATLAS.torso, 1);
     // texture v: reuse the plain lower band of the torso wrap (below the prints)
-    const vBand = (i: number, n: number): number => 0.02 + 0.1 * (i / (n - 1));
+    const vBand = (i: number, n: number): number => 0.02 + 0.1 * (Math.max(0, i - 1) / (n - 2));
     b.identity().color(0xffffff);
     b.skinFn = (p: Vector3, out: [number, number, number]): void => {
-      out[0] = B.pelvis;
-      out[1] = B.spine;
-      out[2] = 1 - smooth(0.04, 0.17, (p.y - P.hipY) / s);
+      const h = (p.y - P.hipY) / s;
+      if (h > 0.02) {
+        out[0] = B.pelvis;
+        out[1] = B.spine;
+        out[2] = 1 - smooth(0.04, 0.17, h);
+      } else {
+        const side = smooth(0.015, 0.08, Math.abs(p.x));
+        out[0] = B.pelvis;
+        out[1] = p.x > 0 ? B.thighL : B.thighR;
+        out[2] = 1 - 0.2 * smooth(0.02, -0.11, h) * side;
+      }
     };
     b.loft(tube, {
+      warp: drape,
       radial: 28,
       wrap: uvT,
       vOf: (_r, i, n) => vBand(i, n),
@@ -152,11 +206,10 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     const tmp: number[] = [];
     const hs = [0.085, 0.1, 0.16, 0.23, 0.31, 0.39, 0.455, 0.505, 0.548, 0.566];
     const rings: Ring[] = hs.map((h, i) => {
-      torsoAt(table, h, tmp);
-      const p = pad(h);
+      sect(h, tmp);
       const th = i === 0 ? 0.004 : 0.016;
       const strap = h > 0.5 ? (h > 0.54 ? 0.012 : -0.012) : 0;
-      return { y: P.hipY + h * s, rx: tmp[1] + p + th * 0.8 + strap, rz: tmp[2] + p + th * 1.25 + (h > 0.54 ? 0.012 : 0), oz: tmp[3], n: tmp[4] + 0.2 };
+      return { y: P.hipY + h * s, rx: tmp[0] + th * 0.8 + strap, rz: tmp[1] + th * 1.25 + (h > 0.54 ? 0.012 : 0), oz: tmp[2], n: tmp[3] + 0.2 };
     });
     const v0 = rings[0].y;
     const v1 = rings[rings.length - 1].y;
@@ -172,7 +225,7 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
   }
 
   // ── neck (+ hood / collar) ──
-  const neckR = (P.female ? 0.047 : 0.06) * (suit ? 1.04 : 1);
+  const neckR = (P.female ? 0.046 : 0.055) * (suit ? 1.04 : 1);
   b.bone(B.neck).color(skin);
   sw(SWATCH.skin);
   b.at(0, P.neckY - 0.034 * s, -0.004).capsule(0.115 * s, neckR * 1.16, neckR * 1.0, { radial: 20, capSeg: 2, sz: 0.94, mid: [[0.3, neckR * 1.05]] });
@@ -200,124 +253,178 @@ export function buildBody(o: Outfit, P: Proportions, board: BoardKind): BodyBuil
     b.at(0, P.neckY - 0.018 * s, -0.004).capsule(0.03 * s, neckR * 1.2, neckR * 1.12, { radial: 10, capSeg: 1 });
   }
 
-  // ── arms ──
+  // ── arms: ONE loft shoulder → wrist per side; the elbow is skinned to both arm bones, the deltoid partly to the chest ──
   for (const side of [1, -1]) {
     const L = side > 0;
     const x = side * P.shoulderHalf;
     const sleeveLong = suit || hoodie || jersey;
-    const fat = hoodie ? 0.016 : jersey ? 0.02 : suit ? 0.004 : 0;
-    // upper arm
-    b.bone(L ? B.uarmL : B.uarmR).color(sleeveLong ? topC : skin);
+    const fat = hoodie ? 0.015 : jersey ? 0.011 : suit ? 0.003 : 0;
+    const loose = hoodie || jersey;
+    const uarmBone = L ? B.uarmL : B.uarmR;
+    const larmBone = L ? B.larmL : B.larmR;
+    const elbowY = P.shoulderY - P.uarm;
+    const armSkin = (p: Vector3, out: [number, number, number]): void => {
+      out[0] = uarmBone;
+      if (p.y > elbowY + P.uarm * 0.5) {
+        out[1] = B.chest;
+        out[2] = 1 - 0.25 * smooth(P.shoulderY - 0.05, P.shoulderY + 0.035, p.y) * smooth(x * side + 0.05, x * side - 0.03, p.x * side);
+      } else {
+        out[1] = larmBone;
+        out[2] = smooth(elbowY - 0.05, elbowY + 0.05, p.y);
+      }
+    };
+    const L1 = P.uarm;
+    const L2 = P.larm;
+    const T = L1 + L2;
+    const cuffC = hoodie || jersey ? shade(topC, -0.2) : contrast(suitC, o.bottomLook.accent);
+    b.color(sleeveLong ? topC : skin);
     sw(sleeveLong ? (hoodie ? SWATCH.matte : jersey ? SWATCH.cloth : SWATCH.rubber) : SWATCH.skin);
     _a.set(x, P.shoulderY, 0);
-    _b.set(x, P.shoulderY - P.uarm, 0);
-    // the top of the upper arm is partly carried by the chest so the shoulder stays rounded when the arm lifts
-    const uarmBone = L ? B.uarmL : B.uarmR;
-    const shoulderSkin = (p: Vector3, out: [number, number, number]): void => {
-      out[0] = uarmBone;
-      out[1] = B.chest;
-      out[2] = 0.9 + 0.1 * smooth(P.shoulderY + 0.02, P.shoulderY - 0.06, p.y);
-    };
-    b.skinFn = shoulderSkin;
-    b.segment(_a, _b, FRONT).capsule(P.uarm, 0.056 * g + fat, 0.04 * g + fat, { radial: 20, mid: [[0.22, 0.056 * g + fat], [0.5, 0.05 * g + fat], [0.8, 0.043 * g + fat]] });
-    // deltoid cap rounding the shoulder into the torso
-    b.skinFn = shoulderSkin;
-    b.at(x - side * 0.006, P.shoulderY - 0.035 * s, 0.002).ellipsoid(0.054 * g + fat, 0.07 * s, 0.056 * g + fat, { radial: 18, rings: 8 });
-    b.bone(uarmBone).segment(_a, _b, FRONT);
+    _b.set(x, P.shoulderY - T, 0);
+    // rows: [y along the arm, radius, depth scale, oz (+ = front), ox (+ = away from the body), sleeve looseness 0..1]
+    const armRows: readonly (readonly number[])[] = [
+      [-0.031, 0.02, 1.05, 0, -0.016, 0.6],
+      [-0.024, 0.034, 1.05, 0, -0.009, 0.8],
+      [-0.01, 0.046, 1.06, 0, -0.002, 1],
+      [0.012, 0.054, 1.06, 0, 0.003, 1],
+      [0.055, 0.053, 1.04, 0.001, 0.004, 1],
+      [0.105, 0.049, 1.06, 0.003, 0.002, 1.1],
+      [L1 * 0.56, 0.0465, 1.08, 0.004, 0, 1.2],
+      [L1 * 0.76, 0.042, 1.06, 0.002, 0, 0.9],
+      [L1 - 0.05, 0.039, 1.04, 0, 0, 1.25],
+      [L1 - 0.025, 0.0385, 1.05, -0.002, 0, 0.85],
+      [L1, 0.0395, 1.08, -0.004, 0, 1.3],
+      [L1 + 0.025, 0.041, 1.04, -0.002, 0, 0.9],
+      [L1 + 0.05, 0.0425, 1.0, 0, 0, 1.2],
+      [L1 + L2 * 0.34, 0.041, 0.98, 0.001, 0, 0.95],
+      [L1 + L2 * 0.52, 0.037, 0.96, 0, 0, 1.2],
+      [L1 + L2 * 0.68, 0.032, 0.95, 0, 0, 0.9],
+      [L1 + L2 * 0.82, 0.0285, 0.95, 0, 0, 1.1],
+      [T - 0.03, 0.0265, 0.96, 0, 0, 0.55],
+      [T - 0.004, 0.0255, 0.96, 0, 0, 0.5],
+      [T + 0.012, 0.021, 0.96, 0, 0, 0],
+    ];
+    const arm: Ring[] = armRows.map((r) => {
+      const f = fat * (loose ? r[5] : 1);
+      const rr = r[1] * g + f;
+      // local +X points to world −X (segment frame), so "away from the body" is −side
+      return { y: r[0], rx: rr, rz: rr * r[2], oz: r[3] - (loose ? f * 0.25 : 0), ox: -side * r[4] };
+    });
+    b.segment(_a, _b, FRONT);
+    b.skinFn = armSkin;
+    b.loft(arm, {
+      radial: 16,
+      capStart: -0.036,
+      capEnd: T + 0.02,
+      colorFn: sleeveLong ? (_p, i, c) => (i >= armRows.length - 3 ? c.setHex(cuffC) : c) : undefined,
+    });
     if (!sleeveLong) {
       // short tee sleeve
       b.color(topC);
       sw(SWATCH.cloth);
-      const r0 = 0.0585 * g;
-      const len = P.uarm * 0.4;
+      const r0 = 0.058 * g;
+      const len = P.uarm * 0.42;
+      b.skinFn = armSkin;
       b.loft(
         [
-          { y: -r0 * 0.72, rx: r0 * 0.7, rz: r0 * 0.7 },
-          { y: 0, rx: r0, rz: r0 },
-          { y: len * 0.6, rx: r0 * 0.97, rz: r0 * 0.97 },
-          { y: len, rx: r0 * 1.02, rz: r0 * 1.02 },
+          { y: -0.056, rx: r0 * 0.5, rz: r0 * 0.52, ox: side * 0.01 },
+          { y: -0.036, rx: r0 * 0.82, rz: r0 * 0.86, ox: side * 0.004 },
+          { y: -0.012, rx: r0 * 0.98, rz: r0 * 1.02 },
+          { y: 0.02, rx: r0 * 1.02, rz: r0 * 1.06 },
+          { y: len * 0.6, rx: r0 * 1.0, rz: r0 * 1.03 },
+          { y: len, rx: r0 * 1.03, rz: r0 * 1.05 },
+          { y: len + 0.002, rx: r0 * 0.94, rz: r0 * 0.96 },
         ],
-        { radial: 16, capStart: -r0, capEnd: len - 0.004 },
+        { radial: 16, capStart: -0.064, colorFn: (_p, i, c) => (i === 6 ? c.multiplyScalar(0.5) : c) },
       );
     }
-    // forearm
-    b.bone(L ? B.larmL : B.larmR).color(sleeveLong ? topC : skin);
-    sw(sleeveLong ? (hoodie ? SWATCH.matte : jersey ? SWATCH.cloth : SWATCH.rubber) : SWATCH.skin);
-    _a.set(x, P.shoulderY - P.uarm, 0);
-    _b.set(x, P.shoulderY - P.uarm - P.larm, 0);
-    b.segment(_a, _b, FRONT).capsule(P.larm, 0.04 * g + fat, 0.03 * g + fat * 0.7, { radial: 20, mid: [[0.22, 0.045 * g + fat], [0.55, 0.04 * g + fat]] });
-    if (sleeveLong) {
-      // cuff
-      b.color(hoodie || jersey ? shade(topC, -0.2) : contrast(suitC, o.bottomLook.accent));
-      b.loft(
-        [
-          { y: P.larm - 0.04, rx: 0.034 * g + fat, rz: 0.034 * g + fat },
-          { y: P.larm - 0.004, rx: 0.035 * g + fat, rz: 0.035 * g + fat },
-        ],
-        { radial: 16, capStart: P.larm - 0.045, capEnd: P.larm },
-      );
-    }
-    buildHand(b, L, x, P.shoulderY - P.uarm - P.larm, g, skin);
+    b.skinFn = null;
+    buildHand(b, L, x, P.shoulderY - T, g, skin);
   }
 
-  // ── legs ──
+  // ── legs: ONE loft hip → ankle per side; the knee is skinned to thigh + shin, the top of the thigh partly to the pelvis ──
   for (const side of [1, -1]) {
     const L = side > 0;
     const x = side * P.hipHalf;
     const fat = suit || wet ? 0.004 : 0;
     const legC = wet ? suitC : skin;
-    b.bone(L ? B.thighL : B.thighR).color(legC);
+    const thighBone = L ? B.thighL : B.thighR;
+    const shinBone = L ? B.shinL : B.shinR;
+    const legSkin = (p: Vector3, out: [number, number, number]): void => {
+      out[0] = thighBone;
+      if (p.y > P.kneeY + P.thigh * 0.5) {
+        out[1] = B.pelvis;
+        out[2] = 1 - 0.6 * smooth(P.hipY - 0.12, P.hipY + 0.05, p.y);
+      } else {
+        out[1] = shinBone;
+        out[2] = smooth(P.kneeY - 0.055, P.kneeY + 0.055, p.y);
+      }
+    };
+    const L1 = P.thigh;
+    const L2 = P.shin;
+    b.color(legC);
     sw(wet ? SWATCH.rubber : SWATCH.skin);
     _a.set(x, P.hipY, 0);
-    _b.set(x, P.kneeY, 0);
-    b.segment(_a, _b, FRONT).capsule(P.thigh, 0.096 * g + fat, 0.063 * g + fat, { radial: 20, sz: 1.06, mid: [[0.42, 0.088 * g + fat]] });
-    if (!wet) {
-      // loose street boardshorts with cargo pockets: the thigh part runs to the knee, a second tube on the
-      // shin bone carries the leg on below the knee (texture v: hip 1 → knee SHORTS_KNEE_V → hem 0)
-      b.color(0xffffff);
-      const r0 = 0.116 * g;
-      const len = P.thigh;
-      const legUV = rectUV(ATLAS.legs, 1);
-      b.loft(
-        [
-          { y: -0.05, rx: r0 * 0.95, rz: r0 * 1.02 },
-          { y: len * 0.3, rx: r0 * 1.0, rz: r0 * 1.04 },
-          { y: len * 0.62, rx: r0 * 1.02, rz: r0 * 1.03 },
-          { y: len, rx: r0 * 0.98, rz: r0 * 1.0 },
-        ],
-        { radial: 16, wrap: legUV, vOf: (_r, i, n) => 1 - (i / (n - 1)) * (1 - SHORTS_KNEE_V), capEnd: len - 0.004 },
-      );
-    }
-    b.bone(L ? B.shinL : B.shinR).color(legC);
-    sw(wet ? SWATCH.rubber : SWATCH.skin);
-    b.at(x, P.kneeY, 0);
-    // shin hangs along −Y: build top-down with a calf that bulges backwards
-    _a.set(x, P.kneeY, 0);
     _b.set(x, P.ankleY, 0);
-    b.segment(_a, _b, FRONT);
-    const calf: Ring[] = [
-      ...capsuleRings(0, 0.062 * g + fat, 0.062 * g + fat, 1, 1, 2).slice(0, 2),
-      { y: P.shin * 0.14, rx: 0.062 * g + fat, rz: 0.064 * g + fat, oz: -0.004 },
-      { y: P.shin * 0.34, rx: 0.064 * g + fat, rz: 0.069 * g + fat, oz: -0.015 },
-      { y: P.shin * 0.62, rx: 0.052 * g + fat, rz: 0.054 * g + fat, oz: -0.008 },
-      { y: P.shin, rx: 0.041 * g + fat, rz: 0.043 * g + fat },
-      { y: P.shin + 0.026 * g, rx: 0.027 * g, rz: 0.028 * g },
+    // rows: [y down the leg, rx, rz, oz (+ = front), ox (+ = outside)]
+    const legRows: readonly (readonly number[])[] = [
+      [-0.07, 0.05, 0.056, 0, 0],
+      [-0.04, 0.076, 0.08, 0, 0],
+      [0, 0.088, 0.091, 0, 0],
+      [L1 * 0.2, 0.089, 0.094, 0.004, 0.002],
+      [L1 * 0.45, 0.082, 0.088, 0.006, 0.003],
+      [L1 * 0.7, 0.07, 0.076, 0.005, 0.002],
+      [L1 - 0.075, 0.061, 0.065, 0.003, 0],
+      [L1 - 0.045, 0.057, 0.061, 0.004, 0],
+      [L1 - 0.018, 0.0555, 0.06, 0.007, 0],
+      [L1 + 0.008, 0.0545, 0.058, 0.007, 0],
+      [L1 + 0.035, 0.0515, 0.054, 0.004, 0],
+      [L1 + 0.065, 0.05, 0.053, -0.002, 0.001],
+      [L1 + L2 * 0.3, 0.055, 0.06, -0.012, 0.003],
+      [L1 + L2 * 0.44, 0.051, 0.056, -0.012, 0.002],
+      [L1 + L2 * 0.62, 0.042, 0.045, -0.007, 0],
+      [L1 + L2 * 0.82, 0.035, 0.038, -0.002, 0],
+      [L1 + L2, 0.034, 0.037, 0, 0],
+      [L1 + L2 + 0.026 * g, 0.026, 0.027, 0, 0],
     ];
-    b.loft(calf, { radial: 20, capStart: -(0.062 * g + fat), capEnd: P.shin + 0.038 * g });
+    b.segment(_a, _b, FRONT);
+    b.skinFn = legSkin;
+    b.loft(
+      legRows.map((r) => {
+        // under the shorts the thigh is slimmed so it never pokes through the cloth
+        const k = !wet && r[0] < L1 - 0.1 ? 0.88 : 1;
+        return { y: r[0], rx: r[1] * g * k + fat, rz: r[2] * g * k + fat, oz: r[3] * k, ox: -side * r[4] };
+      }),
+      { radial: 18, capStart: -0.085, capEnd: L1 + L2 + 0.038 * g },
+    );
     if (!wet) {
-      // shorts below the knee: starts a little above the joint so a bent knee never shows a gap
+      // plain knee-length boardshorts: one loose tube per leg hanging from the hips (texture v: hip 1 → hem 0).
+      // It ends just above the kneecap so a deep knee bend never pushes the calf through the hem.
       b.color(0xffffff);
-      sw(SWATCH.skin);
-      const r1 = 0.106 * g;
+      const r0 = 0.104 * g;
+      const len = P.thigh - 0.038;
+      const legUV = rectUV(ATLAS.legs, 1);
+      b.skinFn = (p: Vector3, out: [number, number, number]): void => {
+        out[0] = thighBone;
+        out[1] = B.pelvis;
+        out[2] = 1 - 0.6 * smooth(P.hipY - 0.12, P.hipY + 0.05, p.y);
+      };
+      const shortRows: readonly (readonly number[])[] = [
+        [-0.07, 0.88, 0.96, 1],
+        [0, 1.0, 1.04, 0.84],
+        [len * 0.3, 1.0, 1.05, 0.6],
+        [len * 0.6, 0.96, 1.01, 0.36],
+        [len * 0.85, 0.9, 0.95, 0.14],
+        [len, 0.875, 0.92, 0.02],
+        [len + 0.003, 0.82, 0.86, 0],
+        [len - 0.02, 0.64, 0.68, 0],
+      ];
       b.loft(
-        [
-          { y: -0.06, rx: r1 * 1.0, rz: r1 * 1.02 },
-          { y: 0.04, rx: r1 * 1.02, rz: r1 * 1.04 },
-          { y: SHORTS_BELOW_KNEE, rx: r1 * 1.04, rz: r1 * 1.06 },
-        ],
-        { radial: 16, wrap: rectUV(ATLAS.legs, 1), vOf: (_r, i, n) => SHORTS_KNEE_V * (1 - i / (n - 1)), capStart: -0.06, capEnd: SHORTS_BELOW_KNEE - 0.003 },
+        shortRows.map((r) => ({ y: r[0], rx: r0 * r[1], rz: r0 * r[2], oz: -0.002 })),
+        { radial: 18, wrap: legUV, vOf: (_r, i) => shortRows[i][3], colorFn: (_p, i, c) => (i >= 6 ? c.multiplyScalar(i === 6 ? 0.95 : 0.8) : c) },
       );
     }
+    b.skinFn = null;
 
     // bare foot (toes peek out of the open-toe boots)
     b.bone(L ? B.footL : B.footR);
@@ -537,20 +644,40 @@ function buildBoot(b: MeshBuilder, left: boolean, x: number, P: Proportions, o: 
     b.color(look.secondary);
     b.at(x, 0.075, -0.3 * F).roundBox(0.036, 0.05, 0.012, { radial: 8, n: 3 });
   }
-  // cuff around the lower shin (follows the shin)
+  // tall cuff around the lower shin (follows the shin): padded collar, tongue pushed forward, two raised strap bands
   b.bone(left ? B.cuffL : B.cuffR).color(0xffffff);
   const y0 = P.ankleY - 0.02;
-  const h = 0.215 * P.scale;
-  b.at(x, 0, 0.004).loft(
-    [
-      { y: y0, rx: 0.053, rz: 0.06, n: 2.3 },
-      { y: y0 + h * 0.3, rx: 0.055, rz: 0.062, n: 2.3 },
-      { y: y0 + h * 0.75, rx: 0.059, rz: 0.066, n: 2.3 },
-      { y: y0 + h, rx: 0.064, rz: 0.07, n: 2.3 },
-      { y: y0 + h + 0.008, rx: 0.058, rz: 0.064, n: 2.3 },
-    ],
-    { radial: 12, wrap: rectUV(ATLAS.boot, 1), capStart: y0 - 0.02, capEnd: y0 + h - 0.004 },
+  const h = 0.225 * P.scale;
+  // rows: [t up the cuff (= texture v), rx, rz, oz]; the straps sit at v 0.17–0.34 and 0.47–0.64 in the boot texture
+  const st = closed ? 0.005 : 0;
+  const cuffRows: readonly (readonly number[])[] = [
+    [0, 0.056, 0.064, 0.004],
+    [0.15, 0.057, 0.065, 0.005],
+    [0.175, 0.058 + st, 0.066 + st, 0.005],
+    [0.335, 0.06 + st, 0.068 + st, 0.006],
+    [0.36, 0.0595, 0.0675, 0.006],
+    [0.45, 0.0605, 0.0685, 0.007],
+    [0.475, 0.0615 + st, 0.0695 + st, 0.007],
+    [0.635, 0.0635 + st, 0.0715 + st, 0.008],
+    [0.66, 0.063, 0.071, 0.008],
+    [0.86, 0.066, 0.074, 0.009],
+    [0.96, 0.0685, 0.0765, 0.009],
+    [1.0, 0.066, 0.074, 0.009],
+    [1.0, 0.057, 0.064, 0.008],
+  ];
+  b.at(x, 0, 0).loft(
+    cuffRows.map((r, i) => ({ y: y0 + h * r[0] - (i === cuffRows.length - 1 ? 0.012 : 0), rx: r[1], rz: r[2], oz: r[3], n: 2.3 })),
+    { radial: 14, wrap: rectUV(ATLAS.boot, 1), vOf: (_r, i) => Math.min(1, cuffRows[i][0]), capStart: y0 - 0.02, colorFn: (_p, i, c) => (i === cuffRows.length - 1 ? c.multiplyScalar(0.3) : c) },
   );
+  if (closed) {
+    // heel pull loop + buckle blocks where the straps close on the outside
+    const out = Math.sign(x || 1);
+    b.color(0x0a0a0b).uv(uvR[0], uvR[1]);
+    b.at(x, y0 + h * 0.93, -0.076).roundBox(0.012, 0.022, 0.006, { radial: 6 });
+    b.color(0x18181a).uv(uvG[0], uvG[1]);
+    b.at(x + out * 0.066, y0 + h * 0.255, 0.012).roundBox(0.005, 0.014, 0.014, { radial: 6 });
+    b.at(x + out * 0.069, y0 + h * 0.555, 0.014).roundBox(0.005, 0.014, 0.014, { radial: 6 });
+  }
 }
 
 /**

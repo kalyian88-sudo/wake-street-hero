@@ -427,6 +427,8 @@ const CAMS: Record<string, { pos: [number, number, number]; look: [number, numbe
   portrait: { pos: [-1.5, 1.6, 0.45], look: [0, 1.5, 0], fov: 22 },
   bust: { pos: [-2.1, 1.45, 0.7], look: [0, 1.25, 0], fov: 26 },
   wide: { pos: [-5.2, 2.2, 4.6], look: [0, 0.8, 0] },
+  hands: { pos: [-0.9, 1.3, 1.25], look: [-0.05, 0.98, 0.42], fov: 20 },
+  body: { pos: [-1.9, 1.2, 1.8], look: [0, 0.85, 0.05], fov: 38 },
 };
 
 const head = new THREE.Vector3();

@@ -46,7 +46,7 @@ export function buildHead(o: Outfit, P: Proportions): HeadBuild {
     const rz = RZ * (1 - 0.08 * t);
     const rho = 1 / Math.sqrt((d.x * d.x) / (rx * rx) + (d.y * d.y) / (RY * RY) + (d.z * d.z) / (rz * rz));
     out.copy(d).multiplyScalar(rho + extra);
-    out.z += 0.012 * t * t * (d.z > 0 ? 1 : 0.3) - (d.y > 0 ? 0.005 * d.y : 0);
+    out.z += (o.female ? 0.012 : 0.016) * t * t * (d.z > 0 ? 1 : 0.3) - (d.y > 0 ? 0.005 * d.y : 0);
     return out;
   };
 
@@ -88,16 +88,16 @@ export function buildHead(o: Outfit, P: Proportions): HeadBuild {
   // ── nose + ears ──
   b.color(o.skin);
   sw(SWATCH.skin);
-  _a.set(0, cy + 0.012, RZ - 0.016);
-  _b.set(0, cy - 0.03, RZ - 0.001);
+  _a.set(0, cy + 0.014, RZ - 0.0175);
+  _b.set(0, cy - 0.03, RZ - 0.0035);
   b.segment(_a, _b, FRONT).loft(
     [
       { y: 0, rx: 0.0065, rz: 0.007 },
       { y: 0.012, rx: 0.0075, rz: 0.009 },
-      { y: 0.024, rx: 0.0095, rz: 0.0108 },
-      { y: 0.033, rx: 0.0132, rz: 0.0125 },
-      { y: 0.039, rx: 0.0142, rz: 0.0115 },
-      { y: 0.044, rx: 0.0122, rz: 0.0088 },
+      { y: 0.024, rx: 0.009, rz: 0.0102 },
+      { y: 0.033, rx: 0.012, rz: 0.0112 },
+      { y: 0.039, rx: 0.0132, rz: 0.0102 },
+      { y: 0.044, rx: 0.0116, rz: 0.0078 },
     ],
     { radial: 14, capStart: -0.006, capEnd: 0.048 },
   );
@@ -336,18 +336,26 @@ function buildHelmet(b: MeshBuilder, o: Outfit, P: Proportions, cy: number, head
   b.color(0x121315).uv(uvS[0], uvS[1]);
   const uvS0 = swatchUV(SWATCH.cloth);
   void uvS0;
-  const chin: [number, number, number][] = [
-    [P.headRx + 0.004, cy - 0.066, -0.004],
-    [P.headRx * 0.72, cy - 0.108, 0.03],
-    [0, cy - 0.124, 0.045],
+  // follows the jaw line from under the ear guard to the chin
+  const chinDirs: [number, number, number][] = [
+    [0.93, -0.36, -0.06],
+    [0.8, -0.6, 0.06],
+    [0.55, -0.8, 0.2],
+    [0.25, -0.92, 0.3],
+    [0, -0.95, 0.32],
   ];
+  const _p0 = new Vector3();
+  const _p1 = new Vector3();
   for (const s of [1, -1]) {
-    for (let i = 0; i < chin.length - 1; i++) {
-      _a.set(s * chin[i][0], chin[i][1], chin[i][2]);
-      _b.set(s * chin[i + 1][0], chin[i + 1][1], chin[i + 1][2]);
-      b.segment(_a, _b, FRONT).capsule(_a.distanceTo(_b), 0.006, 0.006, { radial: 5, capSeg: 1, sx: 0.5 });
+    for (let i = 0; i < chinDirs.length - 1; i++) {
+      headPoint(_d.set(s * chinDirs[i][0], chinDirs[i][1], chinDirs[i][2]).normalize(), 0.003, _p0);
+      headPoint(_d.set(s * chinDirs[i + 1][0], chinDirs[i + 1][1], chinDirs[i + 1][2]).normalize(), 0.003, _p1);
+      _p0.y += cy;
+      _p1.y += cy;
+      b.segment(_p0, _p1, FRONT).capsule(_p0.distanceTo(_p1), 0.0055, 0.0055, { radial: 5, capSeg: 1, sx: 0.45 });
     }
   }
+  void P;
 }
 
 function buildCap(b: MeshBuilder, o: Outfit, P: Proportions, cy: number, headPoint: HeadPoint): void {

@@ -212,7 +212,7 @@ export function resolveOutfit(look: RiderLook): Outfit {
   return {
     female: a.gender === 'female',
     stance: look.stance,
-    skin: SKIN_TONES[Math.max(0, Math.min(SKIN_TONES.length - 1, a.skin | 0))] ?? SKIN_TONES[1],
+    skin: sunTan(SKIN_TONES[Math.max(0, Math.min(SKIN_TONES.length - 1, a.skin | 0))] ?? SKIN_TONES[1]),
     hair: a.hair,
     hairColor: a.hairColor,
     headwear,
@@ -226,6 +226,17 @@ export function resolveOutfit(look: RiderLook): Outfit {
     wakeboard: getGear(g.wakeboard)?.look ?? DEFAULT_BOARD,
     wakeskate: getGear(g.wakeskate)?.look ?? DEFAULT_SKATE,
   };
+}
+
+/** Riders live outdoors: light skin tones pick up a warm tan (dark tones are left as they are). */
+export function sunTan(skin: number): number {
+  const r = (skin >> 16) & 255;
+  const g = (skin >> 8) & 255;
+  const b = skin & 255;
+  const luma = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+  const k = 0.5 * Math.max(0, Math.min(1, (luma - 0.42) / 0.3));
+  const m = (c: number, t: number): number => Math.round(c + (t - c) * k);
+  return (m(r, 0xa6) << 16) | (m(g, 0x62) << 8) | m(b, 0x34);
 }
 
 export function lookKey(l: GearLook | null): string {

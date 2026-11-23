@@ -490,7 +490,8 @@ export class Solver {
       cp[ua].copy(sh);
       quatFromYZ(cq[ua], v2.subVectors(sh, this.mid), v3.copy(pole).multiplyScalar(-1));
       cp[la].copy(this.mid);
-      quatFromYZ(cq[la], v2.subVectors(this.mid, this.end), v3.copy(Z).applyQuaternion(cq[hand]));
+      // same hinge frame as the upper arm: the elbow is skinned to both bones, a twist here would pinch it
+      quatFromYZ(cq[la], v2.subVectors(this.mid, this.end), v3.copy(pole).multiplyScalar(-1));
       cp[hand].copy(this.end);
     }
 
