@@ -105,6 +105,7 @@ class Water implements IWater {
       tReflect: { value: null },
       uReflectMat: { value: new Matrix4() },
       uReflectOn: { value: 0 },
+      uReflectLod: { value: 1.5 },
     };
     const defines: Record<string, number | string> = { WATER_DETAIL: ctx.profile.waterDetail, MAX_RIPPLES };
     if (built.blend) defines.WATER_BLEND = '';
@@ -133,6 +134,7 @@ class Water implements IWater {
     this.mesh.onBeforeRender = (renderer, scene, camera) => {
       this.reflection.render(renderer, scene, camera, this.object);
       this.uniforms.uReflectOn.value = this.reflection.enabled ? 1 : 0;
+      this.uniforms.uReflectLod.value = this.reflection.blurLod;
     };
 
     this.wake = new Wake(waves, ctx.profile.waterDetail);

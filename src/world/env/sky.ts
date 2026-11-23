@@ -44,9 +44,10 @@ interface CloudLook {
 }
 
 const CLOUDS: Record<EnvDef['timeOfDay'], CloudLook> = {
-  day: { coverage: 0.4, scale: 0.3, softness: 0.24, opacity: 0.92, drift: 0.0016 },
-  golden: { coverage: 0.37, scale: 0.26, softness: 0.3, opacity: 0.86, drift: 0.0013 },
-  sunset: { coverage: 0.48, scale: 0.24, softness: 0.32, opacity: 0.9, drift: 0.0012 },
+  // a few soft fair-weather clouds, like in real riding footage — never a busy painted sky
+  day: { coverage: 0.33, scale: 0.28, softness: 0.38, opacity: 0.88, drift: 0.0016 },
+  golden: { coverage: 0.31, scale: 0.26, softness: 0.4, opacity: 0.84, drift: 0.0013 },
+  sunset: { coverage: 0.36, scale: 0.24, softness: 0.42, opacity: 0.82, drift: 0.0012 },
   overcast: { coverage: 0.99, scale: 0.21, softness: 0.62, opacity: 0.97, drift: 0.002 },
   night: { coverage: 0.42, scale: 0.27, softness: 0.36, opacity: 0.8, drift: 0.0011 },
 };
@@ -240,14 +241,14 @@ function sharedUniforms(def: EnvDef, sunDir: Vector3): Record<string, IUniform> 
       wallShade.setRGB(0.1, 0.12, 0.16);
       break;
     case 'golden':
-      lit.copy(sun).multiplyScalar(0.5).add(new Color(0.16, 0.08, 0.12));
-      shade.setRGB(0.36, 0.28, 0.48);
+      lit.copy(sun).multiplyScalar(0.44).add(new Color(0.2, 0.2, 0.24));
+      shade.setRGB(0.44, 0.48, 0.6);
       wallShade.setRGB(0.085, 0.08, 0.1);
       break;
     case 'sunset':
-      // poster sunset: clouds under-lit hot pink / orange, violet in their shade
-      lit.copy(sun).multiplyScalar(0.55).add(new Color(0.55, 0.12, 0.22));
-      shade.setRGB(0.2, 0.11, 0.3);
+      // low sun: clouds lit warm cream / peach, soft blue-grey in their shade (no neon pink)
+      lit.copy(sun).multiplyScalar(0.5).add(new Color(0.34, 0.24, 0.2));
+      shade.setRGB(0.4, 0.42, 0.56);
       wallShade.setRGB(0.04, 0.035, 0.055);
       hazeDensity = 7;
       break;
@@ -259,8 +260,8 @@ function sharedUniforms(def: EnvDef, sunDir: Vector3): Record<string, IUniform> 
       hazeAmount = 0.95;
       break;
     case 'night':
-      lit.copy(sun).multiplyScalar(0.22).add(new Color(0.03, 0.022, 0.035));
-      shade.setRGB(0.011, 0.012, 0.02);
+      lit.copy(sun).multiplyScalar(0.2).add(new Color(0.03, 0.032, 0.045));
+      shade.setRGB(0.014, 0.018, 0.032);
       wallShade.setRGB(0.006, 0.006, 0.01);
       hazeDensity = 8;
       hazeAmount = 0.7;
@@ -308,21 +309,21 @@ function insert(src: string, anchor: string, code: string, where: 'before' | 'af
 }
 
 /**
- * WHY NOT poster sky for golden hour / sunset: the physical sky's brightness, repainted with a violet
- * zenith → magenta → orange horizon gradient (the key-art palette). Day / overcast / night stay physical.
+ * Low-sun colour correction. Preetham at golden hour / sunset drifts to a heavy violet-magenta that
+ * reads as a painting; real footage keeps a soft blue overhead and a pale warm band at the horizon.
+ * The physical sky keeps its brightness, part of its colour is pulled to that natural gradient.
+ * Day / overcast / night stay untouched.
  */
 function posterUniforms(def: EnvDef): Record<string, IUniform> {
   const sunset = def.timeOfDay === 'sunset';
-  const on = sunset ? 0.8 : def.timeOfDay === 'golden' ? 0.45 : 0;
+  const on = sunset ? 0.75 : def.timeOfDay === 'golden' ? 0.3 : 0;
   // typical sky radiance (after wshGain) the gradient is normalised to
   const ref = sunset ? 0.9 : 1.4;
-  // golden hour stays a bright, friendly sky (blue up top, peach at the horizon); only the sunset
-  // goes violet / magenta like the key art
   return {
     wshPoster: { value: new Vector4(on, ref, 0, 0) },
-    wshPosterZen: { value: sunset ? new Color(0.22, 0.2, 0.55) : new Color(0.42, 0.62, 1.15) },
-    wshPosterMid: { value: sunset ? new Color(0.75, 0.3, 0.55) : new Color(0.95, 0.8, 0.95) },
-    wshPosterHor: { value: sunset ? new Color(1.25, 0.6, 0.25) : new Color(1.6, 1.15, 0.75) },
+    wshPosterZen: { value: sunset ? new Color(0.34, 0.54, 1.0) : new Color(0.4, 0.62, 1.1) },
+    wshPosterMid: { value: sunset ? new Color(0.82, 0.84, 0.96) : new Color(0.84, 0.92, 1.08) },
+    wshPosterHor: { value: sunset ? new Color(1.45, 1.14, 0.82) : new Color(1.4, 1.3, 1.16) },
   };
 }
 
@@ -402,8 +403,8 @@ function createNightDome(def: EnvDef, moonDir: Vector3): SkyDome {
   const moon = linear(def.sunColor);
   const uniforms: Record<string, IUniform> = {
     ...sharedUniforms(def, moonDir),
-    uZenith: { value: new Color(0.0035, 0.006, 0.017) },
-    uHorizon: { value: fog.clone().multiplyScalar(0.35).add(new Color(0.006, 0.009, 0.02)) },
+    uZenith: { value: new Color(0.008, 0.014, 0.036) },
+    uHorizon: { value: fog.clone().multiplyScalar(0.4).add(new Color(0.01, 0.015, 0.032)) },
     uCityGlow: { value: def.neon ? new Color(0.085, 0.032, 0.062) : new Color(0.05, 0.036, 0.026) },
     uMoonDir: { value: moonDir.clone() },
     uMoonColor: { value: moon.multiplyScalar(0.55 + 0.6 * Math.min(1, def.sunIntensity)) },

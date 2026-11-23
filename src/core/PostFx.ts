@@ -41,7 +41,7 @@ export interface FxParams {
   drops?: number;
   /** 0..1 rider speed feel (edge speed blur). */
   speed?: number;
-  /** 0..1 WHY NOT poster grade (vibrance, split toning, S-curve); default 1. */
+  /** 0..1 a little extra colour on top of the natural footage grade (key art); default 1. */
   poster?: number;
 }
 
@@ -50,7 +50,7 @@ export interface FxParams {
  * neon tubes, sun glints on water, sparks. Converted to scene-linear with the current exposure.
  */
 const BLOOM_THRESHOLD = 1.05;
-const BLOOM_RADIUS = 0.55;
+const BLOOM_RADIUS = 0.7;
 /** Extra downscale of the bloom chain relative to the frame (UnrealBloomPass halves once more itself). */
 const BLOOM_SCALE = 0.5;
 
@@ -126,28 +126,18 @@ const GRADE_FRAG = /* glsl */ `
 
     col = ACESFilmicToneMapping(max(col, vec3(0.0)));
 
-    // "Edited footage" grade: teal shadows, warm highlights, a bit more punch, soft lifted blacks.
+    // Natural "phone / action-cam footage" grade: neutral white balance, restrained colour, a gentle
+    // filmic S-curve and a thin atmospheric veil in the blacks. No split toning, no vibrance.
     float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
-    col = mix(vec3(lum), col, 1.1);
-    vec3 shadowTint = vec3(-0.012, 0.006, 0.02);
-    vec3 highTint = vec3(0.03, 0.012, -0.022);
-    col += shadowTint * (1.0 - smoothstep(0.0, 0.45, lum)) + highTint * smoothstep(0.45, 1.0, lum);
-    col = max(vec3(0.0), (col - 0.18) * 1.06 + 0.18);
-    col = col * 0.97 + 0.018;
-
-    // WHY NOT poster look: vibrant colour, violet-magenta shadows, hot orange highlights, deep S-curve.
-    if (uPoster > 0.0) {
-      float pl = dot(col, vec3(0.2126, 0.7152, 0.0722));
-      float sat = max(col.r, max(col.g, col.b)) - min(col.r, min(col.g, col.b));
-      // vibrance: lift muted colours more than already saturated ones
-      col = mix(vec3(pl), col, 1.0 + uPoster * (0.3 - 0.25 * sat));
-      // bright and sunny: warm highlights only (no cold shadow tint), a gentle S-curve, then lift the
-      // mids so shaded water / walls stay light and cheerful instead of sinking to navy
-      col += uPoster * vec3(0.03, 0.01, -0.02) * smoothstep(0.5, 1.0, pl);
-      vec3 sc = clamp(col, 0.0, 1.0);
-      col = mix(col, sc * sc * (3.0 - 2.0 * sc), 0.12 * uPoster);
-      col = mix(col, pow(max(col, vec3(0.0)), vec3(0.8)), uPoster);
-    }
+    // ACES leaves primaries hot: pull saturation back, most of all in the already vivid colours
+    float sat = max(col.r, max(col.g, col.b)) - min(col.r, min(col.g, col.b));
+    col = mix(vec3(lum), col, 0.94 - 0.16 * sat + 0.06 * uPoster);
+    // open the mids (bright daylight, never gloomy), then a soft S so it does not go flat
+    col = pow(max(col, vec3(0.0)), vec3(0.86));
+    vec3 sc = clamp(col, 0.0, 1.0);
+    col = mix(col, sc * sc * (3.0 - 2.0 * sc), 0.16);
+    // veil: lifted, very slightly cool blacks — the haze a real lens always has
+    col = col * 0.972 + vec3(0.02, 0.022, 0.025);
 
     // Slow-motion grade: a touch less colour, a touch more contrast (display-linear, pivot = mid grey).
     float luma = dot(col, vec3(0.2126, 0.7152, 0.0722));
@@ -168,7 +158,7 @@ const GRADE_FRAG = /* glsl */ `
     vec4 outc = sRGBTransferOETF(vec4(clamp(col, 0.0, 1.0), 1.0));
     // Film grain (luma), finer than a pixel block, stronger in the dark.
     float grain = hash12(gl_FragCoord.xy * 0.73 + fract(uTime * 7.3) * 113.0) - 0.5;
-    outc.rgb += grain * (0.028 * (1.0 - 0.6 * dot(outc.rgb, vec3(0.333))));
+    outc.rgb += grain * (0.016 * (1.0 - 0.6 * dot(outc.rgb, vec3(0.333))));
     // ±½ LSB of noise hides banding in sky gradients on 8-bit phone panels.
     outc.rgb += (hash12(gl_FragCoord.xy + fract(uTime) * 61.0) - 0.5) / 255.0;
     gl_FragColor = outc;

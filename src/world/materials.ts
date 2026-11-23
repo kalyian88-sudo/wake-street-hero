@@ -24,6 +24,7 @@
  *             phuketDecor (Sino-Portuguese detail atlas, PHUKET_UV: shop boards, stucco frames, quay masonry…) ·
  *             phuketGlow (same atlas, unlit: lit interiors / lanterns, brightness = vertex colour, may be > 1) ·
  *             grime (soft transparent dirt atlas, GRIME_UV: streaks, rising damp, algae, soot, rust drips) ·
+ *             klongDecor / klongGlow (Bangkok klong atlas, KLONG_UV) · usaDecor / usaGlow (Wynwood + Brooklyn atlas, USA_UV) ·
  *             scrapes (grind wear decal) · paint (flat markings on top of surfaces, polygon-offset) ·
  *             waterFilm (thin running water) · rope
  *
@@ -50,6 +51,7 @@ import {
 import type { Material, Side, Texture } from 'three';
 import type { QualityProfile, SurfaceKind } from '../types';
 import { drawBrandAtlas, drawFacadeAtlas, drawGraffiti, drawGrimeAtlas, drawPhuketAtlas, drawScrapes, drawSignAtlas } from './decals';
+import { drawKlongAtlas, drawUsaAtlas } from './decals';
 import { SURFACES } from './surfaces';
 import { dataTexture, normalPixels, ormPixels } from './textures';
 
@@ -291,6 +293,18 @@ export class MaterialLibrary {
       if (side !== undefined) m.side = side;
       m.userData.cast = false;
       m.userData.receive = false;
+      return m;
+    }
+    if (key === 'klongDecor' || key === 'usaDecor' || key === 'klongGlow' || key === 'usaGlow') {
+      // city detail atlases (KLONG_UV / USA_UV): '…Decor' is lit + alpha-cut, '…Glow' is unlit (lit interiors, neon)
+      const klong = key.startsWith('klong');
+      const tex = this.canvasTex(klong ? 'klong' : 'usa', () => (klong ? drawKlongAtlas(8128) : drawUsaAtlas(6174)));
+      const m = key.endsWith('Glow')
+        ? new MeshBasicMaterial({ map: tex, vertexColors: true, alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })
+        : new MeshStandardMaterial({ map: tex, vertexColors: true, alphaTest: 0.5, roughness: 0.78, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+      if (side !== undefined) m.side = side;
+      m.userData.cast = false;
+      if (key.endsWith('Glow')) m.userData.receive = false;
       return m;
     }
     if (key === 'grime') {

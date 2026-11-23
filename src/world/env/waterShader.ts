@@ -76,6 +76,7 @@ uniform vec4 uShoreRect;      // minX, minZ, 1/sizeX, 1/sizeZ
 	uniform sampler2D tReflect;
 	uniform mat4 uReflectMat;
 	uniform float uReflectOn;
+	uniform float uReflectLod;
 #endif
 uniform vec3 uSkyZenith;
 uniform vec3 uSkyHorizon;
@@ -144,7 +145,8 @@ void main() {
 
 	vec3 N = normalize( vec3( - slope.x, 1.0, - slope.y ) );
 	float NdV = max( dot( N, V ), 0.0 );
-	float fres = 0.02 + 0.98 * pow( 1.0 - NdV, 5.0 );
+	// a rippled surface never becomes a perfect mirror at grazing angles: the milky body keeps showing
+	float fres = ( 0.03 + 0.97 * pow( 1.0 - NdV, 3.0 ) ) * 0.78;
 
 	// ── reflected sky ──
 	vec3 R = reflect( - V, N );
@@ -155,8 +157,9 @@ void main() {
 			// mirrored scene (houses, boats, rider), rippled by the wave normals
 			vec4 rp = uReflectMat * vec4( vWorld, 1.0 );
 			vec2 ruv = rp.xy / rp.w + N.xz * 0.05;
-			vec3 mirror = texture2D( tReflect, clamp( ruv, 0.001, 0.999 ) ).rgb;
-			sky = mirror;
+			// soft, blurry reflection (a coarse mip of the mirror) with a little open sky mixed in
+			vec3 mirror = textureLod( tReflect, clamp( ruv, 0.004, 0.996 ), uReflectLod ).rgb;
+			sky = mix( sky, mirror, 0.86 );
 		}
 	#else
 		R = normalize( R );
@@ -170,12 +173,14 @@ void main() {
 
 	float sh = wshShadow( vWorld );
 	float sunUp = max( uSunDir.y, 0.0 );
-	vec3 light = uAmbient + uSunLight * ( sunUp * 0.34 * sh );
+	// turbid water glows under a low sun too (light scatters inside it), so the sun term never dies with elevation
+	vec3 light = uAmbient * 1.1 + uSunLight * ( ( 0.1 + 0.9 * sunUp ) * 0.36 * ( 0.25 + 0.75 * sh ) );
 
 	// ── water body: deep ↔ shallow by view angle, clarity, bank distance and wave crests ──
 	float clarity = vStyle.x;
 	float shallowEdge = 1.0 - smoothstep( 0.0, 2.4, dm );
-	float k = clarity * ( 0.18 + 0.82 * clamp( V.y, 0.0, 1.0 ) ) + shallowEdge * shallowEdge * ( 0.22 + 0.4 * clarity ) + height * 0.5;
+	// milky water scatters light back at every angle: a floor on the shallow share, murky water included
+	float k = 0.34 + clarity * ( 0.1 + 0.56 * clamp( V.y, 0.0, 1.0 ) ) + shallowEdge * shallowEdge * ( 0.2 + 0.3 * clarity ) + height * 0.3;
 	vec3 body = mix( vDeep.rgb, vShallow.rgb, clamp( k, 0.0, 1.0 ) );
 	#ifdef WATER_BOTTOM
 		if ( vStyle.y > 0.0 ) {
@@ -203,12 +208,12 @@ void main() {
 	// ── sun glitter (GGX, gets rougher with distance so it never aliases into noise) ──
 	vec3 H = normalize( uSunDir + V );
 	float NdH = max( dot( N, H ), 0.0 );
-	float a = 0.03 + 0.11 * smoothstep( 8.0, 160.0, dist );
+	float a = 0.05 + 0.12 * smoothstep( 8.0, 160.0, dist );
 	float a2 = a * a;
 	float dn = NdH * NdH * ( a2 - 1.0 ) + 1.0;
 	float D = a2 / ( PI * dn * dn );
 	float F = 0.02 + 0.98 * pow( 1.0 - max( dot( V, H ), 0.0 ), 5.0 );
-	col += uSunLight * ( min( D * F * 0.25, 22.0 ) * sh * uSunSpec * step( 0.0, uSunDir.y ) );
+	col += uSunLight * ( min( D * F * 0.25, 9.0 ) * sh * uSunSpec * step( 0.0, uSunDir.y ) );
 
 	// ── foam: lapping band along the banks + a drifting line + ripple rings ──
 	float lap = sin( dm * 4.2 - uTime * 1.3 + noise * 3.0 ) * 0.5 + 0.5;
@@ -217,9 +222,10 @@ void main() {
 	float drift = fract( uTime * 0.11 + sA.b * 0.3 );
 	cover += smoothstep( 0.18, 0.0, abs( dm - ( 0.45 + drift * 1.2 ) ) ) * smoothstep( 0.0, 0.2, drift ) * ( 1.0 - drift ) * 0.55;
 	cover = min( cover * vDeep.a + ringFoam * 0.6, 0.86 );
-	float foam = smoothstep( 1.0 - cover, 1.2 - cover, noise );
-	vec3 foamCol = ( uAmbient * 1.2 + uSunLight * ( sunUp * 0.4 * sh ) ) * vec3( 0.94, 0.97, 1.0 );
-	col = mix( col, foamCol, foam * 0.92 );
+	// soft lacy edge, half transparent: real shore foam is thin, not a painted white band
+	float foam = smoothstep( 1.0 - cover, 1.5 - cover, noise );
+	vec3 foamCol = ( uAmbient * 1.15 + uSunLight * ( sunUp * 0.34 * sh ) ) * vec3( 0.95, 0.97, 0.98 );
+	col = mix( col, foamCol, foam * 0.66 );
 
 	float alpha = 1.0;
 	#ifdef WATER_BLEND
@@ -311,17 +317,17 @@ void main() {
 	float arm = edgeIn * ( 1.0 - smoothstep( armW * 0.3, armW, inset ) ) * exp( - t * 0.75 );
 	arm *= 1.0 + 0.6 * clamp( - vLean * sign( vWake.x ), - 1.0, 1.0 );
 	// lacy leftovers between the arms
-	float lace = ( 1.0 - smoothstep( 0.0, halfW * 0.9, ad ) ) * exp( - t * 0.9 ) * 0.34;
-	float cover = clamp( ( core * 0.9 + arm * 0.8 + lace ) * S, 0.0, 0.86 );
+	float lace = ( 1.0 - smoothstep( 0.0, halfW * 0.9, ad ) ) * exp( - t * 1.3 ) * 0.14;
+	float cover = clamp( ( core * 0.9 + arm * 0.6 + lace ) * S, 0.0, 0.86 );
 	// soft-edged, lacy foam (a hard threshold reads as a painted white band)
-	float foam = smoothstep( 1.0 - cover, 1.38 - cover, n ) * 0.88;
+	float foam = smoothstep( 1.0 - cover, 1.5 - cover, n ) * 0.8;
 
 	// aerated, flattened water inside the V + the wave itself: bright crest, dark trough behind it
 	float life = 1.0 - smoothstep( WAKE_LIFE * 0.6, WAKE_LIFE, t );
 	float wave = exp( - t * 0.34 ) * min( S, 1.0 ) * edgeIn;
-	float aer = ( 1.0 - smoothstep( halfW * 0.15, halfW, ad ) ) * exp( - t * 0.7 ) * 0.36 * min( S, 1.0 );
-	float crest = ( 1.0 - smoothstep( 0.03, 0.22, abs( inset - 0.1 ) ) ) * wave * 0.3;
-	float trough = ( 1.0 - smoothstep( 0.08, 0.36, abs( inset - 0.46 ) ) ) * wave * 0.22;
+	float aer = ( 1.0 - smoothstep( halfW * 0.15, halfW, ad ) ) * exp( - t * 0.7 ) * 0.1 * min( S, 1.0 );
+	float crest = ( 1.0 - smoothstep( 0.03, 0.22, abs( inset - 0.1 ) ) ) * wave * 0.16;
+	float trough = ( 1.0 - smoothstep( 0.08, 0.36, abs( inset - 0.46 ) ) ) * wave * 0.12;
 
 	float sh = wshShadow( vWorld );
 	vec3 foamCol = mix( uFoamShade, uFoamLit, sh );

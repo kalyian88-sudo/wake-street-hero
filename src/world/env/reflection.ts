@@ -4,7 +4,7 @@
  * scene into a small half-float target with an oblique near plane, so nothing under the water leaks in
  * (same maths as three/examples Reflector). Quality decides the size and how often it refreshes.
  */
-import { HalfFloatType, LinearFilter, Matrix4, PerspectiveCamera, Plane, Vector3, Vector4, WebGLRenderTarget } from 'three';
+import { HalfFloatType, LinearFilter, LinearMipmapLinearFilter, Matrix4, PerspectiveCamera, Plane, Vector3, Vector4, WebGLRenderTarget } from 'three';
 import type { Camera, Object3D, Scene, WebGLRenderer } from 'three';
 import type { QualityProfile } from '../../types';
 
@@ -31,9 +31,18 @@ export class PlanarReflection {
   private frame = 0;
   private rendering = false;
   enabled = false;
+  /** Mip level the water samples: about the same blur on screen whatever the target size. */
+  blurLod = 1.5;
 
   constructor(private level: number) {
-    this.target = new WebGLRenderTarget(16, 16, { type: HalfFloatType, minFilter: LinearFilter, magFilter: LinearFilter, depthBuffer: true });
+    this.target = new WebGLRenderTarget(16, 16, {
+      type: HalfFloatType,
+      // mip chain = free blur: the water samples a coarse level for soft, footage-like reflections
+      minFilter: LinearMipmapLinearFilter,
+      magFilter: LinearFilter,
+      generateMipmaps: true,
+      depthBuffer: true,
+    });
     this.target.texture.name = 'water.reflection';
   }
 
@@ -43,6 +52,7 @@ export class PlanarReflection {
     this.scale = p.waterDetail >= 2 ? 0.5 : 0.34;
     this.every = p.waterDetail >= 2 ? 1 : 2;
     this.far = p.waterDetail >= 2 ? 260 : 110;
+    this.blurLod = p.waterDetail >= 2 ? 2.1 : 1.6;
   }
 
   /** Render the mirrored scene. `hide` = objects that must not appear in their own reflection (the water). */
