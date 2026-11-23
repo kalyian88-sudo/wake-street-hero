@@ -45,6 +45,35 @@ props.push(
   { type: 'common.birds', pos: [0, 0, 100], params: { count: 6, radius: 20, height: 26 } },
 );
 
+// dock dressing: granite wall facing + bollards, pole lamps, clutter, fenced yard, cranes and old piles beyond
+props.push(
+  { type: 'usa.quay', pos: [7, 0, 80], seed: 500, params: { length: 190, style: 1, top: 1.0, gaps: [-12.4, 2.4], skip: [-96, -78, -68.5, -55.5, 31.5, 41.5, 79, 88], ladderAt: [-30, 58] } },
+  { type: 'usa.quay', pos: [-7, 0, 80], rot: 180, seed: 501, params: { length: 190, style: 1, top: 1.0, skip: [78, 96, 47, 58, -22, -12, -90, -78, -49.5, -41.3], ladderAt: [10, -62] } },
+  { type: 'usa.quay', pos: [0, 0, 175], rot: -90, seed: 502, params: { length: 14, style: 1, top: 1.0, skip: [-8, 8] } },
+  { type: 'usa.quay', pos: [0, 0, -15], rot: 90, seed: 503, params: { length: 14, style: 1, top: 1.0, skip: [-8, 8] } },
+  { type: 'usa.utilityRun', pos: [10.6, 1.0, 24], seed: 510, params: { count: 5, spacing: 31, side: 1, lamp: 1, height: 9 } },
+  { type: 'usa.utilityRun', pos: [-10.6, 1.0, 16], seed: 511, params: { count: 5, spacing: 31, side: -1, lamp: 1, height: 9 } },
+  { type: 'usa.dumpster', pos: [10.6, 1.0, 60], rot: -90, seed: 520, params: { color: 0x2a3a4a } },
+  { type: 'usa.dumpster', pos: [-10.6, 1.0, 105], rot: 90, seed: 521, params: { color: 0x4a2a22 } },
+  { type: 'usa.streetKit', pos: [-8.3, 1.0, 50], rot: 180, seed: 522, params: { kind: 0 } },
+  { type: 'usa.streetKit', pos: [8.3, 1.0, 100], seed: 523, params: { kind: 0 } },
+  { type: 'usa.dockClutter', pos: [9.6, 1.0, 52], rot: 90, seed: 530, params: { kind: 0, count: 2 } },
+  { type: 'usa.dockClutter', pos: [-9.4, 1.0, 38], rot: 90, seed: 531, params: { kind: 1, count: 3 } },
+  { type: 'usa.dockClutter', pos: [9.0, 1.0, 105], rot: 90, seed: 532, params: { kind: 2, count: 4 } },
+  { type: 'usa.dockClutter', pos: [9.3, 1.0, 138], rot: 90, seed: 533, params: { kind: 1, count: 2 } },
+  { type: 'usa.dockClutter', pos: [-9.6, 1.0, 117], rot: 90, seed: 534, params: { kind: 0, count: 2 } },
+  { type: 'usa.dockClutter', pos: [-9.2, 1.0, 152], rot: 90, seed: 535, params: { kind: 2, count: 3 } },
+  { type: 'usa.chainLink', pos: [15, 1.0, 191], seed: 540, params: { length: 14, height: 2.4 } },
+  { type: 'usa.chainLink', pos: [-15, 1.0, 196.5], seed: 541, params: { length: 14, height: 2.4 } },
+  { type: 'usa.containerStack', pos: [12, 1.0, 199], seed: 542 },
+  { type: 'usa.containerStack', pos: [-18, 1.0, 203], seed: 543 },
+  { type: 'usa.crane', pos: [34, 0, 300], rot: 20, seed: 550, params: { height: 64, boom: 1 } },
+  { type: 'usa.crane', pos: [60, 0, 332], rot: 20, seed: 551, params: { height: 60, boom: 0 } },
+  { type: 'usa.crane', pos: [-46, 0, 345], rot: -30, seed: 552, params: { height: 66, boom: 1 } },
+  { type: 'usa.pileField', pos: [-6, 0, 213], seed: 560, params: { w: 18, d: 12, rows: 4 } },
+  { type: 'usa.pileField', pos: [10, 0, 216], seed: 561, params: { w: 9, d: 8, rows: 3 } },
+);
+
 export const brooklynDocks: SpotDef = {
   id: 'brooklyn_docks',
   cityId: 'usa',

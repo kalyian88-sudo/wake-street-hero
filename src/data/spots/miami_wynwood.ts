@@ -60,6 +60,38 @@ props.push(
   { type: 'common.birds', pos: [0, 0, 90], params: { count: 8, radius: 18, height: 24 } },
 );
 
+// street dressing: seawall facing + kerb blocks, utility poles, fenced bin yards, vans, sidewalk bits
+props.push(
+  { type: 'usa.quay', pos: [8, 0, 80], seed: 500, params: { length: 190, style: 0, top: 0.9, ladderAt: [-55, 5, 62], skip: [-96, -78] } },
+  { type: 'usa.quay', pos: [-8, 0, 80], rot: 180, seed: 501, params: { length: 190, style: 0, top: 0.9, ladderAt: [-58, 25, 64], gaps: [-39.6, -22.4], skip: [78, 96] } },
+  { type: 'usa.quay', pos: [0, 0, 175], rot: -90, seed: 502, params: { length: 16, style: 0, top: 0.9 } },
+  { type: 'usa.quay', pos: [0, 0, -15], rot: 90, seed: 503, params: { length: 16, style: 0, top: 0.9 } },
+  { type: 'usa.utilityRun', pos: [12.55, 0.9, 6], seed: 510, params: { count: 6, spacing: 30, side: 1 } },
+  { type: 'usa.utilityRun', pos: [-12.55, 0.9, 14], seed: 511, params: { count: 6, spacing: 30, side: -1 } },
+  { type: 'usa.chainLink', pos: [12.6, 0.9, 83.3], rot: -90, seed: 520, params: { length: 4.4, ret: 1.4 } },
+  { type: 'usa.dumpster', pos: [13.3, 0.9, 83.3], rot: -90, seed: 521 },
+  { type: 'usa.dumpster', pos: [13.3, 0.9, 24.6], rot: -90, seed: 522 },
+  { type: 'usa.chainLink', pos: [-12.6, 0.9, 53.9], rot: 90, seed: 523, params: { length: 6, ret: 1.4 } },
+  { type: 'usa.dumpster', pos: [-13.3, 0.9, 52.6], rot: 90, seed: 524 },
+  { type: 'usa.dumpster', pos: [-13.3, 0.9, 55.2], rot: 90, seed: 525 },
+  { type: 'usa.chainLink', pos: [-12.6, 0.9, 112.9], rot: 90, seed: 526, params: { length: 4.2, ret: 1.4 } },
+  { type: 'usa.dumpster', pos: [-13.3, 0.9, 112.9], rot: 90, seed: 527 },
+  { type: 'usa.chainLink', pos: [-12.6, 0.9, 173.9], rot: 90, seed: 528, params: { length: 6, ret: 1.4 } },
+  { type: 'usa.dumpster', pos: [-13.3, 0.9, 173.2], rot: 90, seed: 529 },
+  { type: 'usa.van', pos: [12, 0.9, 50], rot: 0, seed: 530 },
+  { type: 'usa.van', pos: [-12, 0.9, 90], rot: 180, seed: 531 },
+  { type: 'usa.streetKit', pos: [10.7, 0.9, 46], rot: -90, seed: 540, params: { kind: 3, count: 3 } },
+  { type: 'usa.streetKit', pos: [9.0, 0.9, 34], seed: 541, params: { kind: 0 } },
+  { type: 'usa.streetKit', pos: [-9.0, 0.9, 106], rot: 180, seed: 542, params: { kind: 0 } },
+  { type: 'usa.streetKit', pos: [9.0, 0.9, 120], seed: 543, params: { kind: 0 } },
+  { type: 'usa.streetKit', pos: [9.1, 0.9, 58], seed: 544, params: { kind: 1 } },
+  { type: 'usa.streetKit', pos: [-9.1, 0.9, 28], seed: 545, params: { kind: 1 } },
+  { type: 'usa.streetKit', pos: [9.1, 0.9, 134], seed: 546, params: { kind: 1 } },
+  { type: 'usa.streetKit', pos: [-9.1, 0.9, 150], seed: 547, params: { kind: 1 } },
+  { type: 'usa.streetKit', pos: [13.45, 0.9, 70], rot: -90, seed: 548, params: { kind: 2 } },
+  { type: 'usa.streetKit', pos: [-13.45, 0.9, 128], rot: 90, seed: 549, params: { kind: 2 } },
+);
+
 export const miamiWynwood: SpotDef = {
   id: 'miami_wynwood',
   cityId: 'usa',

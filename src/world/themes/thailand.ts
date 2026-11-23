@@ -78,6 +78,7 @@ function stiltHouseRow(def: PropDef, ctx: PropContext): void {
   const glow = k.g('klongGlow');
   const grime = k.g('grime');
   const bam = k.g('bamboo');
+  const tank = k.g('flat');
   const flat = k.g('flat');
   const lamp = k.g('neon', undefined, { intensity: 1 });
   const lvl = lightLevel(ctx);
@@ -89,6 +90,8 @@ function stiltHouseRow(def: PropDef, ctx: PropContext): void {
     const wc = pick(rng, WOODS);
     const rc = pick(rng, ROOFS);
     const dz = 1.8; // front deck depth
+    // bays beside the start (the rider stands on the bank there, the camera sits close): no deck clutter
+    const quiet = ctx.matrixAt([cx, 0, 0]).elements[14] < 5;
     // posts (darker and damp towards the ground)
     post.color(0x5a4430);
     const pv = post.vertexCount;
@@ -100,7 +103,6 @@ function stiltHouseRow(def: PropDef, ctx: PropContext): void {
     wood.color(0x7a5e40).boxB(cx, fh - 0.14, (dz - depth) / 2, bayW - 0.1, 0.14, depth + dz);
     // cross beams
     post.boxB(cx, fh - 0.3, (dz - depth) / 2, bayW, 0.14, 0.12);
-    post.boxB(cx, fh - 0.3, dz - 0.2, bayW, 0.14, 0.12);
     // body: weathered boards, darker towards the deck
     const bv = wood.vertexCount;
     wood.color(wc, range(rng, 0.85, 1.02)).boxB(cx, fh, -depth / 2, bayW - 0.7, wallH, depth, 'y');
@@ -117,8 +119,6 @@ function stiltHouseRow(def: PropDef, ctx: PropContext): void {
     roofG.quad([cx, ridgeY, zf], [rx1, eaveY, zf], [rx1, eaveY, zb], [cx, ridgeY, zb]);
     wood.color(wc, 0.8).tri([cx - bayW / 2 + 0.35, fh + wallH, 0.02], [cx + bayW / 2 - 0.35, fh + wallH, 0.02], [cx, ridgeY - 0.1, 0.02]);
     flat.color(0x6d5a4a).boxB(cx, ridgeY - 0.03, (zf + zb) / 2, 0.14, 0.1, zf - zb);
-    // fascia boards on the canal-side gable
-    wood.color(0x4a382a).beam([rx0, eaveY - 0.04, zf], [cx, ridgeY - 0.04, zf], 0.05, 0.16).beam([cx, ridgeY - 0.04, zf], [rx1, eaveY - 0.04, zf], 0.05, 0.16);
     // rust and a mismatched replacement sheet on the roof
     for (const [xe, w0] of [[rx0, 1], [rx1, -1]] as const) {
       if (rng() < 0.75) {
@@ -137,8 +137,8 @@ function stiltHouseRow(def: PropDef, ctx: PropContext): void {
     // TV antenna
     if (rng() < 0.35) {
       const az = range(rng, zb + 1, -1);
-      flat.color(0x8a8e92).boxB(cx, ridgeY, az, 0.04, 1.7, 0.04, 'y');
-      for (let i = 0; i < 3; i++) flat.boxB(cx, ridgeY + 1.1 + i * 0.22, az, 0.9 - i * 0.2, 0.025, 0.025, 'y');
+      flat.color(0x8a8e92).boxB(cx, ridgeY, az, 0.04, 1.7, 0.04, 'yY');
+      for (let i = 0; i < 3; i++) flat.boxB(cx, ridgeY + 1.1 + i * 0.22, az, 0.9 - i * 0.2, 0.025, 0.025, 'yxX');
     }
 
     // ── facade: windows, door, tube lamp ──
@@ -152,7 +152,7 @@ function stiltHouseRow(def: PropDef, ctx: PropContext): void {
         deco.color(0xffffff, range(rng, 0.8, 1));
         faceZ(deco, wx - 0.55, wx + 0.55, wy, wy + 1.1, 0.03, KLONG_UV.winShut[Math.floor(rng() * 2)]);
       }
-      wood.color(0x4a382a).boxB(wx, wy - 0.06, 0.07, 1.25, 0.06, 0.12, 'z');
+      wood.color(0x4a382a).boxB(wx, wy - 0.06, 0.07, 1.25, 0.06, 0.12, 'zyxX');
       if (rng() < 0.6) faceZ(grime.white(), wx - 0.6, wx + 0.6, wy - 0.06 - range(rng, 0.5, 0.9), wy - 0.06, 0.03, GRIME_UV.streaks);
     }
     faceZ(deco.color(0xffffff, range(rng, 0.85, 1)), cx - 0.5, cx + 0.5, fh, fh + 2.0, 0.03, KLONG_UV.door[rng() < 0.55 ? 0 : 1]);
@@ -182,12 +182,12 @@ function stiltHouseRow(def: PropDef, ctx: PropContext): void {
     bam.boxB(cx, fh + 0.9, rz, bayW - 0.5, 0.06, 0.06);
     bam.boxB(cx, fh + 0.45, rz, bayW - 0.5, 0.05, 0.05);
     // board or banner tied to the railing
-    const railSign = rng();
+    const railSign = quiet ? 1 : rng();
     if (railSign < 0.3) faceZ(deco.white(), cx - 1.1, cx + 1.1, fh + 0.12, fh + 0.81, rz + 0.06, pick(rng, KLONG_UV.hSign));
     else if (railSign < 0.45) faceZ(deco.white(), cx - 1.5, cx + 1.5, fh + 0.14, fh + 0.8, rz + 0.06, KLONG_UV.banner);
     else if (railSign < 0.6) faceZ(deco.color(0xffffff, 0.9), cx - 1.2, cx + 1.2, fh + 0.05, fh + 0.9, rz + 0.06, KLONG_UV.tarp);
     // potted plants on the rail and the deck (crossed cards)
-    const nPl = 1 + Math.floor(rng() * 3);
+    const nPl = quiet ? 0 : 1 + Math.floor(rng() * 3);
     for (let i = 0; i < nPl; i++) {
       const px = bx + range(rng, 0.6, bayW - 0.6);
       const onRail = rng() < 0.5;
@@ -202,23 +202,23 @@ function stiltHouseRow(def: PropDef, ctx: PropContext): void {
       crossX(deco, px, pz - hw, pz + hw, py, py + hh, r);
     }
     // washing hung across the deck (faces up / down the canal)
-    if (rng() < 0.5) {
+    if (!quiet && rng() < 0.5) {
       const lx = bx + range(rng, 0.7, bayW - 0.7);
       crossX(deco.white(), lx, 0.08, 1.68, fh + 1.55, fh + 2.2, KLONG_UV.laundry);
     }
     // tarp screen between neighbours
-    if (rng() < 0.28) {
+    if (!quiet && rng() < 0.28) {
       deco.color(0xffffff, range(rng, 0.75, 0.95));
       crossX(deco, bx + 0.12, 0.05, 1.65, fh + 0.05, fh + range(rng, 1.5, 2.1), KLONG_UV.tarp);
     }
     // blade sign on a post at the deck edge
-    if (rng() < 0.3) {
+    if (!quiet && rng() < 0.3) {
       const px = bx + bayW - 0.3;
       flat.color(0x3a3430).boxB(px, fh, dz - 0.05, 0.06, 2.9, 0.06, 'y');
       crossX(deco.white(), px, dz, dz + 0.5, fh + 0.85, fh + 2.85, pick(rng, KLONG_UV.vSign));
     }
     // tarp awning stretched out over the walkway
-    if (rng() < 0.3) {
+    if (!quiet && rng() < 0.3) {
       const ax = cx + range(rng, -0.8, 0.8);
       const aw = 1.4;
       const y1 = eaveY - 0.25;
@@ -247,16 +247,16 @@ function stiltHouseRow(def: PropDef, ctx: PropContext): void {
       faceZ(deco, px - 0.55, px + 0.55, 0, 0.96, dz - 0.75, KLONG_UV.crates);
     }
     // steps from the deck down to the walkway (run along the deck front)
-    if (b === stairBay) {
+    if (b === stairBay && !quiet) {
       const sx = bx + 1.2;
-      const n = 6;
+      const n = 5;
       wood.color(0x6a5238);
-      for (let i = 0; i < n; i++) wood.boxB(sx + i * 0.3, fh - (i + 1) * (fh / (n + 1)) - 0.05, dz + 0.28, 0.3, 0.05, 0.5);
-      wood.color(0x4a382a).beam([sx - 0.15, fh - 0.2, dz + 0.5], [sx + n * 0.3, 0.0, dz + 0.5], 0.05, 0.16);
+      for (let i = 0; i < n; i++) wood.boxB(sx + i * 0.36, fh - (i + 1) * (fh / (n + 1)) - 0.05, dz + 0.28, 0.32, 0.05, 0.5, 'xX');
+      wood.color(0x4a382a).beam([sx - 0.15, fh - 0.2, dz + 0.5], [sx + n * 0.36, 0.0, dz + 0.5], 0.05, 0.16);
     }
     // water tank on a stand at the back
     if (rng() < 0.4) {
-      flat.color(0x3a7f4a).cyl(bx + 0.9, eaveY + 0.0, -depth + 1.0, 0.45, 0.45, 0.9, 8);
+      tank.color(0x3a7f4a).cyl(bx + 0.9, eaveY + 0.0, -depth + 1.0, 0.45, 0.45, 0.9, 8);
     }
   }
   k.flush();
@@ -275,6 +275,7 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
   const facade = k.g('facade');
   const signs = k.g('signs');
   const awn = k.g('corrugated', undefined, { side: 'double' });
+  const tank = k.g('flat');
   const flat = k.g('flat');
   const deco = k.g('klongDecor');
   const glow = k.g('klongGlow');
@@ -317,13 +318,13 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
         }
       }
       // one sill band per floor + rain streaks below it
-      trim.color(mixHex(wc, 0xffffff, 0.3)).boxB(cx, y + 0.78, 0.07, bayW - 0.7, 0.1, 0.14, 'z');
-      if (rng() < 0.7) faceZ(grime.white(), bx + range(rng, 0.2, 0.8), bx + bayW - range(rng, 0.2, 0.8), y + 0.78 - range(rng, 0.7, 1.4), y + 0.78, 0.03, GRIME_UV.streaks);
+      trim.color(mixHex(wc, 0xffffff, 0.3)).boxB(cx, y + 0.78, 0.07, bayW - 0.7, 0.1, 0.14, 'zyxX');
+      if (rng() < 0.5) faceZ(grime.white(), bx + range(rng, 0.2, 0.8), bx + bayW - range(rng, 0.2, 0.8), y + 0.78 - range(rng, 0.7, 1.4), y + 0.78, 0.03, GRIME_UV.streaks);
       if (rng() < 0.45) {
         // air-con box on brackets with a rust trail
         const ac = FACADE_UV.aircon;
         const ax = cx + range(rng, -0.3, 0.3);
-        flat.color(0xdedbd2).boxB(ax, y + 0.12, 0.2, 0.8, 0.56, 0.34, 'zZ');
+        flat.color(0xdedbd2).boxB(ax, y + 0.12, 0.2, 0.8, 0.56, 0.34, 'zZy');
         facade.white().quadUV([ax - 0.4, y + 0.12, 0.372], [ax + 0.4, y + 0.12, 0.372], [ax + 0.4, y + 0.68, 0.372], [ax - 0.4, y + 0.68, 0.372], ac[0], ac[1], ac[2], ac[3]);
         faceZ(grime.white(), ax - 0.4, ax + 0.4, y - 1.0, y + 0.12, 0.03, GRIME_UV.drip);
       }
@@ -362,7 +363,7 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
     faceZ(grime.white(), bx, bx + bayW, h - range(rng, 0.8, 1.6), h + 0.5, 0.11, GRIME_UV.streaks);
     const top = rng();
     if (top < 0.4) {
-      flat.color(pick(rng, [0x2f6f9a, 0x3a3a3a, 0x9a9a92])).cyl(cx + range(rng, -1, 1), h, -depth * 0.5, 0.8, 0.8, 1.5, 9);
+      tank.color(pick(rng, [0x2f6f9a, 0x3a3a3a, 0x9a9a92])).cyl(cx + range(rng, -1, 1), h, -depth * 0.5, 0.8, 0.8, 1.5, 9);
     } else if (top < 0.62) {
       // corrugated shack
       const sw = bayW - 0.8;
@@ -382,8 +383,8 @@ function shophouseRow(def: PropDef, ctx: PropContext): void {
     }
     if (rng() < 0.3) {
       const ax = cx + range(rng, -1.5, 1.5);
-      flat.color(0x8a8e92).boxB(ax, h, -2.5, 0.05, 2.6, 0.05, 'y');
-      for (let i = 0; i < 3; i++) flat.boxB(ax, h + 1.8 + i * 0.28, -2.5, 1.1 - i * 0.25, 0.03, 0.03, 'y');
+      flat.color(0x8a8e92).boxB(ax, h, -2.5, 0.05, 2.6, 0.05, 'yY');
+      for (let i = 0; i < 3; i++) flat.boxB(ax, h + 1.8 + i * 0.28, -2.5, 1.1 - i * 0.25, 0.03, 0.03, 'yxX');
     }
   }
   k.flush();
@@ -638,13 +639,28 @@ function skyline(def: PropDef, ctx: PropContext): void {
 
 // ═════════════════════════════════════════════════ klong street dressing ══
 
-function sagWire(g: GB, a: P3, b: P3, sag: number, r: number, segs = 5): void {
+/**
+ * Sagging wire from a to b. With `face` (±1) it is a one-sided vertical ribbon whose front looks towards
+ * face·X for a wire running along +Z (2 triangles per segment — for the many thin lines seen from the
+ * canal); without it a 3-sided tube.
+ */
+function sagWire(g: GB, a: P3, b: P3, sag: number, r: number, segs = 5, face = 0): void {
   const pts: P3[] = [];
   for (let i = 0; i <= segs; i++) {
     const t = i / segs;
     pts.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - sag * 4 * t * (1 - t), a[2] + (b[2] - a[2]) * t]);
   }
-  g.tube(pts, r, 3, { caps: 'none' });
+  if (!face) {
+    g.tube(pts, r, 3, { caps: 'none' });
+    return;
+  }
+  const w = r * 1.5;
+  for (let i = 0; i < segs; i++) {
+    const p = pts[i];
+    const q = pts[i + 1];
+    if (face < 0) g.quad([p[0], p[1] - w, p[2]], [q[0], q[1] - w, q[2]], [q[0], q[1] + w, q[2]], [p[0], p[1] + w, p[2]]);
+    else g.quad([q[0], q[1] - w, q[2]], [p[0], p[1] - w, p[2]], [p[0], p[1] + w, p[2]], [q[0], q[1] + w, q[2]]);
+  }
 }
 
 function poleRun(def: PropDef, ctx: PropContext): void {
@@ -658,7 +674,7 @@ function poleRun(def: PropDef, ctx: PropContext): void {
   const lamp = k.g('neon', undefined, { intensity: 1 });
   const lvl = lightLevel(ctx);
   const H = 8.6;
-  const cab = new GB();
+  const cab = k.g('flat', { cast: false });
   const omit = list(def, 'omit') ?? [];
   const zs: number[] = [];
   for (let i = 0; i < count; i++) if (!omit.includes(i)) zs.push(i * spacing);
@@ -666,13 +682,12 @@ function poleRun(def: PropDef, ctx: PropContext): void {
     const z = zs[n];
     const i = Math.round(z / spacing);
     const v0 = conc.vertexCount;
-    conc.color(0xa9a79d).cyl(0, 0, z, 0.17, 0.11, H, 7);
+    conc.color(0xa9a79d).cyl(0, 0, z, 0.17, 0.11, H, 6);
     conc.shadeBy(v0, (_x, y) => 0.72 + 0.28 * Math.min(1, y / 2.5));
     // cross-arms with insulators
     flat.color(0x55514a).boxB(0, H - 0.4, z, 1.2, 0.08, 0.08).boxB(0, H - 1.15, z, 1.0, 0.07, 0.07);
     flat.color(0x7a4a34);
-    for (const ix of [-0.5, 0, 0.5]) flat.cyl(ix, H - 0.32, z, 0.05, 0.035, 0.16, 5);
-    for (const ix of [-0.45, 0.45]) flat.cyl(ix, H - 1.08, z, 0.045, 0.03, 0.13, 5);
+    for (const ix of [-0.5, 0, 0.5]) flat.cyl(ix, H - 0.32, z, 0.05, 0.035, 0.16, 4, false);
     // junction boxes and a strapped splice case
     flat.color(0x6c6f70).boxB(-side * 0.2, H - 4.4, z, 0.22, 0.42, 0.3);
     flat.color(0x2a2a2a).boxB(-side * 0.2, H - 3.2, z + 0.5, 0.16, 0.16, 0.6);
@@ -680,10 +695,10 @@ function poleRun(def: PropDef, ctx: PropContext): void {
       // twin transformer cans on a bracket
       flat.color(0x55514a).boxB(0, H - 2.95, z, 0.12, 0.1, 1.5);
       for (const s of [-1, 1]) {
-        flat.color(0x70767a).cyl(0, H - 2.85, z + s * 0.47, 0.27, 0.27, 0.78, 8);
-        flat.color(0x8a4a34).cyl(side * 0.12, H - 2.07, z + s * 0.47, 0.04, 0.03, 0.2, 5);
+        flat.color(0x70767a).cyl(0, H - 2.85, z + s * 0.47, 0.27, 0.27, 0.78, 6);
+        flat.color(0x8a4a34).cyl(side * 0.12, H - 2.07, z + s * 0.47, 0.04, 0.03, 0.2, 4, false);
         cab.color(0x1c1a18);
-        sagWire(cab, [side * 0.12, H - 1.88, z + s * 0.47], [side * 0.45, H - 1.0, z], -0.08, 0.012, 3);
+        sagWire(cab, [side * 0.12, H - 1.88, z + s * 0.47], [side * 0.45, H - 1.0, z], -0.08, 0.012, 2, s * side);
       }
     }
     if (i % 2 === 0) {
@@ -696,8 +711,8 @@ function poleRun(def: PropDef, ctx: PropContext): void {
     if (rng() < 0.6) {
       const ring: P3[] = [];
       const cy = H - 3.75;
-      for (let j = 0; j <= 8; j++) {
-        const a = (j / 8) * Math.PI * 2;
+      for (let j = 0; j <= 6; j++) {
+        const a = (j / 6) * Math.PI * 2;
         ring.push([-side * 0.22, cy + Math.cos(a) * 0.3, z - 0.35 + Math.sin(a) * 0.26]);
       }
       cab.color(0x1c1a18).tube(ring, 0.03, 3, { caps: 'none' });
@@ -706,37 +721,36 @@ function poleRun(def: PropDef, ctx: PropContext): void {
     const nd = 1 + Math.floor(rng() * 3);
     for (let d = 0; d < nd; d++) {
       cab.color(0x1c1a18);
-      sagWire(cab, [side * 0.1, H - 3.3 - d * 0.15, z], [side * range(rng, 1.4, 2.6), range(rng, 4.3, 5.1), z + range(rng, -7, 7)], range(rng, 0.15, 0.5), 0.011, 4);
+      sagWire(cab, [side * 0.1, H - 3.3 - d * 0.15, z], [side * range(rng, 1.4, 2.6), range(rng, 4.3, 5.1), z + range(rng, -7, 7)], range(rng, 0.15, 0.5), 0.012, 3, -side);
     }
     if (n === zs.length - 1) break;
     const z1 = zs[n + 1];
     const q = ((z1 - z) / spacing) ** 2;
     // power conductors
     cab.color(0x24211e);
-    for (const ix of [-0.5, 0, 0.5]) sagWire(cab, [ix, H - 0.16, z], [ix, H - 0.16, z1], range(rng, 0.22, 0.4) * q, 0.013, 5);
-    for (const ix of [-0.45, 0.45]) sagWire(cab, [ix, H - 0.95, z], [ix, H - 0.95, z1], range(rng, 0.25, 0.45) * q, 0.012, 5);
+    for (const ix of [-0.5, 0, 0.5]) sagWire(cab, [ix, H - 0.16, z], [ix, H - 0.16, z1], range(rng, 0.22, 0.4) * q, 0.014, 3, -side);
+    for (const ix of [-0.45, 0.45]) sagWire(cab, [ix, H - 0.95, z], [ix, H - 0.95, z1], range(rng, 0.25, 0.45) * q, 0.013, 3, -side);
     // telecom bundle: many thin lines sagging differently + one fat lashed cable
     cab.color(0x151413);
-    const nt = 5 + Math.floor(rng() * 3);
+    const nt = 5 + Math.floor(rng() * 2);
     for (let w = 0; w < nt; w++) {
       const ya = H - 3.15 - w * 0.09 + range(rng, -0.04, 0.04);
       const yb = H - 3.15 - ((w * 3) % nt) * 0.09 + range(rng, -0.04, 0.04);
-      sagWire(cab, [-side * range(rng, 0.14, 0.3), ya, z], [-side * range(rng, 0.14, 0.3), yb, z1], range(rng, 0.35, 1.15) * Math.min(q, 2), range(rng, 0.011, 0.02), 6);
+      sagWire(cab, [-side * range(rng, 0.14, 0.3), ya, z], [-side * range(rng, 0.14, 0.3), yb, z1], range(rng, 0.35, 1.15) * Math.min(q, 2), range(rng, 0.012, 0.022), 4, -side);
     }
-    sagWire(cab, [-side * 0.2, H - 3.9, z], [-side * 0.2, H - 3.9, z1], range(rng, 0.5, 0.8) * Math.min(q, 2), 0.04, 6);
+    sagWire(cab, [-side * 0.2, H - 3.9, z], [-side * 0.2, H - 3.9, z1], range(rng, 0.5, 0.8) * Math.min(q, 2), 0.04, 3);
     // a loop that came loose mid-span
     if (rng() < 0.45) {
       const zc = z + (z1 - z) * range(rng, 0.25, 0.75);
       const loop: P3[] = [];
-      for (let j = 0; j <= 6; j++) {
-        const t = j / 6;
+      for (let j = 0; j <= 4; j++) {
+        const t = j / 4;
         loop.push([-side * 0.22, H - 4.0 - 1.1 * Math.sin(Math.PI * t), zc + (t - 0.5) * 2.4]);
       }
       cab.tube(loop, 0.014, 3, { caps: 'none' });
     }
   }
   k.flush();
-  ctx.addStatic(cab.build(), ctx.mat('flat'), ctx.matrixAt());
 }
 
 const KQ_BOTTOM = -0.75;
@@ -800,16 +814,16 @@ function klongQuay(def: PropDef, ctx: PropContext): void {
   // from the edge) so the board sits on the stone; a few stretches carry faded warning paint
   let n = 0;
   for (let z = z0; z < z1 - 0.05; n++) {
-    const l = Math.min(z1 - z, range(rng, 2.0, 3.2));
+    const l = Math.min(z1 - z, range(rng, 4.5, 7));
     if (!inGap(z + l / 2)) {
       if (paint && Math.floor((z - z0) / 22) % 3 === 1) cope.color(n % 2 ? 0xc9b23a : 0x3a3936, range(rng, 0.85, 1.0));
       else cope.color(pick(rng, [0xb4b1a6, 0xa6a398, 0xbdb9ac, 0x9c998e]), range(rng, 0.88, 1.05));
-      cope.chamferBox(0.14, top, z + l / 2, 0.36, TRIM_TOP.kerb, l - 0.014, 0.03);
+      cope.chamferBox(0.14, top, z + l / 2, 0.36, TRIM_TOP.kerb, l - 0.014, 0.03, 'yzZ');
     }
     z += l;
   }
   // squat concrete mooring stubs with a rope turn, well inside the edge
-  for (let z = z0 + range(rng, 5, 9); z < z1 - 3; z += range(rng, 11, 16)) {
+  for (let z = z0 + range(rng, 18, 24); z < z1 - 18; z += range(rng, 11, 16)) {
     if (inGap(z)) continue;
     cope.color(0x9c998e).cyl(0.55, top, z, 0.11, 0.09, 0.36, 6);
     iron.color(0xc8b080).cyl(0.55, top + 0.1, z, 0.125, 0.125, 0.1, 6, false);
@@ -833,23 +847,23 @@ function klongQuay(def: PropDef, ctx: PropContext): void {
 function foodCart(def: PropDef, ctx: PropContext): void {
   const rng = ctx.rng;
   const k = new Kit(ctx);
+  const body = k.g('flat');
   const flat = k.g('flat');
   const deco = k.g('klongDecor');
   const lamp = k.g('neon', undefined, { intensity: 1 });
   const lvl = lightLevel(ctx);
   void def;
   // steel body + glass case
-  flat.color(0xb4b8bc).boxB(0, 0.38, 0, 0.66, 0.5, 1.5);
+  body.color(0xb4b8bc).boxB(0, 0.38, 0, 0.66, 0.5, 1.5);
   flat.color(0xd4e6e6).boxB(0, 0.88, 0, 0.6, 0.42, 1.4, 'y');
   deco.white().quadUV([-0.335, 0.38, 0.75], [-0.335, 0.38, -0.75], [-0.335, 1.3, -0.75], [-0.335, 1.3, 0.75], KLONG_UV.cartFront[0], KLONG_UV.cartFront[1], KLONG_UV.cartFront[2], KLONG_UV.cartFront[3]);
   // wheels + handle + prop leg
   for (const wz of [-0.45, 0.45]) {
-    flat.color(0x1c1c1e).rod([-0.37, 0.3, wz], [-0.33, 0.3, wz], 0.3, 8, true);
-    flat.rod([0.33, 0.3, wz], [0.37, 0.3, wz], 0.3, 8, true);
+    flat.color(0x1c1c1e).rod([-0.37, 0.3, wz], [0.37, 0.3, wz], 0.3, 7, true);
   }
-  flat.color(0x8a8e92).rod([-0.3, 0.8, 0.75], [-0.3, 0.9, 1.1], 0.018, 4).rod([0.3, 0.8, 0.75], [0.3, 0.9, 1.1], 0.018, 4).rod([-0.3, 0.9, 1.1], [0.3, 0.9, 1.1], 0.018, 4);
+  flat.color(0x8a8e92).rod([-0.3, 0.85, 1.05], [0.3, 0.85, 1.05], 0.02, 4);
   // canopy on four posts, menu board, tube light
-  for (const [px, pz] of [[-0.3, -0.72], [0.3, -0.72], [-0.3, 0.72], [0.3, 0.72]] as const) flat.boxB(px, 0.88, pz, 0.03, 1.2, 0.03, 'y');
+  for (const [px, pz] of [[-0.3, -0.72], [0.3, -0.72], [-0.3, 0.72], [0.3, 0.72]] as const) flat.boxB(px, 0.88, pz, 0.03, 1.2, 0.03, 'yY');
   const r = rng() < 0.5 ? KLONG_UV.awning : KLONG_UV.tarp;
   deco.color(0xffffff, 0.95).quadUV([-0.6, 2.0, 0.9], [0.5, 2.12, 0.9], [0.5, 2.12, -0.9], [-0.6, 2.0, -0.9], r[0], r[1], r[2], r[3]);
   deco.color(0xffffff, 0.6).quadUV([0.5, 2.1, 0.9], [-0.6, 1.98, 0.9], [-0.6, 1.98, -0.9], [0.5, 2.1, -0.9], r[0], r[1], r[2], r[3]);
@@ -857,11 +871,9 @@ function foodCart(def: PropDef, ctx: PropContext): void {
   deco.white().quadUV([-0.6, 1.72, 0.6], [-0.6, 1.72, -0.6], [-0.6, 2.0, -0.6], [-0.6, 2.0, 0.6], m[0], m[1], m[2], m[3]);
   lamp.color(0xfff4d8, lvl * 1.2).boxB(0, 1.96, 0, 0.04, 0.035, 0.9);
   // pots on the counter, gas cylinder, cool box, stool
-  flat.color(0xc8ccd0).cyl(0.05, 1.3, 0.35, 0.16, 0.16, 0.18, 7);
-  flat.color(0x3a3a3a).cyl(0.05, 1.3, -0.3, 0.2, 0.14, 0.1, 7);
+  flat.color(0xc8ccd0).cyl(0.05, 1.3, 0.35, 0.16, 0.16, 0.18, 6);
   flat.color(pick(rng, [0x3a8a4a, 0xe8762a])).cyl(0.15, 0, -1.05, 0.15, 0.15, 0.5, 7);
-  flat.color(0x3a3a3a).cyl(0.15, 0.5, -1.05, 0.05, 0.05, 0.1, 5);
-  flat.color(pick(rng, [0x2f6fc0, 0xd8342a, 0xf2f0e6])).boxB(0.1, 0, 1.25, 0.42, 0.36, 0.55);
+    flat.color(pick(rng, [0x2f6fc0, 0xd8342a, 0xf2f0e6])).boxB(0.1, 0, 1.25, 0.42, 0.36, 0.55);
   flat.color(pick(rng, [0xd8342a, 0x2f6fc0, 0x36a85a])).cyl(0.4, 0, 0.3 + range(rng, -0.2, 0.2), 0.15, 0.13, 0.4, 6);
   k.flush();
 }
