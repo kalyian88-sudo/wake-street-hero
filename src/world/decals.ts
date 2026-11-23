@@ -1565,8 +1565,8 @@ function rustSpots(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.clip();
   for (let i = 0; i < n; i++) {
     const py = y + h * Math.pow(rnd(), bias);
-    const r = 2 + rnd() * 9;
-    ctx.fillStyle = `rgba(${110 + Math.floor(rnd() * 50)},${50 + Math.floor(rnd() * 30)},${18 + Math.floor(rnd() * 16)},${0.35 + rnd() * 0.5})`;
+    const r = 1.5 + rnd() * 6;
+    ctx.fillStyle = `rgba(${110 + Math.floor(rnd() * 50)},${50 + Math.floor(rnd() * 30)},${18 + Math.floor(rnd() * 16)},${0.25 + rnd() * 0.45})`;
     ctx.beginPath();
     ctx.ellipse(x + rnd() * w, py, r, r * (0.6 + rnd() * 1.4), 0, 0, Math.PI * 2);
     ctx.fill();
@@ -2394,6 +2394,10 @@ export function drawKlongAtlas(seed: number): HTMLCanvasElement {
   {
     const x = 512;
     const y = 912;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, 256, 112);
+    ctx.clip();
     let px = x + 6;
     while (px < x + 240) {
       const pw = 20 + rnd() * 16;
@@ -2433,6 +2437,7 @@ export function drawKlongAtlas(seed: number): HTMLCanvasElement {
       ctx.fillRect(px + pw * 0.6, baseY - ph, pw * 0.3, ph);
       px += pw + 4 + rnd() * 10;
     }
+    ctx.restore();
   }
   // ── jars / barrels / cylinders / stools (alpha) ──
   {
@@ -2945,6 +2950,10 @@ export function drawUsaAtlas(seed: number): HTMLCanvasElement {
   {
     const x = 640;
     const y = 512;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, 160, 160);
+    ctx.clip();
     ctx.fillStyle = '#f2efe8';
     ctx.fillRect(x, y, 160, 160);
     for (let i = 0; i < 11; i++) {
@@ -2970,6 +2979,7 @@ export function drawUsaAtlas(seed: number): HTMLCanvasElement {
     ctx.strokeRect(x + 2.5, y + 2.5, 155, 155);
     ctx.fillStyle = '#d0ccc2';
     ctx.fillRect(x, y + 150, 160, 10);
+    ctx.restore();
   }
   // ── ghost sign (alpha, worn) ──
   {
@@ -2991,7 +3001,7 @@ export function drawUsaAtlas(seed: number): HTMLCanvasElement {
     ctx.fillText('PIER 7', x + 112, y + 134);
     // wear: punch thousands of small holes
     ctx.globalCompositeOperation = 'destination-out';
-    for (let i = 0; i < 2600; i++) {
+    for (let i = 0; i < 1300; i++) {
       ctx.fillStyle = 'rgba(0,0,0,1)';
       const s = 1 + rnd() * 3.5;
       ctx.fillRect(x + rnd() * 224, y + rnd() * 160, s, s * (0.6 + rnd() * 2));
@@ -3085,7 +3095,8 @@ export function drawUsaAtlas(seed: number): HTMLCanvasElement {
     for (let r = 0; r < courses; r++) {
       let px = r % 2 ? -40 : 0;
       while (px < UW) {
-        const bw = 70 + Math.floor(rnd() * 70);
+        let bw = 70 + Math.floor(rnd() * 70);
+        if (UW - (px + bw) < 60) bw = UW - px;
         const tone = 96 + Math.floor(rnd() * 46);
         const col = `rgb(${tone + 8},${tone + 2},${tone - 8})`;
         const bx = px;
@@ -3098,7 +3109,6 @@ export function drawUsaAtlas(seed: number): HTMLCanvasElement {
           ctx.fillRect(bx + o + 1.5, y + (r + 1) * ch - 5, bw - 3, 3.5);
         });
         px += bw;
-        if (px > UW - 60 && px < UW) px = UW;
       }
     }
     for (let i = 0; i < 400; i++) {

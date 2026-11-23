@@ -87,7 +87,7 @@ vec3 wshPaint( vec3 col, vec3 dir, float cosSun ) {
 	// warmer and brighter towards the sun
 	g = mix( g, wshPosterHor * 1.4, pow( max( cosSun, 0.0 ), 6.0 ) * 0.7 );
 	float l = dot( col, vec3( 0.2126, 0.7152, 0.0722 ) );
-	vec3 painted = g * ( 0.35 + 0.65 * l / max( wshPoster.y, 1e-4 ) );
+	vec3 painted = g * min( 0.45 + 0.65 * l / max( wshPoster.y, 1e-4 ), 1.5 );
 	return mix( col, painted, wshPoster.x * smoothstep( -0.02, 0.02, dir.y ) );
 }
 
@@ -318,10 +318,10 @@ function posterUniforms(def: EnvDef): Record<string, IUniform> {
   const sunset = def.timeOfDay === 'sunset';
   const on = sunset ? 0.75 : def.timeOfDay === 'golden' ? 0.3 : 0;
   // typical sky radiance (after wshGain) the gradient is normalised to
-  const ref = sunset ? 0.9 : 1.4;
+  const ref = sunset ? 0.6 : 1.4;
   return {
     wshPoster: { value: new Vector4(on, ref, 0, 0) },
-    wshPosterZen: { value: sunset ? new Color(0.34, 0.54, 1.0) : new Color(0.4, 0.62, 1.1) },
+    wshPosterZen: { value: sunset ? new Color(0.3, 0.54, 1.08) : new Color(0.4, 0.62, 1.1) },
     wshPosterMid: { value: sunset ? new Color(0.82, 0.84, 0.96) : new Color(0.84, 0.92, 1.08) },
     wshPosterHor: { value: sunset ? new Color(1.45, 1.14, 0.82) : new Color(1.4, 1.3, 1.16) },
   };
